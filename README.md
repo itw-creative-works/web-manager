@@ -22,6 +22,9 @@
 
 # Web Manager
 **Web Manager** is an NPM module that instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
+
+[Site](https://itwcreativeworks.com) | [NPM Module](https://www.npmjs.com/package/web-manager) | [GitHub Repo](https://github.com/itw-creative-works/web-manager)
+
 </div>
 
 ## Install
@@ -62,13 +65,13 @@ Manager.init(config, function() {
 Lets go over some example usage of the library.
 
 ### Kitchen Sink Config example
-By default, all of the libraries are enabled. But you can simply set `enabled` to `false` to disable any of them. No configuration is required with the exception of Firebase, you must supply the information provided by Firebase for your project for this library to work.
+By default, all of the libraries are enabled. But you can simply set `enabled` to `false` to disable any of them. Most of these libraries work without configuration but for some, such as Firebase, Tawk, and Sentry, you must supply the relevant IDs and API keys.
 
 ```
 var config =
   {
     libraries: {
-      firebase_app: {
+      firebase_app: { // Config is required if enabled
         enabled: true,
         config: {
           apiKey: '123456',
@@ -80,23 +83,47 @@ var config =
           appId: '1:xxx'
         },
       },
-      cookieconsent: {
-        enabled: true,
-        config: {}
-      },
-      tawk: {
+      tawk: { // Config is required if enabled
         enabled: true,
         config: {
           chatId: 'xxx'
         }
       },
-      sentry: {
+      sentry: { // Config is required if enabled
         enabled: true,
         config: {
-          dsn: '',
+          dsn: 'xxx',
           release: 'xxx'
         }
-      }
+      },
+      cookieconsent: { // No config required
+        enabled: true,
+        config: {
+          palette: {
+            popup: {
+              background: '#237afc',
+              text: '#ffffff'
+            },
+            button: {
+              background: '#fff',
+              text: '#237afc'
+            }
+          },
+          theme: 'classic',
+          position: 'bottom-left',
+          type: '',
+          content: {
+            message: 'This website uses cookies to ensure you get the best experience on our website.',
+            dismiss: 'Got it!',
+            link: 'Learn more',
+            // href: '' || This.properties.global.urlRoot + '/cookies/',
+            href: (This.properties.global.url + '/cookies/'),
+          }
+        }
+      },
+      lazysizes: { // No config required
+        enabled: true,
+      }      
     }
   }
 ```
