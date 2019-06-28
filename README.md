@@ -9,7 +9,7 @@
 
 ![David](https://img.shields.io/david/itw-creative-works/web-manager.svg)
 ![David](https://img.shields.io/david/dev/itw-creative-works/web-manager.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/itw-creative-works/web-manager.svg)
+<!-- ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/itw-creative-works/web-manager.svg) -->
 ![npm bundle size](https://img.shields.io/bundlephobia/min/web-manager.svg)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/web-manager.svg)
 ![npm](https://img.shields.io/npm/dm/web-manager.svg)
@@ -29,7 +29,7 @@
 
 ## Install
 Install with npm:
-```
+```shell
 npm install web-manager
 ```
 
@@ -50,15 +50,16 @@ npm install web-manager
 
 ## Example Setup
 After installing via npm, simply paste this script before the closing `</body>` tag to initialize Web Manager.
-```
-var Manager = new (require('web-manager'));
-var config = {
-  // ... your config here
-}
-Manager.init(config, function() {
-  Manager.log('Initialized main.js');
-});
-
+```html
+<script type="text/javascript">
+  var Manager = new (require('web-manager'));
+  var config = {
+    // ... your config here
+  }
+  Manager.init(config, function() {
+    Manager.log('Initialized main.js');
+  });
+</script>
 ```
 
 ## Example Usage
@@ -67,7 +68,8 @@ Lets go over some example usage of the library.
 ### Kitchen Sink Config example
 By default, all of the libraries are enabled. But you can simply set `enabled` to `false` to disable any of them. Most of these libraries work without configuration but for some, such as Firebase, Tawk, and Sentry, you must supply the relevant IDs and API keys.
 
-```
+```html
+<script type="text/javascript">
 var config =
   {
     libraries: {
@@ -126,11 +128,19 @@ var config =
       }      
     }
   }
+  var Manager = new (require('web-manager'));
+  var config = {
+    // ... your config here
+  }
+  Manager.init(config, function() {
+    Manager.log('Initialized main.js');
+  });
+</script>
 ```
 
 ### Utilizing the .dom() API
 The Web Manager .dom() API is like a super lightweight and efficient version of jQuery, just better!
-```
+```html
 <div class="el" id="el1">.el 1</div>
 <div class="el" id="el2">.el 1</div>
 <div class="el" id="el3">.el 1</div>
@@ -185,7 +195,7 @@ The Web Manager .dom() API is like a super lightweight and efficient version of 
 
 ### Utilizing the .query() API
 The Web Manager .query() API is used to construct and deconstruct a query string.
-```
+```html
 <script type="text/javascript">
   Manager.ready(function() {
     console.log('--- Exploring the .query() API ---');
@@ -215,7 +225,7 @@ The Web Manager .query() API is used to construct and deconstruct a query string
 
 ### Utilizing the .utilities() API
 The Web Manager .utilities() API wraps some useful functions such as getting and setting values of objects.
-```
+```html
 <script type="text/javascript">
   console.log('--- Exploring the .utilities() API ---');
   Manager.ready(function() {
@@ -245,7 +255,7 @@ The Web Manager .utilities() API wraps some useful functions such as getting and
 
 ### Utilizing the .storage() API
 The Web Manager .storage() API is a wrapper for the localStorage API that automatically checks if localStorage is supported, automatically serializing (`JSON.stringify()`) and parsing (`JSON.parse()`) the inputs and outputs allowing you to natively work with storing objects in localStorage without any extra work!
-```
+```html
 <script type="text/javascript">
   Manager.ready(function() {
     console.log('--- Exploring the .storage() API ---');
