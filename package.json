@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "index.js",
   "scripts": {
@@ -14,7 +14,7 @@
     "library"
   ],
   "author": "ITW Creative Works",
-  "license": "ISC",
+  "license": "CC-BY-4.0",
   "bugs": {
     "url": "https://github.com/itw-creative-works/web-manager/issues"
   },
