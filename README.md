@@ -8,8 +8,7 @@
 ![GitHub package.json version](https://img.shields.io/github/package-json/v/itw-creative-works/web-manager.svg)
 
 ![David](https://img.shields.io/david/itw-creative-works/web-manager.svg)
-![David](https://img.shields.io/david/dev/itw-creative-works/web-manager.svg)
-<!-- ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/itw-creative-works/web-manager.svg) -->
+![David](https://img.shields.io/david/dev/itw-creative-works/web-manager.svg) <!-- ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/itw-creative-works/web-manager.svg) -->
 ![npm bundle size](https://img.shields.io/bundlephobia/min/web-manager.svg)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/web-manager.svg)
 ![npm](https://img.shields.io/npm/dm/web-manager.svg)
