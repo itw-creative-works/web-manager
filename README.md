@@ -11,13 +11,12 @@
 ![David](https://img.shields.io/david/dev/itw-creative-works/web-manager.svg) <!-- ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/itw-creative-works/web-manager.svg) -->
 ![npm bundle size](https://img.shields.io/bundlephobia/min/web-manager.svg)
 ![Code Climate maintainability](https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/web-manager.svg)
-![npm](https://img.shields.io/npm/dm/web-manager.svg)
+![npm](https://img.shields.io/npm/dm/web-manager.svg) <!-- [![NPM total downloads](https://img.shields.io/npm/dt/web-manager.svg?style=flat)](https://npmjs.org/package/web-manager) -->
 ![node](https://img.shields.io/node/v/web-manager.svg)
 ![Website](https://img.shields.io/website/https/itwcreativeworks.com.svg)
 ![GitHub](https://img.shields.io/github/license/itw-creative-works/web-manager.svg)
 ![GitHub contributors](https://img.shields.io/github/contributors/itw-creative-works/web-manager.svg)
 ![GitHub last commit](https://img.shields.io/github/last-commit/itw-creative-works/web-manager.svg)
-
 
 # Web Manager
 **Web Manager** is an NPM module that instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
