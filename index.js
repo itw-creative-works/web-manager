@@ -593,37 +593,6 @@ function Manager() {
     }
   }
 
-  // function handleTokenRefresh() {
-  //   return firebase.messaging().getToken().then((token) => {
-  //     firebase.database().ref('/tokens').push({
-  //       token: token,
-  //       uid: firebase.auth().currentUser.uid
-  //     });
-  //   });
-  // }
-
-  // function handleTokenRefresh() {
-  //   return firebase.messaging().getToken()
-  //     .then((token) => {
-  //       console.log('handleTokenRefresh()');
-  //       firebase.firestore().doc('/notifications/subscriptions/list/' + firebase.auth().currentUser.uid)
-  //         .set(
-  //           {
-  //             token: token,
-  //             uid: firebase.auth().currentUser.uid,
-  //             timestamp: getDateTime(),
-  //             timestampUNIX: new Date().getTime(),
-  //             tags: ['general']
-  //           },
-  //           {
-  //           merge: true
-  //         })
-  //         .catch(function(e) {
-  //           console.error('Failed to set Firestore doc:', e);
-  //         });
-  //     });
-  // }
-
   function handleTokenRefresh() {
     return firebase.messaging().getToken()
       .then((token) => {
@@ -640,23 +609,19 @@ function Manager() {
 
   function updateSubscription(token) {
     console.log('updateSubscription()');
-    return firebase.firestore().doc('/notifications/subscriptions/all/' + token)
+    return firebase.firestore().doc('notifications/subscriptions/all/' + token)
       .set(
         {
           dateSubscribed: {
             timestamp: getDateTime(),
             timestampUNIX: new Date().getTime(),
           },
-          meta: {
-            token: token,
-          },
+          token: token,
           linked: {
-            owner: {
+            user: {
               timestampLastLinked: getDateTime(),
               data: {
-                meta: {
-                  uid: firebase.auth().currentUser.uid || ''
-                }
+                uid: firebase.auth().currentUser.uid || ''
               }
             }
           },
@@ -676,7 +641,7 @@ function Manager() {
     return firebase.messaging().getToken()
       .then((token) => {
         if (token) {
-          return firebase.firestore().doc('/notifications/subscriptions/all/' + token)
+          return firebase.firestore().doc('notifications/subscriptions/all/' + token)
             .get()
             .then(function (documentSnapshot) {
               if (documentSnapshot.exists == false) {
