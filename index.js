@@ -137,7 +137,8 @@ function Manager() {
     if (utilities.get(this, 'properties.page.status.eventHandlersSet', false) == false) {
       this.properties.page.status.eventHandlersSet = true;
       var This = this;
-      document.addEventListener('click', function (event) {
+      // document.addEventListener('click', function (event) {
+      This.dom().select('body').on('click', function (event) {
         This.log('Clicked', event.target);
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
@@ -549,17 +550,10 @@ function Manager() {
 
   Manager.prototype.subscribeToPushNotifications = function(options) {
     if ((typeof firebase.messaging !== 'undefined')) {
-      // console.log('subscribeToPushNotifications()');
-      // firebase.messaging().requestPermission()
-      //   .then(() => handleTokenRefresh())
-      //   .then(() => checkSubscription())
-      //   .catch((err) => {
-      //     console.error("Error getting permission: ", err);
-      //   });
-      firebase.messaging().requestPermission()
+      return firebase.messaging().requestPermission()
         .then(() => checkSubscription())
         .catch((err) => {
-          console.error("Error getting permission: ", err);
+          console.error(err);
         });
     }
   }
@@ -575,7 +569,6 @@ function Manager() {
       .then(function (registration) {
         firebase.messaging().useServiceWorker(registration);
         // registration.update();
-
         This.properties.page.status.masterSWRegistered = true;
 
         firebase.messaging().onTokenRefresh(handleTokenRefresh);
@@ -586,8 +579,8 @@ function Manager() {
           }, options_user.pushNotifications.timeoutCheck * 1000);
         }
       })
-      .catch(function (registration) {
-        console.error('Error registering service worker.');
+      .catch(function (e) {
+        console.error(e);
       });
 
     }
@@ -599,11 +592,11 @@ function Manager() {
         if (token) {
           updateSubscription(token);
         } else {
-          console.error('Failed to get token:', e);
+          console.error('Failed to get token');
         }
       })
       .catch(function(e) {
-        console.error('Failed to get token:', e);
+        console.error(e);
       });
   }
 
@@ -631,13 +624,18 @@ function Manager() {
           merge: true
         }
       )
+      .then(function() {
+        window.Manager.log('Updated token: ', token);
+      })
       .catch(function(e) {
-        console.error('Failed to set Firestore doc:', e);
+        console.error(e);
       });
   }
 
   function checkSubscription() {
     // console.log('checkSubscription()');
+    // console.log('MANAGER!!!', Manager);
+    // console.log('window.MANAGER!!!', window.Manager);
     return firebase.messaging().getToken()
       .then((token) => {
         if (token) {
@@ -645,24 +643,24 @@ function Manager() {
             .get()
             .then(function (documentSnapshot) {
               if (documentSnapshot.exists == false) {
-                // console.log('$$$ Is NOT subscribed in firestore, subscribing now.');
+                window.Manager.log('Subscribing now');
                 updateSubscription(token)
                 .then(function () {
-                  // console.log('$$$ Subscribe DONE');
+                  window.Manager.log('Subscribe done!');
                 })
               } else {
-                // console.log('$$$ Is ALREADY subscribed in firestore.');
+                window.Manager.log('Already subscribed');
               }
             })
             .catch(function(e) {
-              console.error('Failed to get Firestore doc:', e);
+              console.error(e);
             });
         } else {
-          console.error('Failed to get token:', e);
+          console.error('Failed to get token');
         }
       })
       .catch(function(e) {
-        console.error('Failed to get token:', e);
+        console.error(e);
       });
   }
 

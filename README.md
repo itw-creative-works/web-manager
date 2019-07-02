@@ -150,6 +150,8 @@ The Web Manager .dom() API is like a super lightweight and efficient version of 
 
 <input class="input" type="text" name="" value="Hello World!">
 
+<div class="click-me">Click counter: 0</div>
+
 <script type="text/javascript">
   Manager.ready(function() {
     console.log('--- Exploring the .dom() API ---');
@@ -181,11 +183,22 @@ The Web Manager .dom() API is like a super lightweight and efficient version of 
     el5.setValue('Hello again World!'); // Set a value
     console.log('Value 2: ', el5.getValue());
 
+    var clicks = 0;
+    const el6 = Manager.dom().select('.click-me');
+    Manager.dom().select('body').on('click', function(event) {
+      if (event.target.matches('.click-me')) {
+        clicks++;
+        el6.setInnerHTML('Click counter: ' + clicks)
+      }
+    });
+
     // Loading a script
     Manager.dom()
     .loadScript({src: 'https://platform.twitter.com/widgets.js', crossorigin: true}, function() {
       Manager.log('Loaded Twitter script.');
     });
+
+
 
   });
 </script>
@@ -270,6 +283,51 @@ The Web Manager .storage() API is a wrapper for the localStorage API that automa
 </script>
 ```
 
+### Utilizing the Firebase Auth System
+The Firebase login system works like charm out of the box without you having to write a single line of code. All you have to do is add a few classes to your HTML elements and everything will work.
+* `.auth-email-input`: Add to an input for the user's email
+* `.auth-password-input`: Add to an input for the user's password
+* `.auth-signin-email-btn`: Add to a button to handle the signin process
+* `.auth-signuup-email-btn`: Add to a button to handle the signup process
+* `.auth-signout-all-btn`: Add to a button to handle the signout process
+* `.auth-email-element`: Add to a div to display the user's email
+* `.auth-uid-element`: Add to a div to display the user's uid
+* `.auth-signedin-true-element`: Add to any element and it will be hidden if the user *is* signed in
+* `.auth-signedin-false-element`: Add to any element and it will be hidden if the user *is not* signed in
+
+```html
+<div class="auth-signedin-false-element">
+  <div class="">
+    Not signed in
+  </div>
+  Email: <input class="auth-email-input" type="email" name="" value=""><br>
+  Password: <input class="auth-password-input" type="password" name="" value=""><br>
+  <div class="auth-error-message-element"></div>
+  <button class="auth-signin-email-btn" type="button" name="button">Sign in</button>
+  <button class="auth-signup-email-btn" type="button" name="button">Sign up</button>
+</div>
+<div class="auth-signedin-true-element">
+  User is signed in <br>
+  Email: <span class="auth-email-element">...</span> <br>
+  UserId: <span class="auth-uid-element">...</span> <br>
+  <button class="auth-signout-all-btn" type="button" name="button">Sign out</button>
+</div>
+```
+
+### Utilizing the Firebase Push Notification Subscription System
+The Firebase push notification system also works with minimal implementation on your part. Just call `Manager.subscribeToPushNotifications()` and the rest is handled for you!
+
+```html
+<script type="text/javascript">
+  Manager.subscribeToPushNotifications()
+  .then(function() {
+    Manager.log('Subscribed to push notifications!')
+  })
+  .catch(function(e) {
+    Manager.log('error', 'Failed to subscribe to push notifications: ', e)
+  })
+</script>
+```
 
 ## Final Words
 If you are still having difficulty, we would love for you to post
