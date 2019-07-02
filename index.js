@@ -14,11 +14,11 @@ https://github.com/pirxpilot/domready/blob/master/index.js
  * DEPENDENCIES
  */
 
-const ajax = require('./lib/ajax.js');
-const dom = require('./lib/dom.js');
-const query = require('./lib/query.js');
-const utilities = require('./lib/utilities.js');
-const storage = require('./lib/storage.js');
+var ajax = require('./lib/ajax.js');
+var dom = require('./lib/dom.js');
+var query = require('./lib/query.js');
+var utilities = require('./lib/utilities.js');
+var storage = require('./lib/storage.js');
 
 /**
 * MODULE
@@ -136,7 +136,7 @@ function Manager() {
   Manager.prototype.setEventListeners = function() {
     if (utilities.get(this, 'properties.page.status.eventHandlersSet', false) == false) {
       this.properties.page.status.eventHandlersSet = true;
-      const This = this;
+      var This = this;
       document.addEventListener('click', function (event) {
         This.log('Clicked', event.target);
         // auth events
@@ -350,7 +350,7 @@ function Manager() {
   // init with polyfills
   Manager.prototype.init = function(configuration, callback) {
 
-    const This = this;
+    var This = this;
     if ((utilities.get(This, 'properties.page.status.ready', false) == false) && ((utilities.get(This, 'properties.page.status.initializing', false) == false))) {
 
       // set initializing to true
@@ -362,7 +362,7 @@ function Manager() {
       init_loadPolyfills(This, configuration, function() {
           This.properties.page.status.initializing = false;
 
-          const options_defaults = {
+          var options_defaults = {
             queryString: {
               saveToStorage: false,
             },
@@ -463,7 +463,7 @@ function Manager() {
             },
           };
 
-          let options_user = {};
+          var options_user = {};
           function eachRecursive(obj, parent) {
             parent = (!parent) ? '' : parent;
               for (var key in obj) {
@@ -670,7 +670,7 @@ function Manager() {
   /*
   EXTERNAL LIBS
   */
-  const load_firebase = (This, options) => new Promise((resolve) => {
+  var load_firebase = (This, options) => new Promise((resolve) => {
     if (typeof window.firebase !== 'undefined') {
       return resolve();
     }
@@ -696,7 +696,7 @@ function Manager() {
 
   });
 
-  const load_firebase_auth = (This, options) => new Promise((resolve) => {
+  var load_firebase_auth = (This, options) => new Promise((resolve) => {
     if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
       return resolve();
     }
@@ -714,7 +714,7 @@ function Manager() {
 
   });
 
-  const load_firebase_firestore = (This, options) => new Promise((resolve) => {
+  var load_firebase_firestore = (This, options) => new Promise((resolve) => {
     if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
       return resolve();
     }
@@ -732,7 +732,7 @@ function Manager() {
 
   });
 
-  const load_firebase_messaging = (This, options) => new Promise((resolve) => {
+  var load_firebase_messaging = (This, options) => new Promise((resolve) => {
     if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
       return resolve();
     }
@@ -750,7 +750,7 @@ function Manager() {
 
   });
 
-  const load_lazysizes = (This, options) => new Promise((resolve) => {
+  var load_lazysizes = (This, options) => new Promise((resolve) => {
     if (typeof window.lazysizes !== 'undefined') {
       return resolve();
     }
@@ -759,7 +759,7 @@ function Manager() {
         window.lazysizes = require('lazysizes');
 
         // configs come from official lazysizes demo
-        let expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
+        var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
         window.lazySizesConfig = {
           loadMode: 1,
           expand: expand,
@@ -776,7 +776,7 @@ function Manager() {
 
   });
 
-  const load_cookieconsent = (This, options) => new Promise((resolve) => {
+  var load_cookieconsent = (This, options) => new Promise((resolve) => {
     if (typeof window.cookieconsent !== 'undefined') {
       return resolve();
     }
@@ -795,7 +795,7 @@ function Manager() {
 
   });
 
-  const load_tawk = (This, options) => new Promise((resolve) => {
+  var load_tawk = (This, options) => new Promise((resolve) => {
     if (typeof window.Tawk_API !== 'undefined') {
       return resolve();
     }
@@ -810,14 +810,14 @@ function Manager() {
     }
   });
 
-  const load_sentry = (This, options) => new Promise((resolve) => {
+  var load_sentry = (This, options) => new Promise((resolve) => {
     if (typeof window.Sentry !== 'undefined') {
       return resolve();
     }
     if (options.libraries.sentry.enabled == true) {
       require.ensure([], () => {
         window.Sentry = require('@sentry/browser');
-        let config = options.libraries.sentry.config;
+        var config = options.libraries.sentry.config;
         config.release = config.release + '@' + This.properties.global.version;
         config.environment = This.properties.meta.environment;
         Sentry.init(config);
@@ -874,7 +874,7 @@ function Manager() {
   function init_loadPolyfills(This, configuration, callback) {
     // console.log('POLY TEST', document.querySelectorAll);
     // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
-    let featuresDefault = (
+    var featuresDefault = (
       // (typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]")) &&
       'Promise' in window &&
       'startsWith' in String.prototype &&
@@ -909,7 +909,7 @@ function Manager() {
 
       true
     )
-    let featuresCustom = true;
+    var featuresCustom = true;
     // for (var i = 0; i < options_user.initChecks.features.length; i++) {
     //   array[i]
     // }
