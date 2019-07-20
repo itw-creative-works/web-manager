@@ -1413,9 +1413,8 @@ function Manager() {
     var supported = ('performance' in window);
     return {
       mark: function(mark) {
-        if (supported) {
-          window.performance.mark(mark);
-        }
+        if (!supported) {return};
+        window.performance.mark(mark);
       }
     }
   }
