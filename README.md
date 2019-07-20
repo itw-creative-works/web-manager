@@ -297,29 +297,54 @@ The Firebase login system works like charm out of the box without you having to 
 
 ```html
 <div class="auth-signedin-false-element">
-  <div class="">
-    Not signed in
-  </div>
-  Email: <input class="auth-email-input" type="email" name="" value=""><br>
-  Password: <input class="auth-password-input" type="password" name="" value=""><br>
-  <div class="auth-error-message-element"></div>
-  <button class="auth-signin-email-btn" type="button" name="button">Sign in</button>
-  <button class="auth-signup-email-btn" type="button" name="button">Sign up</button>
+  <form onsubmit="return false;">
+    <fieldset>
+      <legend>Login</legend>
+      <label for="email">Email</label>
+      <input id="email" class="auth-email-input" type="email" name="email" placeholder="name@example.com" required autocomplete="email">
+      <label for="password">Password</label>
+      <input id="password" class="auth-password-input" type="password" name="password" placeholder="******" required autocomplete="current-password">
+    </fieldset>
+
+    <button id="submit" class="auth-signin-email-btn" type="submit">Sign in</button>
+  </form>
+
+  <form onsubmit="return false;">
+    <fieldset>
+      <legend>Signup</legend>
+      <label for="email">Email</label>
+      <input id="email" class="auth-email-input" type="email" name="email" placeholder="name@example.com" required autocomplete="email">
+      <label for="password">Password</label>
+      <input id="password" class="auth-password-input" type="password" name="password" placeholder="******" required autocomplete="new-password">
+      <label for="passwordConfirm">Confirm password</label>
+      <input id="passwordConfirm" class="auth-password-input" type="password" name="passwordConfirm" placeholder="******" required autocomplete="new-password">
+    </fieldset>
+
+    <button id="submit" class="auth-signup-email-btn" type="submit">Sign up</button>
+  </form>
+
 </div>
-<div class="auth-signedin-true-element">
-  User is signed in <br>
-  Email: <span class="auth-email-element">...</span> <br>
-  UserId: <span class="auth-uid-element">...</span> <br>
-  <button class="auth-signout-all-btn" type="button" name="button">Sign out</button>
+<div class="auth-signedin-true-element" hidden>
+  <fieldset>
+    <legend>My Account</legend>
+    <label for="email">Email</label>
+    <input id="email" class="auth-email-element" type="email" name="email" placeholder="name@example.com" disabled>
+    <label for="uid">User ID</label>
+    <input id="uid" class="auth-uid-element" type="text" name="uid" placeholder="1234567890" disabled>
+    <label for="password">Password</label>
+    <input id="password" class="" type="password" name="password" placeholder="******" disabled>
+  </fieldset>
+
+  <a href="#" onclick="return false;" class="auth-signout-all-btn">Sign out</a>
 </div>
 ```
 
 ### Utilizing the Firebase Push Notification Subscription System
-The Firebase push notification system also works with minimal implementation on your part. Just call `Manager.subscribeToPushNotifications()` and the rest is handled for you!
+The Firebase push notification system also works with minimal implementation on your part. Just call `Manager.This.notifications().subscribe()` and the rest is handled for you!
 
 ```html
 <script type="text/javascript">
-  Manager.subscribeToPushNotifications()
+  Manager.This.notifications().subscribe()
   .then(function() {
     Manager.log('Subscribed to push notifications!')
   })
@@ -328,6 +353,19 @@ The Firebase push notification system also works with minimal implementation on 
   })
 </script>
 ```
+
+### Utilizing the ServiceWorker API
+Also included is an API wrapper for some ServiceWorker functions to make development easier. You don't have to waste lines of code checking if the service worker is supported, as this is implemented by default.
+
+```html
+<script type="text/javascript">
+  Manager.serviceWorker().postMessage({command: 'debug', args: {key: 'value'}}, function (response) {
+    Manager.log('Callback...', response);
+  });
+</script>
+```
+
+
 
 ## Final Words
 If you are still having difficulty, we would love for you to post

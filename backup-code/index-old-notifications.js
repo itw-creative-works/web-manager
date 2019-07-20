@@ -19,7 +19,6 @@ var dom = require('./lib/dom.js');
 var query = require('./lib/query.js');
 var utilities = require('./lib/utilities.js');
 var storage = require('./lib/storage.js');
-var debug;
 
 // var ajax;
 // var dom;
@@ -153,21 +152,18 @@ function Manager() {
         This.log('Clicked', event.target);
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
-          This.auth().signIn('email');
+          This.signIn('email');
         } else if (event.target.matches('.auth-signup-email-btn')) {
-          This.auth().signUp('email');
+          This.signUp('email');
         } else if (event.target.matches('.auth-signout-all-btn')) {
-          This.auth().signOut();
+          This.signOut();
         } else if (event.target.matches('.auth-forgot-all-btn')) {
-          This.auth().forgot();
+          This.forgot();
         }
 
         // push notification events
         if (event.target.matches('.auth-subscribe-push-notifications-btn')) {
-          This.notifications().subscribe()
-          .catch(function (e) {
-            console.error(e);
-          });
+          This.This.notifications().subscribe();
         } else if (false) {
 
         }
@@ -176,81 +172,81 @@ function Manager() {
     }
   }
 
-  // Manager.prototype.signIn = function(method, email, password) {
-  //   method = method || 'email';
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   password = password || this.dom().select('.auth-password-input').getValue();
-  //   var This = this;
-  //   This.log('Signin attempt: ', method, email, password);
-  //   if (method == 'email') {
-  //     firebase.auth().signInWithEmailAndPassword(email, password)
-  //     .then(function(credential) {
-  //       This.log('Good signin');
-  //       This.properties.options.auth.signIn(false, credential.user);
-  //     })
-  //     .catch(function(error) {
-  //       This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //       This.log('error', error.message);
-  //       This.properties.options.auth.signIn(error);
-  //     });
-  //   }
-  // }
+  Manager.prototype.signIn = function(method, email, password) {
+    method = method || 'email';
+    email = email || this.dom().select('.auth-email-input').getValue();
+    password = password || this.dom().select('.auth-password-input').getValue();
+    var This = this;
+    This.log('Signin attempt: ', method, email, password);
+    if (method == 'email') {
+      firebase.auth().signInWithEmailAndPassword(email, password)
+      .then(function(credential) {
+        This.log('Good signin');
+        This.properties.options.auth.signIn(false, credential.user);
+      })
+      .catch(function(error) {
+        This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
+        This.log('error', error.message);
+        This.properties.options.auth.signIn(error);
+      });
+    }
+  }
 
-  // Manager.prototype.signUp = function(method, email, password, passwordConfirm) {
-  //   method = method || 'email';
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   password = password || this.dom().select('.auth-password-input').getValue();
-  //   passwordConfirm = passwordConfirm || this.dom().select('.auth-password-confirm-input').getValue();
-  //   var This = this;
-  //   This.log('Signup attempt: ', method, email, password, passwordConfirm);
-  //   if (method == 'email') {
-  //     firebase.auth().createUserWithEmailAndPassword(email, password)
-  //     .then(function(credential) {
-  //       This.log('Good signup');
-  //       This.properties.options.auth.signUp(false, credential.user);
-  //     })
-  //     .catch(function(error) {
-  //       This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //       This.log('error', error.message);
-  //       This.properties.options.auth.signUp(error);
-  //     });
-  //   }
-  // }
+  Manager.prototype.signUp = function(method, email, password, passwordConfirm) {
+    method = method || 'email';
+    email = email || this.dom().select('.auth-email-input').getValue();
+    password = password || this.dom().select('.auth-password-input').getValue();
+    passwordConfirm = passwordConfirm || this.dom().select('.auth-password-confirm-input').getValue();
+    var This = this;
+    This.log('Signup attempt: ', method, email, password, passwordConfirm);
+    if (method == 'email') {
+      firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then(function(credential) {
+        This.log('Good signup');
+        This.properties.options.auth.signUp(false, credential.user);
+      })
+      .catch(function(error) {
+        This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
+        This.log('error', error.message);
+        This.properties.options.auth.signUp(error);
+      });
+    }
+  }
 
-  // Manager.prototype.signOut = function() {
-  //   this.log('signOut');
-  //   var This = this;
-  //   firebase.auth().signOut()
-  //   .then(function() {
-  //     This.log('signOut success.');
-  //     This.properties.options.auth.signOut();
-  //   })
-  //   .catch(function(error) {
-  //     This.log('signOut failed: ', error);
-  //     This.properties.options.auth.signOut(error);
-  //   });
-  // }
+  Manager.prototype.signOut = function() {
+    this.log('signOut');
+    var This = this;
+    firebase.auth().signOut()
+    .then(function() {
+      This.log('signOut success.');
+      This.properties.options.auth.signOut();
+    })
+    .catch(function(error) {
+      This.log('signOut failed: ', error);
+      This.properties.options.auth.signOut(error);
+    });
+  }
 
-  // Manager.prototype.forgot = function(email) {
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   this.log('forgot');
-  //   var This = this;
-  //
-  //   firebase.auth().sendPasswordResetEmail(email)
-  //   .then(function() {
-  //     This.log('forgot success.');
-  //     This.properties.options.auth.forgot();
-  //   })
-  //   .catch(function(error) {
-  //     This.log('forgot failed: ', error);
-  //     This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //     This.properties.options.auth.forgot(error);
-  //   });
-  //
-  // }
+  Manager.prototype.forgot = function(email) {
+    email = email || this.dom().select('.auth-email-input').getValue();
+    this.log('forgot');
+    var This = this;
 
-  function _authStateHandler(This, user) {
-    // var This = this;
+    firebase.auth().sendPasswordResetEmail(email)
+    .then(function() {
+      This.log('forgot success.');
+      This.properties.options.auth.forgot();
+    })
+    .catch(function(error) {
+      This.log('forgot failed: ', error);
+      This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
+      This.properties.options.auth.forgot(error);
+    });
+
+  }
+
+  Manager.prototype.authStateHandler = function(user) {
+    var This = this;
     This.log('authStateHandler', user);
     if (user != null) {
       if (user.isAnonymous === false) {
@@ -317,38 +313,36 @@ function Manager() {
     options = options || {};
     options.retryInterval = options.retryInterval || 100;
     var This = this;
-    // if ( (This.get(this, 'page.status.ready', false) == false) ) {
-    // Manager.log('--- ready() REAL');
     if ( (utilities.get(this, 'properties.page.status.ready', false) == false) ) {
       setTimeout(function () {
         This.ready(fn, options);
       }, options.retryInterval);
     } else {
       // Performance
-      This.performance().mark('manager_ready');
-
-      // This.log('--- ready() REAL ***DONE***');
+      if ('performance' in window) {
+        window.performance.mark('manager_ready');
+      }
       return fn();
       // return checkDOMLoaded(window, fn);
     }
   }
 
-  // Manager.prototype.authReady = function(fn, options) {
-  //   options = options || {};
-  //   options.retryInterval = options.retryInterval || 100;
-  //   var This = this;
-  //   if ( (utilities.get(this, 'properties.page.status.authReady', false) == false) ) {
-  //     setTimeout(function () {
-  //       This.authReady(fn, options);
-  //     }, options.retryInterval);
-  //   } else {
-  //     // Performance
-  //     if ('performance' in window) {
-  //       window.performance.mark('manager_authReady');
-  //     }
-  //     return fn();
-  //   }
-  // }
+  Manager.prototype.authReady = function(fn, options) {
+    options = options || {};
+    options.retryInterval = options.retryInterval || 100;
+    var This = this;
+    if ( (utilities.get(this, 'properties.page.status.authReady', false) == false) ) {
+      setTimeout(function () {
+        This.authReady(fn, options);
+      }, options.retryInterval);
+    } else {
+      // Performance
+      if ('performance' in window) {
+        window.performance.mark('manager_authReady');
+      }
+      return fn();
+    }
+  }
 
   Manager.prototype.serviceWorker = function() {
     var This = this;
@@ -445,9 +439,10 @@ function Manager() {
 
     var This = this;
     if ((utilities.get(This, 'properties.page.status.ready', false) == false) && ((utilities.get(This, 'properties.page.status.initializing', false) == false))) {
-
       // Performance
-      This.performance().mark('manager_init');
+      if ('performance' in window) {
+        window.performance.mark('manager_init');
+      }
 
       // set initializing to true
       This.properties.page.status.initializing = true;
@@ -489,7 +484,7 @@ function Manager() {
             },
             popup: {
               enabled: true,
-              config: {
+              settings: {
                 title: '',
                 message: '',
                 btn_ok: {
@@ -623,7 +618,7 @@ function Manager() {
               firebase.auth().onAuthStateChanged(function(user) {
                 This.properties.page.status.authReady = true;
                 This.properties.auth.user = user || false;
-                _authStateHandler(This, user);
+                This.authStateHandler(user);
               })
             }
 
@@ -660,296 +655,288 @@ function Manager() {
   //       });
   //   }
   // }
-  Manager.prototype.auth = function() {
-    var This = this;
-    var firebaseActive = typeof firebase !== 'undefined';
-    function _displayError(msg) {
-      This.dom().select('.auth-error-message-element').show().setInnerHTML(msg);
-    }
-    function _callback_signIn(error, user) {
-      This.properties.options.auth.signIn(error, user);
-    }
-    function _callback_signUp(error, user) {
-      This.properties.options.auth.signUp(error, user);
-    }
-    function _callback_signOut(error) {
-      This.properties.options.auth.signOut(error);
-    }
-    function _callback_forgot(error) {
-      This.properties.options.auth.forgot(error);
-    }
-    return {
-      authenticated: function () {
-        return firebaseActive ? !!firebase.auth().currentUser : false;
-      },
-      user: function () {
-        var defaultUser = {email: null, uid: null};
-        return firebaseActive ? firebase.auth().currentUser || defaultUser : defaultUser;
-      },
-      ready: function (fn, options) {
-        options = options || {};
-        options.retryInterval = options.retryInterval || 100;
-        // if ( (This.get('page.status.authReady', false) == false) ) {
-        // Manager.log('--- authReady() REAL');
-        if ( (utilities.get(This, 'properties.page.status.authReady', false) == false) ) {
-          setTimeout(function () {
-            This.auth().ready(fn, options);
-          }, options.retryInterval);
-        } else {
-          // Performance
-          This.performance().mark('manager_authReady');
-          // This.log('--- authReady() REAL ***DONE***');
-          return fn();
-        }
-      },
-      signIn: function (method, email, password) {
-        method = method || 'email';
-        email = email || This.dom().select('.auth-email-input').getValue();
-        password = password || This.dom().select('.auth-password-input').getValue();
-        This.log('Signin attempt: ', method, email, password);
-        if (method == 'email') {
-          firebase.auth().signInWithEmailAndPassword(email, password)
-          .then(function(credential) {
-            _callback_signIn(false, credential.user);
-            This.log('Good signin');
-          })
-          .catch(function(error) {
-            _displayError(error.message);
-            _callback_signIn(error);
-            This.log('Error', error.message);
-          });
-        }
-      },
-      signUp: function(method, email, password, passwordConfirm) {
-        method = method || 'email';
-        email = email || This.dom().select('.auth-email-input').getValue();
-        password = password || This.dom().select('.auth-password-input').getValue();
-        passwordConfirm = passwordConfirm || This.dom().select('.auth-password-confirm-input').getValue();
-        This.log('Signup attempt: ', method, email, password, passwordConfirm);
-        if (method == 'email') {
-          if (password == passwordConfirm) {
-            firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then(function(credential) {
-              This.log('Good signup');
-              _callback_signUp(false, credential.user);
-            })
-            .catch(function(error) {
-              _displayError(error.message);
-              This.log('error', error.message);
-              _callback_signUp(error);
-            });
-          } else {
-            _displayError("Passwords don't match.");
-          }
+  // Manager.prototype.notifications = function(options) {
+  //   var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator);
+  //   var This = this;
+  //   var response = {
+  //     status: 'success',
+  //     // subscribed: false,
+  //     // token: '',
+  //     error: '',
+  //   }
+  //   return {
+  //     subscribe: function () {
+  //       console.log('subscribe()');
+  //       return new Promise((resolve, reject) => {
+  //         firebase.messaging().requestPermission()
+  //           .then(function () {
+  //             This.notifications().checkSubscription()
+  //               .then(function () {
+  //                 resolve(response);
+  //               })
+  //               .catch(function (e) {
+  //                 response.error = e;
+  //                 response.status = 'fail';
+  //                 reject(response);
+  //               })
+  //           })
+  //           .catch(function (e) {
+  //             response.error = e;
+  //             response.status = 'fail';
+  //             reject(response);
+  //           })
+  //       })
+  //     },
+  //     checkSubscription: function () {
+  //       console.log('checkSubscription()');
+  //       return new Promise((resolve, reject) => {
+  //         firebase.messaging().getToken()
+  //           .then(function (token) {
+  //             firebase.firestore().doc('notifications/subscriptions/all/' + token)
+  //               .get()
+  //               .then(function (documentSnapshot) {
+  //                 if (documentSnapshot.exists == false) {
+  //                   This.notifications().updateSubscription(token)
+  //                   .then(function () {
+  //                     This.log('Subscribe done!');
+  //                     response.subscribed = true;
+  //                     resolve(response);
+  //                   })
+  //                   .catch(function (e) {
+  //                     This.log(e);
+  //                     response.error = e;
+  //                     response.status = 'fail';
+  //                     response.subscribed = false;
+  //                     reject(response);
+  //                   })
+  //                 } else {
+  //                   response.subscribed = true;
+  //                   resolve(response);
+  //                   This.log('Already subscribed');
+  //                 }
+  //               })
+  //               .catch(function(e) {
+  //                 console.error(e);
+  //                 response.error = e;
+  //                 response.status = 'fail';
+  //                 reject(response);
+  //               });
+  //           })
+  //           .catch(function (e) {
+  //             response.error = e;
+  //             response.status = 'fail';
+  //             reject(response);
+  //           })
+  //       })
+  //
+  //     },
+  //     updateSubscription: function (token) {
+  //       console.log('updateSubscription()');
+  //       return new Promise((resolve, reject) => {
+  //
+  //         firebase.firestore().doc('notifications/subscriptions/all/' + token)
+  //           .set(
+  //             {
+  //               dateSubscribed: {
+  //                 timestamp: getDateTime(),
+  //                 timestampUNIX: new Date().getTime(),
+  //               },
+  //               token: token,
+  //               linked: {
+  //                 user: {
+  //                   timestampLastLinked: getDateTime(),
+  //                   data: {
+  //                     uid: (firebase.auth().currentUser ? firebase.auth().currentUser.uid : '') || '',
+  //                   }
+  //                 }
+  //               },
+  //               tags: ['general']
+  //             },
+  //             {
+  //               merge: true
+  //             }
+  //           )
+  //           .then(function() {
+  //             This.log('Updated token: ', token);
+  //             response.token = token;
+  //             resolve(response);
+  //           })
+  //           .catch(function(e) {
+  //             console.error(e);
+  //             response.error = e;
+  //             response.status = 'fail';
+  //             reject(response);
+  //           });
+  //
+  //       })
+  //     }
+  //
+  //   }
+  // }
 
-        }
+  // function handleTokenRefresh(This) {
+  //   // console.log('&&&& TOKEN REFRESH', This);
+  //   console.log('handleTokenRefresh()');
+  //   return new Promise((resolve, reject) => {
+  //     firebase.messaging().getToken()
+  //       .then((token) => {
+  //         if (token) {
+  //           This.notifications().updateSubscription(token)
+  //           .then(function(e) {
+  //             resolve();
+  //           })
+  //           .catch(function(e) {
+  //             reject(e);
+  //           });
+  //         } else {
+  //           console.log('***3');
+  //           console.error('Failed to get token');
+  //           reject(e);
+  //         }
+  //       })
+  //       .catch(function(e) {
+  //         console.log('***4');
+  //         console.error(e);
+  //         reject(e);
+  //       });
+  //   })
+  // }
 
-      },
-      signOut: function() {
-        // This.log('signOut()');
-        // var This = this;
-        firebase.auth().signOut()
-        .then(function() {
-          This.log('signOut success.');
-          _callback_signOut(false);
 
+  Manager.prototype.subscribeToPushNotifications = function(options) {
+    console.log('subscribeToPushNotifications()');
+    if ((typeof firebase.messaging !== 'undefined')) {
+      console.log('***1');
+      return firebase.messaging().requestPermission()
+        .then(() => {
+          console.log('***2');
+          checkSubscription();
+          console.log('***3');
         })
-        .catch(function(error) {
-          This.log('signOut failed: ', error);
-          _callback_signOut(error);
-
+        .catch((err) => {
+          console.error(err);
         });
-      },
-      forgot: function(email) {
-        // This.log('forgot()');
-        email = email || This.dom().select('.auth-email-input').getValue();
-        firebase.auth().sendPasswordResetEmail(email)
-        .then(function() {
-          This.log('forgot success.');
-          _callback_forgot();
-
-        })
-        .catch(function(error) {
-          This.log('forgot failed: ', error);
-          _displayError(error.message);
-          _callback_forgot(error);
-        });
-      },
-
+    } else {
+      console.log('***1error');
     }
   }
 
-  Manager.prototype.notifications = function(options) {
-    var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator);
-    var This = this;
-    var response = {
-      status: 'success',
-      // subscribed: false,
-      // token: '',
-      error: '',
-    }
-    return {
-      subscribe: function () {
-        This.log('subscribe()');
-        return new Promise((resolve, reject) => {
-          firebase.messaging().requestPermission()
-            .then(function () {
-              This.notifications().checkSubscription()
-                .then(function (response) {
-                  resolve(response);
-                })
-                .catch(function (e) {
-                  response.error = e;
-                  response.status = 'fail';
-                  reject(response);
-                })
-            })
-            .catch(function (e) {
-              response.error = e;
-              response.subscribed = false;
-              resolve(response);
-            })
-        })
-      },
-      checkSubscription: function () {
-        This.log('checkSubscription()');
-        return new Promise((resolve, reject) => {
-          firebase.messaging().getToken()
-            .then(function (token) {
-              if (token) {
-                firebase.firestore().doc('notifications/subscriptions/all/' + token)
-                  .get()
-                  .then(function (documentSnapshot) {
-                    if (documentSnapshot.exists == false) {
-                      This.notifications().updateSubscription(token)
-                      .then(function () {
-                        This.log('Subscribe done!');
-                        response.token = token;
-                        response.subscribed = true;
-                        resolve(response);
-                      })
-                      .catch(function (e) {
-                        This.log(e);
-                        response.error = e;
-                        response.token = token;
-                        response.subscribed = true;
-                        resolve(response);
-                      })
-                    } else {
-                      response.subscribed = true;
-                      response.token = token;
-                      resolve(response);
-                      This.log('Already subscribed');
-                    }
-                  })
-                  .catch(function(e) {
-                    console.error(e);
-                    response.error = e;
-                    response.status = 'fail';
-                    reject(response);
-                  });
-              } else {
-                response.subscribed = false;
-                resolve(response);
-              }
 
-            })
-            .catch(function (e) {
-              response.subscribed = false;
-              response.error = e;
-              resolve(response);
-            })
-        })
-
-      },
-      updateSubscription: function (token) {
-        This.log('updateSubscription()');
-        return new Promise((resolve, reject) => {
-          var currentUser = This.auth().user();
-          var storedSub = This.storage().get('_subscription', '');
-          var currentEmail = currentUser.email || '';
-          var currentUid = currentUser.uid || '';
-
-          // This.log('Stored = ', storedSub);
-          // This.log('Trying = ', token);
-
-          if (token && storedSub.token == token && storedSub.email == currentEmail) {
-            // console.log('&&& 1');
-            response.token = token;
-            return resolve(response);
-          } else if (!token) {
-            // console.log('&&& 2');
-            response.subscribed = false;
-            return resolve(response);
-            This.storage().set('_subscription', {email: currentEmail, token: token});
-          }
-          // console.log('&&& 3');
-          firebase.firestore().doc('notifications/subscriptions/all/' + token)
-            .set(
-              {
-                dateSubscribed: {
-                  timestamp: getDateTime(),
-                  timestampUNIX: new Date().getTime(),
-                },
-                token: token,
-                linked: {
-                  user: {
-                    timestampLastLinked: getDateTime(),
-                    data: {
-                      uid: currentUid,
-                      email: currentEmail,
-                    }
-                  }
-                },
-                tags: ['general']
-              },
-              {
-                merge: true
-              }
-            )
-            .then(function() {
-              This.log('Updated token: ', token);
-              response.token = token;
-              This.storage().set('_subscription', {email: currentEmail, token: token});
-              resolve(response);
-            })
-            .catch(function(e) {
-              console.error(e);
-              response.error = e;
-              response.status = 'fail';
-              reject(response);
-            });
-
-        })
-      }
-
-    }
-  }
-
-  function handleTokenRefresh(This) {
-    // console.log('&&&& TOKEN REFRESH', This);
-    console.log('handleTokenRefresh()');
-    return new Promise((resolve, reject) => {
-      firebase.messaging().getToken()
+    function handleTokenRefresh() {
+      return firebase.messaging().getToken()
         .then((token) => {
-          // if (token) {
-            This.notifications().updateSubscription(token)
-            .then(function(e) {
-              resolve();
-            })
-            .catch(function(e) {
-              reject(e);
-            });
-          // } else {
-          //   console.log('***3');
-          //   reject();
-          // }
+          if (token) {
+            updateSubscription(token);
+          } else {
+            console.error('Failed to get token');
+          }
         })
         .catch(function(e) {
-          reject(e);
+          console.error(e);
         });
+    }
+
+    function updateSubscription(token) {
+      console.log('updateSubscription()');
+      return firebase.firestore().doc('notifications/subscriptions/all/' + token)
+        .set(
+          {
+            dateSubscribed: {
+              timestamp: getDateTime(),
+              timestampUNIX: new Date().getTime(),
+            },
+            token: token,
+            linked: {
+              user: {
+                timestampLastLinked: getDateTime(),
+                data: {
+                  uid: (firebase.auth().currentUser ? firebase.auth().currentUser.uid : '') || ''
+                }
+              }
+            },
+            tags: ['general']
+          },
+          {
+            merge: true
+          }
+        )
+        .then(function() {
+          window.Manager.log('Updated token: ', token);
+        })
+        .catch(function(e) {
+          console.error(e);
+        });
+    }
+
+    function checkSubscription() {
+      console.log('checkSubscription()');
+      return firebase.messaging().getToken()
+        .then((token) => {
+          console.log('****4');
+          if (token) {
+            console.log('****5');
+            return firebase.firestore().doc('notifications/subscriptions/all/' + token)
+              .get()
+              .then(function (documentSnapshot) {
+                if (documentSnapshot.exists == false) {
+                  window.Manager.log('Subscribing now');
+                  updateSubscription(token)
+                  .then(function () {
+                    window.Manager.log('Subscribe done!');
+                  })
+                } else {
+                  window.Manager.log('Already subscribed');
+                }
+              })
+              .catch(function(e) {
+                console.error(e);
+              });
+          } else {
+            console.error('Failed to get token');
+          }
+        })
+        .catch(function(e) {
+          console.error(e);
+        });
+    }
+
+
+
+
+
+
+
+  Manager.prototype.debug = function(options) {
+    return {
+      promise: function (status, data) {
+        return new Promise((resolve, reject) => {
+          quickPromise('resolve')
+            .then(function () {
+              quickPromise(status, data)
+                .then(function (resp) {
+                  // UNCOMMENT = FORCE + A + FAIL;
+                  resolve(resp);
+                })
+                .catch(function (e) {
+                  reject(e);
+                })
+
+            })
+        })
+      }
+    }
+  }
+
+  function quickPromise(status, data) {
+    return new Promise((resolve, reject) => {
+      if (status == 'resolve') {
+        resolve('resolve() ' + data);
+      } else {
+        reject('reject() ' + data);
+      }
     })
   }
+
 
   /*
   HELPERS
@@ -996,25 +983,22 @@ function Manager() {
         This.properties.page.status.masterSWRegistered = true;
 
         This.log('SW Registered.');
-        firebase.messaging().onTokenRefresh(
-          handleTokenRefresh(This)
-          .catch(function (e) {
-            console.error(e);
-          })
-        )
-
+        firebase.messaging().onTokenRefresh(handleTokenRefresh(This))
+        // .then(function (e) {
+        // })
+        // .catch(function (e) {
+        //   console.error(e);
+        // });
 
         if (options_user.pushNotifications.timeoutCheck > 0) {
           setTimeout(function () {
-            This.notifications().subscribe()
-            .catch(function (e) {
-              console.error(e);
-            });
+            // This.notifications().subscribe();
+            This.subscribeToPushNotifications();
           }, options_user.pushNotifications.timeoutCheck * 1000);
         }
       })
       .catch(function (e) {
-        // console.log('***2');
+        console.log('***2');
         console.error(e);
       });
 
@@ -1406,34 +1390,26 @@ function Manager() {
     return ajax;
   }
 
-  /**
-  * OTHER
-  */
   Manager.prototype.performance = function() {
-    var supported = ('performance' in window);
-    return {
-      mark: function(mark) {
-        if (supported) {
-          window.performance.mark(mark);
-        }
-      }
-    }
+    // if ('performance' in window) {
+    //   return window.performance;
+    // } else {
+    // }
   }
-  // Manager.prototype.performance = function() {
-  //   var This = this;
-  //
-  //   return {
-  //     mark2: function () {
-  //       return firebaseActive ? !!firebase.auth().currentUser : false;
-  //     },
-  //
-  //   }
-  // }
 
 
   /**
   * HELPERS
   */
+  function wait(msec, range) {
+    var min = 0;
+    var randomNumPlus = (Math.random() * (range - min) + min);
+    var randomNumMinus = (Math.random() * (range - min) + min);
+    msec = msec + randomNumPlus - randomNumMinus;
+    msec = (msec <= 0) ? 50 : msec;
+    return new Promise(resolve => setTimeout(resolve, msec));
+  }
+
   function getDateTime(type) {
     var d = new Date;
     var date = zeroFill(d.getFullYear(),2)+'-'+zeroFill(d.getMonth()+1,2)+'-'+zeroFill(d.getDate(),2);
