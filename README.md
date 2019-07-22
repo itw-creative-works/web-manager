@@ -271,8 +271,8 @@ The Web Manager .storage() API is a wrapper for the localStorage API that automa
   Manager.ready(function() {
     console.log('--- Exploring the .storage() API ---');
 
-    // By default, all methods only affect the the assigned node 'managerRoot'
-    Manager.storage().clear(); // Clear managerRoot node
+    // By default, all methods only affect the the assigned node '_manager'
+    Manager.storage().clear(); // Clear _manager node
     console.log(Manager.storage().get('key1', '1')); // Get a key with a default of 1 if key doesnt exist
     console.log(Manager.storage().set('key1', '2')); // Set a key
     console.log(Manager.storage().get('key1', '1'));
