@@ -887,9 +887,11 @@ function Manager() {
           firebase.firestore().doc('notifications/subscriptions/all/' + token)
             .set(
               {
-                dateSubscribed: {
-                  timestamp: getDateTime(),
-                  timestampUNIX: new Date().getTime(),
+                meta: {
+                  dateSubscribed: {
+                    timestamp: getDateTime(),
+                    timestampUNIX: new Date().getTime(),
+                  },
                 },
                 token: token,
                 linked: {
