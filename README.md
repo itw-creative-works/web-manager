@@ -19,7 +19,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/itw-creative-works/web-manager.svg)
 
 # Web Manager
-**Web Manager** is an NPM module that instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
+**Web Manager** is an NPM module for web developers using node to build beautiful websites. This module instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
 
 [Site](https://itwcreativeworks.com) | [NPM Module](https://www.npmjs.com/package/web-manager) | [GitHub Repo](https://github.com/itw-creative-works/web-manager)
 
@@ -68,68 +68,71 @@ By default, all of the libraries are enabled. But you can simply set `enabled` t
 
 ```html
 <script type="text/javascript">
-var config =
-  {
-    libraries: {
-      firebase_app: { // Config is required if enabled
-        enabled: true,
-        config: {
-          apiKey: '123456',
-          authDomain: 'xxx.firebaseapp.com',
-          databaseURL: 'https://xxx.firebaseio.com',
-          projectId: 'xxx',
-          storageBucket: 'xxx.appspot.com',
-          messagingSenderId: '123456',
-          appId: '1:xxx'
-        },
-      },
-      tawk: { // Config is required if enabled
-        enabled: true,
-        config: {
-          chatId: 'xxx'
-        }
-      },
-      sentry: { // Config is required if enabled
-        enabled: true,
-        config: {
-          dsn: 'xxx',
-          release: 'xxx'
-        }
-      },
-      cookieconsent: { // No config required
-        enabled: true,
-        config: {
-          palette: {
-            popup: {
-              background: '#237afc',
-              text: '#ffffff'
-            },
-            button: {
-              background: '#fff',
-              text: '#237afc'
-            }
-          },
-          theme: 'classic',
-          position: 'bottom-left',
-          type: '',
-          content: {
-            message: 'This website uses cookies to ensure you get the best experience on our website.',
-            dismiss: 'Got it!',
-            link: 'Learn more',
-            // href: '' || This.properties.global.urlRoot + '/cookies/',
-            href: (This.properties.global.url + '/cookies/'),
-          }
-        }
-      },
-      lazysizes: { // No config required
-        enabled: true,
-      }      
-    }
-  }
-  var Manager = new (require('web-manager'));
   var config = {
-    // ... your config here
-  }
+      pushNotifications: {
+        enabled: true,
+        timeoutCheck: 60 // How long to wait before auto ask to subscribe. 0 to disable.
+      },
+      serviceWorker: {
+        path: 'firebase-messaging-sw.js' // Path to your service worker
+      },    
+      libraries: {
+        firebase_app: { // Config is required if enabled
+          enabled: true,
+          config: {
+            apiKey: '123456',
+            authDomain: 'xxx.firebaseapp.com',
+            databaseURL: 'https://xxx.firebaseio.com',
+            projectId: 'xxx',
+            storageBucket: 'xxx.appspot.com',
+            messagingSenderId: '123456',
+            appId: '1:xxx'
+          }
+        },     
+        tawk: { // Config is required if enabled
+          enabled: true,
+          config: {
+            chatId: 'xxx'
+          }
+        },
+        sentry: { // Config is required if enabled
+          enabled: true,
+          config: {
+            dsn: 'xxx',
+            release: 'xxx'
+          }
+        },
+        cookieconsent: { // No config required
+          enabled: true,
+          config: {
+            palette: {
+              popup: {
+                background: '#237afc',
+                text: '#ffffff'
+              },
+              button: {
+                background: '#fff',
+                text: '#237afc'
+              }
+            },
+            theme: 'classic',
+            position: 'bottom-left',
+            type: '',
+            content: {
+              message: 'This website uses cookies to ensure you get the best experience on our website.',
+              dismiss: 'Got it!',
+              link: 'Learn more',
+              href: (window.location.href + '/cookies/')
+            }
+          }
+        },
+        lazysizes: { // No config required
+          enabled: true
+        }      
+      }
+    }
+  var Manager = new (require('web-manager'));
+
   Manager.init(config, function() {
     Manager.log('Initialized main.js');
   });
@@ -216,9 +219,9 @@ The Web Manager .query() API is used to construct and deconstruct a query string
     var query = Manager.query().create(url);
     console.log('getUrl ', query.getUrl()); // Get url (with query string appended)
     console.log('getAll ', query.getAll()); // Get all queries
-    query.add('key2', 'val2'); // Add a key
-    query.add('key3', 'val3'); // Add another key
-    query.add('key4', ); // Add a blank key
+    query.set('key2', 'val2'); // Add a key
+    query.set('key3', 'val3'); // Add another key
+    query.set('key4', ); // Add a blank key
     query.remove('key3'); // Remove a key
 
     console.log('getAll (2)', query.getAll());

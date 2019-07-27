@@ -92,6 +92,9 @@ function Manager() {
     auth: {
       user: false,
     },
+    references: {
+      serviceWorker: undefined
+    },
     // firebase: {
     //   user: {
     //     exists: false,
@@ -158,7 +161,7 @@ function Manager() {
           This.auth().signUp('email');
         } else if (event.target.matches('.auth-signout-all-btn')) {
           This.auth().signOut();
-        } else if (event.target.matches('.auth-forgot-all-btn')) {
+        } else if (event.target.matches('.auth-forgot-email-btn')) {
           This.auth().forgot();
         }
 
@@ -275,7 +278,7 @@ function Manager() {
   }
 
   function _authHandle_in(This, user) {
-    // This.log('_authHandle_in', user);
+    This.log('$$$ _authHandle_in', user);
     var returnUrl = This.query().create(window.location.href).get('auth_return');
     if (returnUrl) {
       window.location.href = returnUrl;
@@ -304,7 +307,7 @@ function Manager() {
   }
 
   function _authHandle_out(This) {
-    // This.log('$$$ _authHandle_out: ', This.properties.options.auth.state);
+    This.log('$$$ _authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state == 'required') {
       window.location.href = This.query().create(This.properties.options.auth.sends.required).add('auth_return', window.location.href).getUrl();
       return;
@@ -353,27 +356,45 @@ function Manager() {
   Manager.prototype.serviceWorker = function() {
     var This = this;
     var SWAvailable = (('serviceWorker' in navigator));
+    if (SWAvailable) {
+      try {
+        var swref = This.properties.references.serviceWorker.active || navigator.serviceWorker.controller;
+      } catch (e) {}
+    }
     return {
       postMessage: function() {
         // var args = getArgs(arguments);
         var args = arguments;
         if (!SWAvailable) {return};
 
-        if (!navigator.serviceWorker.controller) {
-          This.log('postMessage...');
-          setTimeout(function () {
-            This.serviceWorker().postMessage(args[0], args[1]);
-          }, 100);
-        } else {
-          // post message: https://stackoverflow.com/questions/30177782/chrome-serviceworker-postmessage
+        try {
           var messageChannel = new MessageChannel();
           messageChannel.port1.onmessage = function(event) {
             if (!event.data.error && args[1]) {
               args[1](event.data);
             }
           };
-          navigator.serviceWorker.controller.postMessage(args[0], [messageChannel.port2])
+          // navigator.serviceWorker.controller.postMessage(args[0], [messageChannel.port2]);
+          swref.postMessage(args[0], [messageChannel.port2]);
+        } catch (e) {
+          console.error(e);
         }
+
+        // if (!navigator.serviceWorker.controller) {
+        //   This.log('postMessage...');
+        //   setTimeout(function () {
+        //     This.serviceWorker().postMessage(args[0], args[1]);
+        //   }, 100);
+        // } else {
+        //   // post message: https://stackoverflow.com/questions/30177782/chrome-serviceworker-postmessage
+        //   var messageChannel = new MessageChannel();
+        //   messageChannel.port1.onmessage = function(event) {
+        //     if (!event.data.error && args[1]) {
+        //       args[1](event.data);
+        //     }
+        //   };
+        //   navigator.serviceWorker.controller.postMessage(args[0], [messageChannel.port2])
+        // }
       }
     }
 
@@ -465,27 +486,30 @@ function Manager() {
             //   environment: This.properties.meta.environment,
             // },
             queryString: {
-              saveToStorage: false,
+              saveToStorage: false
             },
             pushNotifications: {
               enabled: true,
-              timeoutCheck: 60, // how long to wait before auto ask, 0 to disable
+              timeoutCheck: 60 // how long to wait before auto ask, 0 to disable
+            },
+            serviceWorker: {
+              path: ''
             },
             initChecks: {
               DOMContentLoaded: false, // preset to false because takes a while and dont need if script is loaded at bottom of DOM
-              features: [], // an array of javascript and dom features to check for (NIY)
+              features: [] // an array of javascript and dom features to check for (NIY)
             },
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
                 required: (This.properties.global.url + '/signin/'),
-                prohibited: (This.properties.global.url + '/'),
+                prohibited: (This.properties.global.url + '/')
               },
               authStateHandler: ()=>{}, // custom authStateHandler() function
               signIn: ()=>{}, // custom signIn() function
               signOut: ()=>{}, // custom signOut() function
               signUp: ()=>{}, // custom signUp() function
-              forgot: ()=>{}, // custom signUp() function
+              forgot: ()=>{} // custom signUp() function
             },
             popup: {
               enabled: true,
@@ -494,7 +518,7 @@ function Manager() {
                 message: '',
                 btn_ok: {
                   text: '',
-                  link: '',
+                  link: ''
                 }
               }
             },
@@ -508,32 +532,32 @@ function Manager() {
                   projectId: '',
                   storageBucket: '',
                   messagingSenderId: '',
-                  appId: '',
+                  appId: ''
                 }
               },
               firebase_firestore: {
-                enabled: true,
+                enabled: true
               },
               firebase_messaging: {
-                enabled: true,
+                enabled: true
               },
               firebase_auth: {
                 enabled: true,
               },
               lazysizes: {
-                enabled: true,
+                enabled: true
               },
               sentry: {
                 enabled: true,
                 config: {
                   dsn: '',
-                  release: '',
+                  release: ''
                 }
               },
               tawk: {
                 enabled: true,
                 config: {
-                  chatId: '',
+                  chatId: ''
                 }
               },
               cookieconsent: {
@@ -557,11 +581,11 @@ function Manager() {
                     dismiss: 'Got it!',
                     link: 'Learn more',
                     // href: '' || This.properties.global.urlRoot + '/cookies/',
-                    href: (This.properties.global.url + '/cookies/'),
+                    href: (This.properties.global.url + '/cookies/')
                   }
                 }
-              },
-            },
+              }
+            }
           };
 
           var options_user = {};
@@ -897,6 +921,7 @@ function Manager() {
                 linked: {
                   user: {
                     timestampLastLinked: getDateTime(),
+                    pk: currentEmail,
                     data: {
                       uid: currentUid,
                       email: currentEmail,
@@ -959,10 +984,14 @@ function Manager() {
   function subscriptionManager(This, options_user) {
     // if (('serviceWorker' in navigator) && (options_user.pushNotifications.enabled) && (typeof firebase.messaging !== 'undefined')) {
     if (('serviceWorker' in navigator) && (typeof firebase.messaging !== 'undefined')) {
+      var swaddress = options_user.serviceWorker.path || 'master-service-worker.js';
       // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
-      navigator.serviceWorker.register('/master-service-worker.js?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
+      navigator.serviceWorker.register('/' + swaddress + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
       .then(function (registration) {
         firebase.messaging().useServiceWorker(registration);
+        This.properties.references.serviceWorker = registration;
+        // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
+        // --- leverage this example ^^^ for caching! It's grat and you can do one page at a time through postMessage!
 
         // function listenForWaitingServiceWorker(reg, callback) {
         //   function awaitStateChange() {
