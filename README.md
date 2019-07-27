@@ -23,6 +23,8 @@
 
 [Site](https://itwcreativeworks.com) | [NPM Module](https://www.npmjs.com/package/web-manager) | [GitHub Repo](https://github.com/itw-creative-works/web-manager)
 
+This module is best used in conjunction with [webpack](https://www.npmjs.com/package/webpack).
+
 </div>
 
 ## Install
