@@ -36,18 +36,18 @@ function Manager() {
   /**
   * OPTIONS
   */
-  // var parseDELETE = function (req) {
-  //   var result;
-  //   try {
-  //     result = JSON.parse(req.responseText);
-  //   } catch (e) {
-  //     result = req.responseText;
-  //   }
-  //   return [result, req];
-  // };
+  var parseDELETE = function (req) {
+    var result;
+    try {
+      result = JSON.parse(req.responseText);
+    } catch (e) {
+      result = req.responseText;
+    }
+    return [result, req];
+  };
 
 
-  this.extra = '7'; //@@@ Delete later
+  this.extra = '8'; //@@@ Delete later
 
   this.properties = {
     options: {
