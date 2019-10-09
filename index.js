@@ -36,18 +36,19 @@ function Manager() {
   /**
   * OPTIONS
   */
-  var parseDELETE = function (req) {
-    var result;
-    try {
-      result = JSON.parse(req.responseText);
-    } catch (e) {
-      result = req.responseText;
-    }
-    return [result, req];
-  };
+  // Should this be changed?
+  // var parseDELETE = function (req) {
+  //   var result;
+  //   try {
+  //     result = JSON.parse(req.responseText);
+  //   } catch (e) {
+  //     result = req.responseText;
+  //   }
+  //   return [result, req];
+  // };
 
 
-  this.extra = '8'; //@@@ Delete later
+  this.extra = '16'; //@@@ Delete later
 
   this.properties = {
     options: {
