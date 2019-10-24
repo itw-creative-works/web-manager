@@ -486,7 +486,7 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = ((window.location.href.indexOf('localhost') != -1) || (window.location.href.indexOf('127.0.0.1') != -1)) ? 'development' : 'production';
+      This.properties.meta.environment = ((window.location.href.indexOf('localhost') != -1) || (window.location.href.indexOf('127.0.0.1') != -1) || (window.location.href.indexOf('ngrok.io') != -1)) ? 'development' : 'production';
 
 
       init_loadPolyfills(This, configuration, function() {
@@ -1480,15 +1480,26 @@ function Manager() {
   /**
   * OTHER
   */
+  // Manager.prototype.performance = function() {
+  //   var supported = ('performance' in window);
+  //   return {
+  //     mark: function(mark) {
+  //       if (!supported) {return};
+  //       window.performance.mark(mark);
+  //     }
+  //   }
+  // }
   Manager.prototype.performance = function() {
-    var supported = ('performance' in window);
     return {
       mark: function(mark) {
-        if (!supported) {return};
-        window.performance.mark(mark);
+        try {
+          window.performance.mark(mark);
+        } catch (e) {
+        }
       }
     }
   }
+
   // Manager.prototype.performance = function() {
   //   var This = this;
   //
