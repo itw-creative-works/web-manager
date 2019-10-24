@@ -185,8 +185,6 @@ function Manager() {
           .catch(function (e) {
             console.error(e);
           });
-        } else if (false) {
-
         }
 
       }, false);
@@ -292,10 +290,10 @@ function Manager() {
   }
 
   function _authHandle_in(This, user) {
-    This.log('$$$ _authHandle_in', user);
-    var returnUrl = This.query().create(window.location.href).get('auth_return');
+    This.log('_authHandle_in', user);
+    var returnUrl = This.query().create(window.location.href).get('redirect');
     if (returnUrl) {
-      window.location.href = returnUrl;
+      window.location.href = decodeURIComponent(returnUrl);
       return;
     }
     if (This.properties.options.auth.state == 'prohibited') {
@@ -321,9 +319,9 @@ function Manager() {
   }
 
   function _authHandle_out(This) {
-    This.log('$$$ _authHandle_out: ', This.properties.options.auth.state);
+    This.log('_authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state == 'required') {
-      window.location.href = This.query().create(This.properties.options.auth.sends.required).add('auth_return', window.location.href).getUrl();
+      window.location.href = This.query().create(This.properties.options.auth.sends.required).set('redirect', encodeURIComponent(window.location.href)).getUrl();
       return;
     }
     This.dom().select('.auth-signedin-true-element').hide();
@@ -506,6 +504,10 @@ function Manager() {
               enabled: true,
               timeoutCheck: 60 // how long to wait before auto ask, 0 to disable
             },
+            exitHandler: {
+              enabled: false,
+              function: function() {}
+            },
             serviceWorker: {
               path: ''
             },
@@ -519,11 +521,11 @@ function Manager() {
                 required: (This.properties.global.url + '/signin/'),
                 prohibited: (This.properties.global.url + '/')
               },
-              authStateHandler: ()=>{}, // custom authStateHandler() function
-              signIn: ()=>{}, // custom signIn() function
-              signOut: ()=>{}, // custom signOut() function
-              signUp: ()=>{}, // custom signUp() function
-              forgot: ()=>{} // custom signUp() function
+              authStateHandler: function() {}, // custom authStateHandler() function
+              signIn: function() {}, // custom signIn() function
+              signOut: function() {}, // custom signOut() function
+              signUp: function() {}, // custom signUp() function
+              forgot: function() {} // custom signUp() function
             },
             popup: {
               enabled: true,
@@ -649,12 +651,20 @@ function Manager() {
           // parse query stringify
           This.properties.page.queryString = This.query()
             .create(window.location.href, {});
+          if (This.properties.page.queryString.get('auth_aff')) {
+            This.storage().set('queryString.auth_aff', This.properties.page.queryString.get('auth_aff'));
+          }
+          if (This.properties.page.queryString.get('redirect')) {
+            window.location.href = decodeURIComponent(This.properties.page.queryString.get('redirect'));
+            return;
+          }
 
           // load critical libraries
           Promise.all([
             load_sentry(This, options_user),
             load_firebase(This, options_user),
-          ]).then(function() {
+          ])
+          .then(function() {
 
             // handle firebase user
             if (firebase.auth) {
@@ -698,6 +708,7 @@ function Manager() {
   //       });
   //   }
   // }
+
   Manager.prototype.auth = function() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
@@ -717,10 +728,10 @@ function Manager() {
       This.properties.options.auth.forgot(error);
     }
     return {
-      authenticated: function () {
+      isAuthenticated: function () {
         return firebaseActive ? !!firebase.auth().currentUser : false;
       },
-      user: function () {
+      getUser: function () {
         var defaultUser = {email: null, uid: null};
         return firebaseActive ? firebase.auth().currentUser || defaultUser : defaultUser;
       },
@@ -824,12 +835,12 @@ function Manager() {
       status: 'success',
       // subscribed: false,
       // token: '',
-      error: '',
+      error: false,
     }
     return {
       subscribe: function () {
         This.log('subscribe()');
-        return new Promise((resolve, reject) => {
+        return new Promise(function(resolve, reject) {
           firebase.messaging().requestPermission()
             .then(function () {
               This.notifications().checkSubscription()
@@ -851,7 +862,7 @@ function Manager() {
       },
       checkSubscription: function () {
         This.log('checkSubscription()');
-        return new Promise((resolve, reject) => {
+        return new Promise(function(resolve, reject) {
           firebase.messaging().getToken()
             .then(function (token) {
               if (token) {
@@ -902,8 +913,8 @@ function Manager() {
       },
       updateSubscription: function (token) {
         This.log('updateSubscription()');
-        return new Promise((resolve, reject) => {
-          var currentUser = This.auth().user();
+        return new Promise(function(resolve, reject) {
+          var currentUser = This.auth().getUser();
           var storedSub = This.storage().get('_subscription', '');
           var currentEmail = currentUser.email || '';
           var currentUid = currentUser.uid || '';
@@ -970,9 +981,9 @@ function Manager() {
   function handleTokenRefresh(This) {
     // console.log('&&&& TOKEN REFRESH', This);
     console.log('handleTokenRefresh()');
-    return new Promise((resolve, reject) => {
+    return new Promise(function(resolve, reject) {
       firebase.messaging().getToken()
-        .then((token) => {
+        .then(function(token) {
           // if (token) {
             This.notifications().updateSubscription(token)
             .then(function(e) {
@@ -1165,167 +1176,181 @@ function Manager() {
   /*
   EXTERNAL LIBS
   */
-  var load_firebase = (This, options) => new Promise((resolve) => {
-    if (typeof window.firebase !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.firebase_app.enabled == true) {
-      require.ensure([], () => {
-        window.firebase = require('firebase/app');
-        window.app = firebase.initializeApp(options.libraries.firebase_app.config);
-        This.log('Loaded Firebase.');
-      }, 'firebase-app')
-      .then(function() {
-        Promise.all([
-          load_firebase_auth(This, options),
-          load_firebase_firestore(This, options),
-          load_firebase_messaging(This, options),
-        ])
+  var load_firebase = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof window.firebase !== 'undefined') {
+        return resolve();
+      }
+      if (options.libraries.firebase_app.enabled == true) {
+        require.ensure([], function() {
+          window.firebase = require('firebase/app');
+          window.app = firebase.initializeApp(options.libraries.firebase_app.config);
+          This.log('Loaded Firebase.');
+        }, 'firebase-app')
+        .then(function() {
+          Promise.all([
+            load_firebase_auth(This, options),
+            load_firebase_firestore(This, options),
+            load_firebase_messaging(This, options),
+          ])
+          .then(function() {
+            return resolve();
+          });
+         });
+      } else {
+        return resolve();
+      }
+    });
+  }
+
+
+  var load_firebase_auth = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
+        return resolve();
+      }
+      if (options.libraries.firebase_auth.enabled == true) {
+        require.ensure([], function() {
+          require('firebase/auth');
+          This.log('Loaded Firebase Auth.');
+        }, 'firebase-auth')
         .then(function() {
           return resolve();
         });
-       });
-    } else {
-      return resolve();
-    }
-
-  });
-
-  var load_firebase_auth = (This, options) => new Promise((resolve) => {
-    if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.firebase_auth.enabled == true) {
-      require.ensure([], () => {
-        require('firebase/auth');
-        This.log('Loaded Firebase Auth.');
-      }, 'firebase-auth')
-      .then(function() {
+      } else {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
+      }
+    });
+  }
 
-  });
 
-  var load_firebase_firestore = (This, options) => new Promise((resolve) => {
-    if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.firebase_firestore.enabled == true) {
-      require.ensure([], () => {
-        require('firebase/firestore');
-        This.log('Loaded Firestore.');
-      }, 'firebase-firestore')
-      .then(function() {
+  var load_firebase_firestore = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
-
-  });
-
-  var load_firebase_messaging = (This, options) => new Promise((resolve) => {
-    if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.firebase_messaging.enabled == true) {
-      require.ensure([], () => {
-        require('firebase/messaging');
-        This.log('Loaded Firebase Messaging.');
-      }, 'firebase-messaging')
-      .then(function() {
+      }
+      if (options.libraries.firebase_firestore.enabled == true) {
+        require.ensure([], function() {
+          require('firebase/firestore');
+          This.log('Loaded Firestore.');
+        }, 'firebase-firestore')
+        .then(function() {
+          return resolve();
+        });
+      } else {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
+      }
+    });
+  }
 
-  });
-
-  var load_lazysizes = (This, options) => new Promise((resolve) => {
-    if (typeof window.lazysizes !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.lazysizes.enabled == true) {
-      require.ensure([], () => {
-        window.lazysizes = require('lazysizes');
-
-        // configs come from official lazysizes demo
-        var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
-        window.lazySizesConfig = {
-          loadMode: 1,
-          expand: expand,
-          expFactor: expand < 380 ? 3 : 2,
-        };
-        This.log('Loaded Lazysizes.');
-      }, 'lazysizes')
-      .then(function() {
+  var load_firebase_messaging = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
-
-  });
-
-  var load_cookieconsent = (This, options) => new Promise((resolve) => {
-    if (typeof window.cookieconsent !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.cookieconsent.enabled == true) {
-      require.ensure([], () => {
-        require('cookieconsent');
-        window.cookieconsent.initialise(options.libraries.cookieconsent.config);
-        This.log('Loaded Cookieconsent.');
-      }, 'cookieconsent')
-      .then(function() {
+      }
+      if (options.libraries.firebase_messaging.enabled == true) {
+        require.ensure([], function() {
+          require('firebase/messaging');
+          This.log('Loaded Firebase Messaging.');
+        }, 'firebase-messaging')
+        .then(function() {
+          return resolve();
+        });
+      } else {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
+      }
+    });
+  }
 
-  });
 
-  var load_tawk = (This, options) => new Promise((resolve) => {
-    if (typeof window.Tawk_API !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.tawk.enabled == true) {
-      window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
-      This.dom().loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function() {
-        This.log('Loaded tawk.');
+  var load_lazysizes = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof window.lazysizes !== 'undefined') {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
-  });
+      }
+      if (options.libraries.lazysizes.enabled == true) {
+        require.ensure([], function() {
+          window.lazysizes = require('lazysizes');
 
-  var load_sentry = (This, options) => new Promise((resolve) => {
-    if (typeof window.Sentry !== 'undefined') {
-      return resolve();
-    }
-    if (options.libraries.sentry.enabled == true) {
-      require.ensure([], () => {
-        window.Sentry = require('@sentry/browser');
-        var config = options.libraries.sentry.config;
-        config.release = config.release + '@' + This.properties.global.version;
-        config.environment = This.properties.meta.environment;
-        Sentry.init(config);
-        This.log('Loaded Sentry.');
-        // This.log('Loaded @sentry/browser.', config);
-      }, '@sentry/browser')
-      .then(function() {
+          // configs come from official lazysizes demo
+          var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
+          window.lazySizesConfig = {
+            loadMode: 1,
+            expand: expand,
+            expFactor: expand < 380 ? 3 : 2,
+          };
+          This.log('Loaded Lazysizes.');
+        }, 'lazysizes')
+        .then(function() {
+          return resolve();
+        });
+      } else {
         return resolve();
-      });
-    } else {
-      return resolve();
-    }
-  });
+      }
+    });
+  }
+
+  var load_cookieconsent = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof window.cookieconsent !== 'undefined') {
+        return resolve();
+      }
+      if (options.libraries.cookieconsent.enabled == true) {
+        require.ensure([], function() {
+          require('cookieconsent');
+          window.cookieconsent.initialise(options.libraries.cookieconsent.config);
+          This.log('Loaded Cookieconsent.');
+        }, 'cookieconsent')
+        .then(function() {
+          return resolve();
+        });
+      } else {
+        return resolve();
+      }
+
+    });
+  }
+
+  var load_tawk = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof window.Tawk_API !== 'undefined') {
+        return resolve();
+      }
+      if (options.libraries.tawk.enabled == true) {
+        window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
+        This.dom().loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function() {
+          This.log('Loaded tawk.');
+          return resolve();
+        });
+      } else {
+        return resolve();
+      }
+    });
+  }
+
+  var load_sentry = function(This, options) {
+    return new Promise(function(resolve) {
+      if (typeof window.Sentry !== 'undefined') {
+        return resolve();
+      }
+      if (options.libraries.sentry.enabled == true) {
+        require.ensure([], function() {
+          window.Sentry = require('@sentry/browser');
+          var config = options.libraries.sentry.config;
+          config.release = config.release + '@' + This.properties.global.version;
+          config.environment = This.properties.meta.environment;
+          Sentry.init(config);
+          This.log('Loaded Sentry.');
+          // This.log('Loaded @sentry/browser.', config);
+        }, '@sentry/browser')
+        .then(function() {
+          return resolve();
+        });
+      } else {
+        return resolve();
+      }
+    });
+  }
 
   Manager.prototype.log = function() {
     try {
@@ -1366,12 +1391,13 @@ function Manager() {
   //   }
   // }
 
-  function init_loadPolyfills(This, configuration, callback) {
+  function init_loadPolyfills(This, configuration, cb) {
     // console.log('POLY TEST', document.querySelectorAll);
     // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
     var featuresDefault = (
       // (typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]")) &&
       'Promise' in window &&
+      Element.prototype.matches &&
       // 'startsWith' in String.prototype &&
       // 'endsWith' in String.prototype &&
 
@@ -1410,11 +1436,11 @@ function Manager() {
     // }
 
     if (featuresDefault && featuresCustom) {
-      callback();
+      cb();
     } else {
       This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
         // console.log('%cLoaded polyfill.io.', 'font-weight: bold');
-        callback();
+        cb();
       });
     }
 
