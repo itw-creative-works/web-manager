@@ -486,7 +486,7 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = ((window.location.href.indexOf('localhost') != -1) || (window.location.href.indexOf('127.0.0.1') != -1) || (window.location.href.indexOf('ngrok.io') != -1)) ? 'development' : 'production';
+      This.properties.meta.environment = ((window.location.href.indexOf('://localhost') != -1) || (window.location.href.indexOf('://127.0') != -1) || (window.location.href.indexOf('ngrok.io') != -1) || (window.location.href.indexOf('://192.') != -1) ) ? 'development' : 'production';
 
 
       init_loadPolyfills(This, configuration, function() {
