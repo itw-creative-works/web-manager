@@ -31,6 +31,10 @@ var debug;
 /**
 * MODULE
 */
+function ieVersion() {
+  var match = /\b(MSIE |Trident.*?rv:|Edge\/)(\d+)/.exec(navigator.userAgent);
+  if (match) {return parseInt(match[2])};
+}
 
 function Manager() {
   /**
@@ -47,9 +51,8 @@ function Manager() {
   //   return [result, req];
   // };
 
-
-  this.extra = '16'; //@@@ Delete later
-
+  // var t1 = '16'; //@@@ Delete later
+  iev = ieVersion();
   this.properties = {
     options: {
       page: {},
@@ -65,14 +68,16 @@ function Manager() {
         masterSWRegistered: false,
 
         DOMContentLoaded: false,
-        eventHandlersSet: false,
+        eventHandlersSet: false
       },
       // initReady: false,
       // initSecondaryReady: false,
       queryString: {
         data: {},
-        exists: undefined,
+        exists: undefined
       },
+      libErrors: [],
+      isSupportedBrowser: (!iev || iev >= 11) // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
 
       // auth: {
       //   status: undefined,
@@ -84,7 +89,7 @@ function Manager() {
       url: '',
       cacheBreaker: '',
       brand: {
-        name: 'default',
+        name: 'default'
       },
       // preferences: {
       //   // firebase: {
@@ -104,7 +109,7 @@ function Manager() {
       // },
     },
     auth: {
-      user: false,
+      user: false
     },
     references: {
       serviceWorker: undefined
@@ -162,11 +167,13 @@ function Manager() {
   }
 
   Manager.prototype.setEventListeners = function() {
+    // console.log('--------setEventListeners');
     if (utilities.get(this, 'properties.page.status.eventHandlersSet', false) == false) {
       this.properties.page.status.eventHandlersSet = true;
       var This = this;
       // document.addEventListener('click', function (event) {
       This.dom().select('body').on('click', function (event) {
+        // console.log('Clicked.... NEW');
         This.log('Clicked', event.target);
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
@@ -660,11 +667,8 @@ function Manager() {
           }
 
           // load critical libraries
-          Promise.all([
-            load_sentry(This, options_user),
-            load_firebase(This, options_user),
-          ])
-          .then(function() {
+          function postCrucial() {
+            // console.log('HERE 5');
 
             // handle firebase user
             if (firebase.auth) {
@@ -678,6 +682,15 @@ function Manager() {
             // setup
             This.setEventListeners();
 
+            // display outdated if it is
+            try {
+              if (!This.properties.page.isSupportedBrowser) {
+                var box = document.getElementsByClassName("master-alert-outdated")[0];
+                box.style.display = "block";
+                document.body.insertBefore(box, document.body.firstChild);
+              }
+            } catch (e) {}
+
             // run the init callback
             This.properties.page.status.ready = true;
             callback();
@@ -689,7 +702,55 @@ function Manager() {
 
             This.log('Manager ', This);
             return;
-          });
+          }
+
+          // console.log('HERE 0');
+          Promise.all([
+            load_sentry(This, options_user),
+            load_firebase(This, options_user),
+          ])
+          .then(function() {
+            postCrucial();
+          })
+          .catch(function (e) {
+            //@@@ LOG TO SENTRY HERE?
+            postCrucial();
+          })
+          // console.log('HERE 0');
+          // Promise.all([
+          //   load_sentry(This, options_user),
+          //   load_firebase(This, options_user),
+          // ])
+          // .then(function() {
+          //   console.log('HERE 5');
+          //
+          //   // handle firebase user
+          //   if (firebase.auth) {
+          //     firebase.auth().onAuthStateChanged(function(user) {
+          //       This.properties.page.status.authReady = true;
+          //       This.properties.auth.user = user || false;
+          //       _authStateHandler(This, user);
+          //     })
+          //   }
+          //
+          //   // setup
+          //   This.setEventListeners();
+          //
+          //   // run the init callback
+          //   This.properties.page.status.ready = true;
+          //   callback();
+          //
+          //   // loan non-critical libraries
+          //   load_lazysizes(This, options_user);
+          //   load_cookieconsent(This, options_user);
+          //   subscriptionManager(This, options_user);
+          //
+          //   This.log('Manager ', This);
+          //   return;
+          // })
+          // .catch(function (e) {
+          //   console.log('E', e);
+          // })
 
       })
 
@@ -708,6 +769,50 @@ function Manager() {
   //       });
   //   }
   // }
+  // Sentry.configureScope(scope => {
+  //   scope.setExtra('battery', 0.7);
+  //   scope.setTag('user_mode', 'admin');
+  //   scope.setUser({ id: '4711' });
+  //   // scope.clear();
+  // });
+  //
+  // // Add a breadcrumb for future events
+  // Sentry.addBreadcrumb({
+  //   message: 'My Breadcrumb',
+  //   // ...
+  // });
+  //
+  // // Capture exceptions, messages or manual events
+  // Sentry.captureMessage('Hello, world!');
+  // Sentry.captureException(new Error('Good bye'));
+  // Sentry.captureEvent({
+  //   message: 'Manual',
+  //   stacktrace: [
+  //     // ...
+  //   ],
+  // });
+
+  Manager.prototype.sentry = function() {
+    // var en = (Sentry && Sentry)
+    return {
+      configureScope: function (cb) {
+        try {
+          Sentry.configureScope(function (scope) {
+            cb(scope);
+          })
+        } catch (e) {
+
+        }
+      },
+      captureException: function (e) {
+        try {
+          Sentry.captureException(e)
+        } catch (e) {
+
+        }
+      }
+    };
+  }
 
   Manager.prototype.auth = function() {
     var This = this;
@@ -1177,7 +1282,8 @@ function Manager() {
   EXTERNAL LIBS
   */
   var load_firebase = function(This, options) {
-    return new Promise(function(resolve) {
+    // console.log('HERE 1');
+    return new Promise(function(resolve, reject) {
       if (typeof window.firebase !== 'undefined') {
         return resolve();
       }
@@ -1188,14 +1294,23 @@ function Manager() {
           This.log('Loaded Firebase.');
         }, 'firebase-app')
         .then(function() {
+          // console.log('HERE 2');
+
           Promise.all([
             load_firebase_auth(This, options),
             load_firebase_firestore(This, options),
             load_firebase_messaging(This, options),
           ])
           .then(function() {
+            // console.log('HERE 3');
             return resolve();
+          })
+          .catch(function(e) {
+            // console.log('HERE 3 broke');
+            This.properties.page.libErrors.push({name: 'firebase_app', error: e})
+            return reject(e);
           });
+          // console.log('HERE 4');
          });
       } else {
         return resolve();
@@ -1205,7 +1320,7 @@ function Manager() {
 
 
   var load_firebase_auth = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
         return resolve();
       }
@@ -1215,17 +1330,24 @@ function Manager() {
           This.log('Loaded Firebase Auth.');
         }, 'firebase-auth')
         .then(function() {
+          firebase.auth().onAuthStateChanged(function(user) {
+          })
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'firebase_auth', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
       }
+
     });
   }
 
 
   var load_firebase_firestore = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
         return resolve();
       }
@@ -1236,6 +1358,10 @@ function Manager() {
         }, 'firebase-firestore')
         .then(function() {
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'firebase_firestore', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
@@ -1244,7 +1370,7 @@ function Manager() {
   }
 
   var load_firebase_messaging = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
         return resolve();
       }
@@ -1255,6 +1381,10 @@ function Manager() {
         }, 'firebase-messaging')
         .then(function() {
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'firebase_messaging', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
@@ -1264,7 +1394,7 @@ function Manager() {
 
 
   var load_lazysizes = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof window.lazysizes !== 'undefined') {
         return resolve();
       }
@@ -1283,6 +1413,10 @@ function Manager() {
         }, 'lazysizes')
         .then(function() {
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'lazysizes', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
@@ -1291,7 +1425,7 @@ function Manager() {
   }
 
   var load_cookieconsent = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof window.cookieconsent !== 'undefined') {
         return resolve();
       }
@@ -1303,6 +1437,10 @@ function Manager() {
         }, 'cookieconsent')
         .then(function() {
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'cookieconsent', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
@@ -1312,16 +1450,20 @@ function Manager() {
   }
 
   var load_tawk = function(This, options) {
-    return new Promise(function(resolve) {
+    return new Promise(function(resolve, reject) {
       if (typeof window.Tawk_API !== 'undefined') {
         return resolve();
       }
       if (options.libraries.tawk.enabled == true) {
         window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
-        This.dom().loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function() {
+        This.dom().loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function(e) {
+          if (e) {
+            This.properties.page.libErrors.push({name: 'tawk', error: e})
+            return reject(e);
+          }
           This.log('Loaded tawk.');
           return resolve();
-        });
+        })
       } else {
         return resolve();
       }
@@ -1345,6 +1487,10 @@ function Manager() {
         }, '@sentry/browser')
         .then(function() {
           return resolve();
+        })
+        .catch(function(e) {
+          This.properties.page.libErrors.push({name: 'sentry', error: e})
+          return reject(e);
         });
       } else {
         return resolve();
@@ -1376,7 +1522,7 @@ function Manager() {
         }
       }
     } catch (e) {
-
+      console.log(args);
     }
   }
 
