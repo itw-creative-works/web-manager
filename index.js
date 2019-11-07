@@ -298,7 +298,7 @@ function Manager() {
 
   function _authHandle_in(This, user) {
     This.log('_authHandle_in', user);
-    var returnUrl = This.query().create(window.location.href).get('redirect');
+    var returnUrl = This.query().create(window.location.href).get('auth_redirect');
     if (returnUrl) {
       window.location.href = decodeURIComponent(returnUrl);
       return;
@@ -328,7 +328,7 @@ function Manager() {
   function _authHandle_out(This) {
     This.log('_authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state == 'required') {
-      window.location.href = This.query().create(This.properties.options.auth.sends.required).set('redirect', encodeURIComponent(window.location.href)).getUrl();
+      window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
       return;
     }
     This.dom().select('.auth-signedin-true-element').hide();
@@ -493,7 +493,8 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = ((window.location.href.indexOf('://localhost') != -1) || (window.location.href.indexOf('://127.0') != -1) || (window.location.href.indexOf('ngrok.io') != -1) || (window.location.href.indexOf('://192.') != -1) ) ? 'development' : 'production';
+      // This.properties.meta.environment = ((window.location.href.indexOf('://localhost') != -1) || (window.location.href.indexOf('://127.0') != -1) || (window.location.href.indexOf('ngrok.io') != -1) || (window.location.href.indexOf('://192.') != -1) ) ? 'development' : 'production';
+      This.properties.meta.environment = /((:\/\/)(local|127\.|192\.|.+ngrok\.))/.test(window.location.href) ? 'development' : 'production';
 
 
       init_loadPolyfills(This, configuration, function() {
@@ -510,10 +511,6 @@ function Manager() {
             pushNotifications: {
               enabled: true,
               timeoutCheck: 60 // how long to wait before auto ask, 0 to disable
-            },
-            exitHandler: {
-              enabled: false,
-              function: function() {}
             },
             serviceWorker: {
               path: ''
@@ -1586,6 +1583,7 @@ function Manager() {
     } else {
       This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
         // console.log('%cLoaded polyfill.io.', 'font-weight: bold');
+        This.log('Loaded polyfill.io')
         cb();
       });
     }
