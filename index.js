@@ -819,7 +819,7 @@ function Manager() {
       This.dom().select(erel).show().setInnerHTML(msg);
     }
     function _preDisplayError() {
-      This.dom().select(erel)..hide().setInnerHTML('');
+      This.dom().select(erel).hide().setInnerHTML('');
     }
     function _callback_signIn(error, user) {
       This.properties.options.auth.signIn(error, user);
