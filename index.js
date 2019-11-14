@@ -814,8 +814,12 @@ function Manager() {
   Manager.prototype.auth = function() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
+    var erel = '.auth-error-message-element';
     function _displayError(msg) {
-      This.dom().select('.auth-error-message-element').show().setInnerHTML(msg);
+      This.dom().select(erel).show().setInnerHTML(msg);
+    }
+    function _preDisplayError() {
+      This.dom().select(erel)..hide().setInnerHTML('');
     }
     function _callback_signIn(error, user) {
       This.properties.options.auth.signIn(error, user);
@@ -857,6 +861,7 @@ function Manager() {
         method = method || 'email';
         email = email || This.dom().select('.auth-email-input').getValue();
         password = password || This.dom().select('.auth-password-input').getValue();
+        _preDisplayError();
         This.log('Signin attempt: ', method, email, password);
         if (method == 'email') {
           firebase.auth().signInWithEmailAndPassword(email, password)
@@ -876,6 +881,7 @@ function Manager() {
         email = email || This.dom().select('.auth-email-input').getValue();
         password = password || This.dom().select('.auth-password-input').getValue();
         passwordConfirm = passwordConfirm || This.dom().select('.auth-password-confirm-input').getValue();
+        _preDisplayError();
         This.log('Signup attempt: ', method, email, password, passwordConfirm);
         if (method == 'email') {
           if (password == passwordConfirm) {
@@ -914,6 +920,7 @@ function Manager() {
       forgot: function(email) {
         // This.log('forgot()');
         email = email || This.dom().select('.auth-email-input').getValue();
+        _preDisplayError();
         firebase.auth().sendPasswordResetEmail(email)
         .then(function() {
           This.log('forgot success.');
