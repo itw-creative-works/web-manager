@@ -338,10 +338,21 @@ function Manager() {
   Manager.prototype.ready = function(fn, options) {
     options = options || {};
     options.retryInterval = options.retryInterval || 100;
+    options.waitFor = options.waitFor || [];
+
     var This = this;
-    // if ( (This.get(this, 'page.status.ready', false) == false) ) {
-    // Manager.log('--- ready() REAL');
-    if ( (utilities.get(this, 'properties.page.status.ready', false) == false) ) {
+
+    var waitFor = true;
+    for (var i = 0; i < options.waitFor.length; i++) {
+      var cur = options.waitFor[i] || {};
+
+      if (cur.condition == '==' && window[cur.name] != cur.value) {
+        waitFor = false;
+        break;
+      }
+    }
+    if ( (utilities.get(this, 'properties.page.status.ready', false) == false) || !waitFor ) {
+      // console.log('polling b...', options.waitFor, !waitFor);
       setTimeout(function () {
         This.ready(fn, options);
       }, options.retryInterval);
@@ -349,7 +360,6 @@ function Manager() {
       // Performance
       This.performance().mark('manager_ready');
 
-      // This.log('--- ready() REAL ***DONE***');
       return fn();
       // return checkDOMLoaded(window, fn);
     }
@@ -815,11 +825,12 @@ function Manager() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
     var erel = '.auth-error-message-element';
+    var domLib = This.dom();
     function _displayError(msg) {
-      This.dom().select(erel).show().setInnerHTML(msg);
+      domLib.select(erel).show().setInnerHTML(msg);
     }
     function _preDisplayError() {
-      This.dom().select(erel).hide().setInnerHTML('');
+      domLib.select(erel).hide().setInnerHTML('');
     }
     function _callback_signIn(error, user) {
       This.properties.options.auth.signIn(error, user);
@@ -859,8 +870,8 @@ function Manager() {
       },
       signIn: function (method, email, password) {
         method = method || 'email';
-        email = email || This.dom().select('.auth-email-input').getValue();
-        password = password || This.dom().select('.auth-password-input').getValue();
+        email = email || domLib.select('.auth-email-input').getValue();
+        password = password || domLib.select('.auth-password-input').getValue();
         _preDisplayError();
         This.log('Signin attempt: ', method, email, password);
         if (method == 'email') {
@@ -878,11 +889,16 @@ function Manager() {
       },
       signUp: function(method, email, password, passwordConfirm) {
         method = method || 'email';
-        email = email || This.dom().select('.auth-email-input').getValue();
-        password = password || This.dom().select('.auth-password-input').getValue();
-        passwordConfirm = passwordConfirm || This.dom().select('.auth-password-confirm-input').getValue();
+        email = email || domLib.select('.auth-email-input').getValue();
+        password = password || domLib.select('.auth-password-input').getValue();
+        passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
         _preDisplayError();
         This.log('Signup attempt: ', method, email, password, passwordConfirm);
+        var termEl = domLib.select('.auth-terms-input');
+        if (termEl.exists() && !termEl.getValue() == true) {
+          _displayError("Please review and accept our terms.");
+          return;
+        }
         if (method == 'email') {
           if (password == passwordConfirm) {
             firebase.auth().createUserWithEmailAndPassword(email, password)
@@ -919,7 +935,7 @@ function Manager() {
       },
       forgot: function(email) {
         // This.log('forgot()');
-        email = email || This.dom().select('.auth-email-input').getValue();
+        email = email || domLib.select('.auth-email-input').getValue();
         _preDisplayError();
         firebase.auth().sendPasswordResetEmail(email)
         .then(function() {
