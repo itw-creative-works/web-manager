@@ -345,7 +345,7 @@ function Manager() {
     var waitFor = true;
     for (var i = 0; i < options.waitFor.length; i++) {
       var cur = options.waitFor[i] || {};
-      var val = cur.typeof ? typeof window[cur.name] : window[cur.name];
+      var val = window[cur.name];
 
       if (cur.condition == '==' && val != cur.value) {
         waitFor = false;
@@ -355,7 +355,12 @@ function Manager() {
         waitFor = false;
         break;
       }
+      if (cur.condition == 'defined' && typeof val == 'undefined') {
+        waitFor = false;
+        break;
+      }
     }
+    
     if ( (utilities.get(this, 'properties.page.status.ready', false) == false) || !waitFor ) {
       // console.log('polling b...', options.waitFor, !waitFor);
       setTimeout(function () {
