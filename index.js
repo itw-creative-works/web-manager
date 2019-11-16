@@ -345,8 +345,13 @@ function Manager() {
     var waitFor = true;
     for (var i = 0; i < options.waitFor.length; i++) {
       var cur = options.waitFor[i] || {};
+      var val = cur.typeof ? typeof window[cur.name] : window[cur.name];
 
-      if (cur.condition == '==' && window[cur.name] != cur.value) {
+      if (cur.condition == '==' && val != cur.value) {
+        waitFor = false;
+        break;
+      }
+      if (cur.condition == '!=' && val == cur.value) {
         waitFor = false;
         break;
       }
