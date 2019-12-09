@@ -360,7 +360,7 @@ function Manager() {
         break;
       }
     }
-    
+
     if ( (utilities.get(this, 'properties.page.status.ready', false) == false) || !waitFor ) {
       // console.log('polling b...', options.waitFor, !waitFor);
       setTimeout(function () {
@@ -1115,7 +1115,7 @@ function Manager() {
 
   function handleTokenRefresh(This) {
     // console.log('&&&& TOKEN REFRESH', This);
-    console.log('handleTokenRefresh()');
+    This.log('handleTokenRefresh()');
     return new Promise(function(resolve, reject) {
       firebase.messaging().getToken()
         .then(function(token) {
