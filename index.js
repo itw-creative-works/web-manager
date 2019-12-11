@@ -184,6 +184,8 @@ function Manager() {
           This.auth().signOut();
         } else if (event.target.matches('.auth-forgot-email-btn')) {
           This.auth().forgot();
+        } else if (event.target.matches('#prechat-btn')) {
+          load_tawk(This, This.properties.options);
         }
 
         // push notification events
@@ -596,7 +598,8 @@ function Manager() {
               tawk: {
                 enabled: true,
                 config: {
-                  chatId: ''
+                  chatId: '',
+                  prechatColor: '#02A84E'
                 }
               },
               cookieconsent: {
@@ -710,7 +713,16 @@ function Manager() {
             // run the init callback
             This.properties.page.status.ready = true;
 
-            callback();
+            try {
+              callback();
+            } catch (e) {
+              console.error(e);
+            }
+
+            var tawkOps = options_user.libraries.tawk;
+            if (tawkOps.enabled) {
+              This.dom().select('#prechat-btn').css({background: tawkOps.config.prechatColor}).show();
+            }
 
             // loan non-critical libraries
             load_lazysizes(This, options_user);
@@ -1481,13 +1493,18 @@ function Manager() {
   }
 
   var load_tawk = function(This, options) {
+    var dom = This.dom();
     return new Promise(function(resolve, reject) {
       if (typeof window.Tawk_API !== 'undefined') {
         return resolve();
       }
       if (options.libraries.tawk.enabled == true) {
         window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
-        This.dom().loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function(e) {
+        window.Tawk_API.onLoad = function(){
+          dom.select('#prechat-btn').hide();
+          Tawk_API.maximize();
+        };
+        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function(e) {
           if (e) {
             This.properties.page.libErrors.push({name: 'tawk', error: e})
             return reject(e);
@@ -1495,6 +1512,7 @@ function Manager() {
           This.log('Loaded tawk.');
           return resolve();
         })
+
       } else {
         return resolve();
       }
