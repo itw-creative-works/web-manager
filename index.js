@@ -502,7 +502,6 @@ function Manager() {
 
   // init with polyfills
   Manager.prototype.init = function(configuration, callback) {
-
     var This = this;
     if ((utilities.get(This, 'properties.page.status.ready', false) == false) && ((utilities.get(This, 'properties.page.status.initializing', false) == false))) {
 
@@ -710,6 +709,7 @@ function Manager() {
 
             // run the init callback
             This.properties.page.status.ready = true;
+
             callback();
 
             // loan non-critical libraries
@@ -731,7 +731,8 @@ function Manager() {
           })
           .catch(function (e) {
             //@@@ LOG TO SENTRY HERE?
-            postCrucial();
+            console.error('manager', e);
+            // postCrucial();
           })
           // console.log('HERE 0');
           // Promise.all([
