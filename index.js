@@ -521,7 +521,7 @@ function Manager() {
       init_loadPolyfills(This, configuration, function() {
           This.properties.page.status.initializing = false;
           // This.properties.genericPromise = new Promise(resolve => { resolve() });
-
+          var tempUrl = This.properties.global.url;
           var options_defaults = {
             // debug: {
             //   environment: This.properties.meta.environment,
@@ -543,8 +543,8 @@ function Manager() {
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
-                required: (This.properties.global.url + '/signin/'),
-                prohibited: (This.properties.global.url + '/')
+                required: (tempUrl + '/signin/'),
+                prohibited: (tempUrl + '/')
               },
               authStateHandler: function() {}, // custom authStateHandler() function
               signIn: function() {}, // custom signIn() function
@@ -618,12 +618,13 @@ function Manager() {
                   theme: 'classic',
                   position: 'bottom-left',
                   type: '',
+                  showLink: false,
                   content: {
-                    message: 'This website uses cookies to ensure you get the best experience on our website.',
+                    message: 'We use cookies to ensure you get the best experience on our website. By continuing to use the site, you agree to our<a href="' + tempUrl + '/terms/" class="cc-link">terms of service</a>',
                     dismiss: 'Got it!',
-                    link: 'Learn more',
+                    // link: 'Learn more',
                     // href: '' || This.properties.global.urlRoot + '/cookies/',
-                    href: (This.properties.global.url + '/cookies/')
+                    // href: (tempUrl + '/cookies/')
                   }
                 }
               }
