@@ -868,6 +868,27 @@ function Manager() {
     function _callback_forgot(error) {
       This.properties.options.auth.forgot(error);
     }
+    function signinButtonDisabled(status) {
+      if (status) {
+        domLib.select('.auth-signin-email-btn').setAttribute('disabled', true);
+      } else {
+        domLib.select('.auth-signin-email-btn').removeAttribute('disabled');
+      }
+    }
+    function signupButtonDisabled(status) {
+      if (status) {
+        domLib.select('.auth-signup-email-btn').setAttribute('disabled', true);
+      } else {
+        domLib.select('.auth-signup-email-btn').removeAttribute('disabled');
+      }
+    }
+    function forgotButtonDisabled(status) {
+      if (status) {
+        domLib.select('.auth-forgot-email-btn').setAttribute('disabled', true);
+      } else {
+        domLib.select('.auth-forgot-email-btn').removeAttribute('disabled');
+      }
+    }
     return {
       isAuthenticated: function () {
         return firebaseActive ? !!firebase.auth().currentUser : false;
@@ -899,12 +920,15 @@ function Manager() {
         _preDisplayError();
         This.log('Signin attempt: ', method, email, password);
         if (method == 'email') {
+          signinButtonDisabled(true);
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
+            signinButtonDisabled(false);
             _callback_signIn(false, credential.user);
             This.log('Good signin');
           })
           .catch(function(error) {
+            signinButtonDisabled(false);
             _displayError(error.message);
             _callback_signIn(error);
             This.log('Error', error.message);
@@ -925,12 +949,15 @@ function Manager() {
         }
         if (method == 'email') {
           if (password == passwordConfirm) {
+            signupButtonDisabled(true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
               This.log('Good signup');
+              signupButtonDisabled(false);
               _callback_signUp(false, credential.user);
             })
             .catch(function(error) {
+              signupButtonDisabled(false);
               _displayError(error.message);
               This.log('error', error.message);
               _callback_signUp(error);
@@ -960,14 +987,16 @@ function Manager() {
       forgot: function(email) {
         // This.log('forgot()');
         email = email || domLib.select('.auth-email-input').getValue();
+        forgotButtonDisabled(true);
         _preDisplayError();
         firebase.auth().sendPasswordResetEmail(email)
         .then(function() {
+          forgotButtonDisabled(false);
           This.log('forgot success.');
           _callback_forgot();
-
         })
         .catch(function(error) {
+          forgotButtonDisabled(false);
           This.log('forgot failed: ', error);
           _displayError(error.message);
           _callback_forgot(error);
