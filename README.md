@@ -72,8 +72,7 @@ By default, all of the libraries are enabled. But you can simply set `enabled` t
 <script type="text/javascript">
   var config = {
       pushNotifications: {
-        enabled: true,
-        timeoutCheck: 60 // How long to wait before auto ask to subscribe. 0 to disable.
+        autoRequest: 60 // How long to wait before auto ask to subscribe. 0 to disable.
       },
       serviceWorker: {
         path: 'firebase-messaging-sw.js' // Path to your service worker

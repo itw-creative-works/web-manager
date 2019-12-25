@@ -189,7 +189,8 @@ function Manager() {
         }
 
         // push notification events
-        if (event.target.matches('.auth-subscribe-push-notifications-btn')) {
+        if (event.target.matches('.auth-subscribe-notifications-btn')) {
+          //@@@NOTIFICATIONS
           This.notifications().subscribe()
           .catch(function (e) {
             console.error(e);
@@ -274,32 +275,45 @@ function Manager() {
   // }
 
   function _authStateHandler(This, user) {
-    // var This = this;
-    This.log('authStateHandler', user);
+    // This.log('authStateHandler', user);
     if (user != null) {
       if (user.isAnonymous === false) {
         _authHandle_in(This, user);
       } else {
         _authHandle_out(This);
       }
-      This.properties.options.auth.authStateHandler(user);
     } else {
-      // firebase.auth().signInAnonymously()
-      // .then(function(user) {
-      //   This.log('signInAnonymously', user);
-      // })
-      // .catch(function(error) {
-      //   This.log('signInAnonymously error:', error);
-      //   _authHandle_out(This);
-      //   This.properties.options.auth.authStateHandler(user);
-      // });
       _authHandle_out(This);
-      This.properties.options.auth.authStateHandler(user);
     }
   }
 
   function _authHandle_in(This, user) {
-    This.log('_authHandle_in', user);
+    // This.log('_authHandle_in', user);
+    if (This.properties.page.status.didSignUp) {
+      var domLib = This.dom();
+      This.ajax().request({
+        url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
+        // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
+        data: {
+          email: user.email,
+          uid: user.uid,
+          newsletterSignUp: This.dom().select('.auth-newsletter-input').getValue(),
+          affiliateCode: This.storage().get('auth.affiliateCode', ''),
+        },
+      })
+      .success(function (response, status, data) {
+        console.log(data);
+      })
+      .always(function (response, status) {
+        _authHandle_in_normal(This, user);
+      });
+    } else {
+      _authHandle_in_normal(This, user);
+    }
+  }
+
+  function _authHandle_in_normal(This, user) {
+    var domLib = This.dom();
     var returnUrl = This.query().create(window.location.href).get('auth_redirect');
     if (returnUrl) {
       window.location.href = decodeURIComponent(returnUrl);
@@ -309,26 +323,26 @@ function Manager() {
       window.location.href = This.properties.options.auth.sends.prohibited;
       return;
     }
-    This.dom().select('.auth-signedin-true-element').show();
-    This.dom().select('.auth-signedin-false-element').hide();
-    This.dom().select('.auth-email-element').each(function(i, e) {
+    domLib.select('.auth-signedin-true-element').show();
+    domLib.select('.auth-signedin-false-element').hide();
+    domLib.select('.auth-email-element').each(function(i, e) {
       if (e.tagName == 'INPUT') {
-        This.dom().select(e).setValue(user.email)
+        domLib.select(e).setValue(user.email)
       } else {
-        This.dom().select(e).setInnerHTML(user.email)
+        domLib.select(e).setInnerHTML(user.email)
       }
     });
-    This.dom().select('.auth-uid-element').each(function(i, e) {
+    domLib.select('.auth-uid-element').each(function(i, e) {
       if (e.tagName == 'INPUT') {
-        This.dom().select(e).setValue(user.uid)
+        domLib.select(e).setValue(user.uid)
       } else {
-        This.dom().select(e).setInnerHTML(user.uid)
+        domLib.select(e).setInnerHTML(user.uid)
       }
     });
   }
 
   function _authHandle_out(This) {
-    This.log('_authHandle_out: ', This.properties.options.auth.state);
+    // This.log('_authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state == 'required') {
       window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
       return;
@@ -530,8 +544,7 @@ function Manager() {
               saveToStorage: false
             },
             pushNotifications: {
-              enabled: true,
-              timeoutCheck: 60 // how long to wait before auto ask, 0 to disable
+              autoRequest: 60 // how long to wait before auto ask, 0 to disable
             },
             serviceWorker: {
               path: ''
@@ -545,12 +558,7 @@ function Manager() {
               sends: {
                 required: (tempUrl + '/signin/'),
                 prohibited: (tempUrl + '/')
-              },
-              authStateHandler: function() {}, // custom authStateHandler() function
-              signIn: function() {}, // custom signIn() function
-              signOut: function() {}, // custom signOut() function
-              signUp: function() {}, // custom signUp() function
-              forgot: function() {} // custom signUp() function
+              }
             },
             popup: {
               enabled: true,
@@ -678,8 +686,8 @@ function Manager() {
           // parse query stringify
           This.properties.page.queryString = This.query()
             .create(window.location.href, {});
-          if (This.properties.page.queryString.get('auth_aff')) {
-            This.storage().set('queryString.auth_aff', This.properties.page.queryString.get('auth_aff'));
+          if (This.properties.page.queryString.get('aff')) {
+            This.storage().set('auth.affiliateCode', This.properties.page.queryString.get('aff'));
           }
           if (This.properties.page.queryString.get('redirect')) {
             window.location.href = decodeURIComponent(This.properties.page.queryString.get('redirect'));
@@ -856,18 +864,7 @@ function Manager() {
     function _preDisplayError() {
       domLib.select(erel).hide().setInnerHTML('');
     }
-    function _callback_signIn(error, user) {
-      This.properties.options.auth.signIn(error, user);
-    }
-    function _callback_signUp(error, user) {
-      This.properties.options.auth.signUp(error, user);
-    }
-    function _callback_signOut(error) {
-      This.properties.options.auth.signOut(error);
-    }
-    function _callback_forgot(error) {
-      This.properties.options.auth.forgot(error);
-    }
+
     function signinButtonDisabled(status) {
       if (status) {
         domLib.select('.auth-signin-email-btn').setAttribute('disabled', true);
@@ -909,7 +906,7 @@ function Manager() {
         } else {
           // Performance
           This.performance().mark('manager_authReady');
-          // This.log('--- authReady() REAL ***DONE***');
+          // This.log('.authReady()', This.auth().getUser());
           return fn();
         }
       },
@@ -924,13 +921,11 @@ function Manager() {
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
             signinButtonDisabled(false);
-            _callback_signIn(false, credential.user);
             This.log('Good signin');
           })
           .catch(function(error) {
             signinButtonDisabled(false);
             _displayError(error.message);
-            _callback_signIn(error);
             This.log('Error', error.message);
           });
         }
@@ -952,20 +947,18 @@ function Manager() {
             signupButtonDisabled(true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
+              This.properties.page.status.didSignUp = true;
               This.log('Good signup');
               signupButtonDisabled(false);
-              _callback_signUp(false, credential.user);
             })
             .catch(function(error) {
               signupButtonDisabled(false);
               _displayError(error.message);
               This.log('error', error.message);
-              _callback_signUp(error);
             });
           } else {
             _displayError("Passwords don't match.");
           }
-
         }
 
       },
@@ -975,13 +968,9 @@ function Manager() {
         firebase.auth().signOut()
         .then(function() {
           This.log('signOut success.');
-          _callback_signOut(false);
-
         })
         .catch(function(error) {
           This.log('signOut failed: ', error);
-          _callback_signOut(error);
-
         });
       },
       forgot: function(email) {
@@ -993,193 +982,129 @@ function Manager() {
         .then(function() {
           forgotButtonDisabled(false);
           This.log('forgot success.');
-          _callback_forgot();
         })
         .catch(function(error) {
           forgotButtonDisabled(false);
           This.log('forgot failed: ', error);
           _displayError(error.message);
-          _callback_forgot(error);
         });
       },
 
     }
   }
 
+  //@@@NOTIFICATIONS
   Manager.prototype.notifications = function(options) {
-    var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator);
+    var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator) && ("Notification" in window);
     var This = this;
-    var response = {
-      status: 'success',
-      // subscribed: false,
-      // token: '',
-      error: false,
-    }
     return {
+      isSubscribed: function () {
+        This.log('isSubscribed()');
+        return new Promise(function(resolve, reject) {
+          if (!supported || Notification.permission != 'granted') {return resolve(false)};
+          return resolve(true);
+        })
+      },
       subscribe: function () {
         This.log('subscribe()');
         return new Promise(function(resolve, reject) {
-          firebase.messaging().requestPermission()
-            .then(function () {
-              This.notifications().checkSubscription()
-                .then(function (response) {
-                  resolve(response);
-                })
-                .catch(function (e) {
-                  response.error = e;
-                  response.status = 'fail';
-                  reject(response);
-                })
-            })
-            .catch(function (e) {
-              response.error = e;
-              response.subscribed = false;
-              resolve(response);
-            })
-        })
-      },
-      checkSubscription: function () {
-        This.log('checkSubscription()');
-        return new Promise(function(resolve, reject) {
+          // var subscribed = !This.notifications().isSubscribed();
+
+          // return resolve(firebase.messaging().getToken());
           firebase.messaging().getToken()
-            .then(function (token) {
-              if (token) {
-                firebase.firestore().doc('notifications/subscriptions/all/' + token)
-                  .get()
-                  .then(function (documentSnapshot) {
-                    if (documentSnapshot.exists == false) {
-                      This.notifications().updateSubscription(token)
-                      .then(function () {
-                        This.log('Subscribe done!');
-                        response.token = token;
-                        response.subscribed = true;
-                        resolve(response);
-                      })
-                      .catch(function (e) {
-                        This.log(e);
-                        response.error = e;
-                        response.token = token;
-                        response.subscribed = true;
-                        resolve(response);
-                      })
-                    } else {
-                      response.subscribed = true;
-                      response.token = token;
-                      resolve(response);
-                      This.log('Already subscribed');
+          .then(function (token) {
+            var user = This.auth().getUser();
+            var localSubscription = This.storage().get('notifications', {});
+            var localHash = localSubscription.token + '|' + localSubscription.email;
+            var userHash = token + '|' + user.email;
+
+            // var override = false;
+            var currentDate = new Date();
+            var dateDifference = (currentDate.getTime() - new Date(localSubscription.lastSynced || 0).getTime()) / (1000 * 3600 * 24);
+
+            // Run if local hash is different than the user hash OR it was last updated more than 1 day ago
+            if (localHash != userHash || dateDifference > 1) {
+              var timestamp = currentDate.toISOString();
+              var timestampUNIX = Math.floor((+new Date(timestamp)) / 1000);
+              var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
+
+              function saveLocal() {
+                // This.log('Saved local token: ', token);
+                This.storage().set('notifications', {email: user.email, token: token, lastSynced: timestamp});
+              }
+              // Get the doc first and then run a check to see if it needs to be updated
+              subscriptionRef
+              .get()
+              .then(function (doc) {
+
+                // Run if it (DOES NOT EXIST on server) OR (it does AND the email field is null AND the current user is not null)
+                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'linked.user.data.email', '') && user.email)) {
+                  subscriptionRef
+                  .set(
+                    {
+                      meta: {
+                        dateSubscribed: {
+                          timestamp: timestamp,
+                          timestampUNIX: timestampUNIX,
+                        },
+                      },
+                      token: token,
+                      linked: {
+                        user: {
+                          timestampLastLinked: timestamp,
+                          pk: user.email,
+                          data: {
+                            uid: user.uid,
+                            email: user.email,
+                          }
+                        }
+                      },
+                      tags: ['general']
+                    },
+                    {
+                      merge: true
                     }
+                  )
+                  .then(function(data) {
+                    // This.log('Updated token: ', token);
+                    saveLocal();
+                    resolve(true);
                   })
-                  .catch(function(e) {
-                    console.error(e);
-                    response.error = e;
-                    response.status = 'fail';
-                    reject(response);
-                  });
-              } else {
-                response.subscribed = false;
-                resolve(response);
-              }
+                } else {
+                  saveLocal();
+                  // This.log('Skip sync, server data exists.');
+                  resolve(false);
+                }
+              })
+            } else {
+              // This.log('Skip sync, recently done.');
+              resolve(false);
+            }
 
-            })
-            .catch(function (e) {
-              response.subscribed = false;
-              response.error = e;
-              resolve(response);
-            })
-        })
-
-      },
-      updateSubscription: function (token) {
-        This.log('updateSubscription()');
-        return new Promise(function(resolve, reject) {
-          var currentUser = This.auth().getUser();
-          var storedSub = This.storage().get('_subscription', '');
-          var currentEmail = currentUser.email || '';
-          var currentUid = currentUser.uid || '';
-
-          // This.log('Stored = ', storedSub);
-          // This.log('Trying = ', token);
-
-          if (token && storedSub.token == token && storedSub.email == currentEmail) {
-            // console.log('&&& 1');
-            response.token = token;
-            return resolve(response);
-          } else if (!token) {
-            // console.log('&&& 2');
-            response.subscribed = false;
-            return resolve(response);
-            This.storage().set('_subscription', {email: currentEmail, token: token});
-          }
-          // console.log('&&& 3');
-          firebase.firestore().doc('notifications/subscriptions/all/' + token)
-            .set(
-              {
-                meta: {
-                  dateSubscribed: {
-                    timestamp: getDateTime(),
-                    timestampUNIX: new Date().getTime(),
-                  },
-                },
-                token: token,
-                linked: {
-                  user: {
-                    timestampLastLinked: getDateTime(),
-                    pk: currentEmail,
-                    data: {
-                      uid: currentUid,
-                      email: currentEmail,
-                    }
-                  }
-                },
-                tags: ['general']
-              },
-              {
-                merge: true
-              }
-            )
-            .then(function() {
-              This.log('Updated token: ', token);
-              response.token = token;
-              This.storage().set('_subscription', {email: currentEmail, token: token});
-              resolve(response);
-            })
-            .catch(function(e) {
-              console.error(e);
-              response.error = e;
-              response.status = 'fail';
-              reject(response);
-            });
-
+          })
+          .catch(function (e) {
+            reject(e);
+          })
         })
       }
-
     }
   }
 
   function handleTokenRefresh(This) {
-    // console.log('&&&& TOKEN REFRESH', This);
     This.log('handleTokenRefresh()');
     return new Promise(function(resolve, reject) {
-      firebase.messaging().getToken()
-        .then(function(token) {
-          // if (token) {
-            This.notifications().updateSubscription(token)
-            .then(function(e) {
-              resolve();
-            })
-            .catch(function(e) {
-              reject(e);
-            });
-          // } else {
-          //   console.log('***3');
-          //   reject();
-          // }
-        })
-        .catch(function(e) {
-          reject(e);
-        });
-    })
+      var notifications = This.notifications();
+      notifications.isSubscribed()
+      .then(function (result) {
+        if (result) {
+          return resolve(This.notifications().subscribe());
+        } else {
+          return resolve();
+        }
+      })
+    });
   }
+
 
   /*
   HELPERS
@@ -1229,7 +1154,9 @@ function Manager() {
         // registration.update();
         This.properties.page.status.masterSWRegistered = true;
 
+
         This.log('SW Registered.');
+        //@@@NOTIFICATIONS
         firebase.messaging().onTokenRefresh(
           handleTokenRefresh(This)
           .catch(function (e) {
@@ -1237,15 +1164,24 @@ function Manager() {
           })
         )
 
-
-        if (options_user.pushNotifications.timeoutCheck > 0) {
+        if (options_user.pushNotifications.autoRequest) {
           setTimeout(function () {
+            //@@@NOTIFICATIONS
             This.notifications().subscribe()
             .catch(function (e) {
               console.error(e);
             });
-          }, options_user.pushNotifications.timeoutCheck * 1000);
+          }, options_user.pushNotifications.autoRequest * 1000);
         }
+
+        try {
+          firebase.messaging().onMessage(function (payload) {
+            new Notification(payload.notification.title, payload.notification);
+          })
+        } catch (e) {
+          console.error('onMessage', e);
+        }
+
       })
       .catch(function (e) {
         // console.log('***2');
@@ -1259,96 +1195,6 @@ function Manager() {
     }
   }
 
-
-
-
-
-  // function handleTokenRefresh(This) {
-  //   return firebase.messaging().getToken()
-  //     .then((token) => {
-  //       if (token) {
-  //         This.notifications().updateSubscription(token);
-  //       } else {
-  //         console.log('***3');
-  //         console.error('Failed to get token');
-  //       }
-  //     })
-  //     .catch(function(e) {
-  //       console.log('***4');
-  //       console.error(e);
-  //     });
-  // }
-
-  // function updateSubscription(token) {
-  //   console.log('updateSubscription()');
-  //   return firebase.firestore().doc('notifications/subscriptions/all/' + token)
-  //     .set(
-  //       {
-  //         dateSubscribed: {
-  //           timestamp: getDateTime(),
-  //           timestampUNIX: new Date().getTime(),
-  //         },
-  //         token: token,
-  //         linked: {
-  //           user: {
-  //             timestampLastLinked: getDateTime(),
-  //             data: {
-  //               uid: (firebase.auth().currentUser ? firebase.auth().currentUser.uid : ''),
-  //             }
-  //           }
-  //         },
-  //         tags: ['general']
-  //       },
-  //       {
-  //         merge: true
-  //       }
-  //     )
-  //     .then(function() {
-  //       window.Manager.log('Updated token: ', token);
-  //     })
-  //     .catch(function(e) {
-  //       console.log('***5');
-  //       console.error(e);
-  //     });
-  // }
-
-  // function checkSubscription() {
-  //   // console.log('checkSubscription()');
-  //   // console.log('MANAGER!!!', Manager);
-  //   // console.log('window.MANAGER!!!', window.Manager);
-  //   return firebase.messaging().getToken()
-  //     .then((token) => {
-  //       if (token) {
-  //         return firebase.firestore().doc('notifications/subscriptions/all/' + token)
-  //           .get()
-  //           .then(function (documentSnapshot) {
-  //             if (documentSnapshot.exists == false) {
-  //               window.Manager.log('Subscribing now');
-  //               updateSubscription(token)
-  //               .then(function () {
-  //                 window.Manager.log('Subscribe done!');
-  //               })
-  //             } else {
-  //               window.Manager.log('Already subscribed');
-  //             }
-  //           })
-  //           .catch(function(e) {
-  //             console.log('***6');
-  //             console.error(e);
-  //             return reject();
-  //           });
-  //       } else {
-  //         console.log('***7');
-  //         console.error('Failed to get token');
-  //         return reject();
-  //       }
-  //     })
-  //     .catch(function(e) {
-  //       console.log('***8');
-  //       console.error(e);
-  //       return reject();
-  //     });
-  // }
 
 
   /*
@@ -1403,8 +1249,8 @@ function Manager() {
           This.log('Loaded Firebase Auth.');
         }, 'firebase-auth')
         .then(function() {
-          firebase.auth().onAuthStateChanged(function(user) {
-          })
+          // firebase.auth().onAuthStateChanged(function(user) {
+          // })
           return resolve();
         })
         .catch(function(e) {
@@ -1741,26 +1587,6 @@ function Manager() {
   /**
   * HELPERS
   */
-  function getDateTime(type) {
-    var d = new Date;
-    var date = zeroFill(d.getFullYear(),2)+'-'+zeroFill(d.getMonth()+1,2)+'-'+zeroFill(d.getDate(),2);
-    var time = zeroFill(d.getHours(),2)+':'+zeroFill(d.getMinutes(),2)+':'+zeroFill(d.getSeconds(),2)+'Z';
-    if (type == 'date') {
-      return date;
-    } else if (type == 'time') {
-      return time;
-    } else {
-      return date+"T"+time;
-    }
-  }
 
-  function zeroFill( number, width ) {
-    width -= number.toString().length;
-    if ( width > 0 )
-    {
-      return new Array( width + (/\./.test( number ) ? 2 : 1) ).join( '0' ) + number;
-    }
-    return number + ""; // always return a string
-  }
 
 module.exports = Manager;
