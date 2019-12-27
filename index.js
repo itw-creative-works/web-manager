@@ -297,12 +297,12 @@ function Manager() {
         data: {
           email: user.email,
           uid: user.uid,
-          newsletterSignUp: This.dom().select('.auth-newsletter-input').getValue(),
-          affiliateCode: This.storage().get('auth.affiliateCode', ''),
-        },
+          newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+          affiliateCode: This.storage().get('auth.affiliateCode', '')
+        }
       })
       .success(function (response, status, data) {
-        console.log(data);
+        // console.log(data);
       })
       .always(function (response, status) {
         _authHandle_in_normal(This, user);
@@ -982,6 +982,7 @@ function Manager() {
         .then(function() {
           forgotButtonDisabled(false);
           This.log('forgot success.');
+          _displayError('A reset link has been sent to you.');
         })
         .catch(function(error) {
           forgotButtonDisabled(false);
