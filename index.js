@@ -1039,24 +1039,27 @@ function Manager() {
               .then(function (doc) {
 
                 // Run if it (DOES NOT EXIST on server) OR (it does AND the email field is null AND the current user is not null)
-                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'linked.user.data.email', '') && user.email)) {
+                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.email', '') && user.email)) {
                   subscriptionRef
                   .set(
                     {
                       meta: {
                         dateSubscribed: {
                           timestamp: timestamp,
-                          timestampUNIX: timestampUNIX,
-                        },
+                          timestampUNIX: timestampUNIX
+                        }
                       },
                       token: token,
-                      linked: {
+                      link: {
                         user: {
-                          timestampLastLinked: timestamp,
-                          pk: user.email,
+                          lastLinked: {
+                            timestamp: timestamp,
+                            timestampUNIX: timestampUNIX
+                          },
+                          pk: user.uid,
                           data: {
                             uid: user.uid,
-                            email: user.email,
+                            email: user.email
                           }
                         }
                       },
