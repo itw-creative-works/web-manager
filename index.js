@@ -1024,7 +1024,7 @@ function Manager() {
             var dateDifference = (currentDate.getTime() - new Date(localSubscription.lastSynced || 0).getTime()) / (1000 * 3600 * 24);
 
             // Run if local hash is different than the user hash OR it was last updated more than 1 day ago
-            if (localHash != userHash || dateDifference > 0) {
+            if (localHash != userHash || dateDifference > 1) {
               var timestamp = currentDate.toISOString();
               var timestampUNIX = Math.floor((+new Date(timestamp)) / 1000);
               var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
