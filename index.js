@@ -1024,7 +1024,7 @@ function Manager() {
             var dateDifference = (currentDate.getTime() - new Date(localSubscription.lastSynced || 0).getTime()) / (1000 * 3600 * 24);
 
             // Run if local hash is different than the user hash OR it was last updated more than 1 day ago
-            if (localHash != userHash || dateDifference > 1) {
+            if (localHash != userHash || dateDifference > 0) {
               var timestamp = currentDate.toISOString();
               var timestampUNIX = Math.floor((+new Date(timestamp)) / 1000);
               var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
@@ -1033,11 +1033,8 @@ function Manager() {
                 // This.log('Saved local token: ', token);
                 This.storage().set('notifications', {email: user.email, token: token, lastSynced: timestamp});
               }
-              // Get the doc first and then run a check to see if it needs to be updated
-              subscriptionRef
-              .get()
-              .then(function (doc) {
 
+              function saveServer(doc) {
                 // Run if it (DOES NOT EXIST on server) OR (it does AND the email field is null AND the current user is not null)
                 if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.email', '') && user.email)) {
                   subscriptionRef
@@ -1079,6 +1076,16 @@ function Manager() {
                   // This.log('Skip sync, server data exists.');
                   resolve(false);
                 }
+              }
+
+              // Get the doc first and then run a check to see if it needs to be updated
+              subscriptionRef
+              .get()
+              .then(function (doc) {
+                saveServer(doc);
+              })
+              .catch(function () {
+                saveServer({exists: false})
               })
             } else {
               // This.log('Skip sync, recently done.');
