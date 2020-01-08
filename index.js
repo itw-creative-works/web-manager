@@ -1236,7 +1236,7 @@ function Manager() {
             return resolve();
           })
           .catch(function(e) {
-            // console.log('HERE 3 broke');
+            console.log('HERE 3 broke', e);
             This.properties.page.libErrors.push({name: 'firebase_app', error: e})
             return reject(e);
           });
