@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "1.5.28",
+  "version": "1.5.29",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "index.js",
   "scripts": {
