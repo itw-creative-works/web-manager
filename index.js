@@ -274,9 +274,23 @@ function Manager() {
   //
   // }
 
+  // Requires firebase auth to be determined
+  function _setupTokenRefreshHandler(This) {
+    console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
+    if (This.properties.page.status.authReady) {
+      return firebase.messaging().onTokenRefresh(
+        handleTokenRefresh(This)
+        .catch(function (e) {
+          console.error(e);
+        })
+      );
+    }
+    setTimeout(function () {_setupTokenRefreshHandler(This)}, 300);
+  }
+
   function _authStateHandler(This, user) {
-    // This.log('authStateHandler', user);
-    if (user != null) {
+    // This.log('----authStateHandler', user);
+    if (user) {
       if (user.isAnonymous === false) {
         _authHandle_in(This, user);
       } else {
@@ -305,8 +319,19 @@ function Manager() {
         // console.log(data);
       })
       .always(function (response, status) {
+        // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
         _authHandle_in_normal(This, user);
       });
+    // } else if (This.properties.page.status.didSignIn) {
+      // This.notifications().isSubscribed(function (status) {
+      //   if (status) {
+      //     This.notifications().subscribe()
+      //     .then(function () {
+      //
+      //     })
+      //   }
+      // })
+      // _authHandle_in_normal(This, user);
     } else {
       _authHandle_in_normal(This, user);
     }
@@ -853,6 +878,12 @@ function Manager() {
     };
   }
 
+  // function _postAuthSubscriptionCheck() {
+  //   return new Promise(function(resolve, reject) {
+  //
+  //   });
+  // }
+
   Manager.prototype.auth = function() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
@@ -920,6 +951,11 @@ function Manager() {
           signinButtonDisabled(true);
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
+            // _postAuthSubscriptionCheck(This)
+            // .then(function () {
+            //
+            // })
+            This.properties.page.status.didSignIn = true;
             signinButtonDisabled(false);
             This.log('Good signin');
           })
@@ -1018,6 +1054,9 @@ function Manager() {
             var localSubscription = This.storage().get('notifications', {});
             var localHash = localSubscription.token + '|' + localSubscription.email;
             var userHash = token + '|' + user.email;
+            // console.log('user', user);
+            // console.log('localHash', localHash);
+            // console.log('userHash', userHash);
 
             // var override = false;
             var currentDate = new Date();
@@ -1030,11 +1069,13 @@ function Manager() {
               var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
 
               function saveLocal() {
+                // console.log('---------saveLocal');
                 // This.log('Saved local token: ', token);
                 This.storage().set('notifications', {email: user.email, token: token, lastSynced: timestamp});
               }
 
               function saveServer(doc) {
+                // console.log('-------saveServer', !doc.exists, !This.utilities().get(doc.data(), 'link.user.data.email', ''), user.email);
                 // Run if it (DOES NOT EXIST on server) OR (it does AND the email field is null AND the current user is not null)
                 if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.email', '') && user.email)) {
                   subscriptionRef
@@ -1168,12 +1209,7 @@ function Manager() {
 
         This.log('SW Registered.');
         //@@@NOTIFICATIONS
-        firebase.messaging().onTokenRefresh(
-          handleTokenRefresh(This)
-          .catch(function (e) {
-            console.error(e);
-          })
-        )
+        _setupTokenRefreshHandler(This);
 
         if (options_user.pushNotifications.autoRequest) {
           setTimeout(function () {
@@ -1236,7 +1272,7 @@ function Manager() {
             return resolve();
           })
           .catch(function(e) {
-            console.log('HERE 3 broke', e);
+            // console.log('HERE 3 broke', e);
             This.properties.page.libErrors.push({name: 'firebase_app', error: e})
             return reject(e);
           });
