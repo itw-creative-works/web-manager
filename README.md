@@ -24,7 +24,8 @@
   <br>
   <strong>Web Manager</strong> is an NPM module for web developers using node to build beautiful websites. This module instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
   <br>
-  This module is best used in conjunction with [webpack](https://www.npmjs.com/package/webpack).
+  <br>
+  This module is best used when bundled with <a href="https://www.npmjs.com/package/webpack">webpack</a>.
 </p>
 
 ## Install
