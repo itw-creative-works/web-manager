@@ -168,7 +168,7 @@ function Manager() {
 
   Manager.prototype.setEventListeners = function() {
     // console.log('--------setEventListeners');
-    if (utilities.get(this, 'properties.page.status.eventHandlersSet', false) == false) {
+    if (!utilities.get(this, 'properties.page.status.eventHandlersSet', false)) {
       this.properties.page.status.eventHandlersSet = true;
       var This = this;
       // document.addEventListener('click', function (event) {
@@ -201,79 +201,6 @@ function Manager() {
     }
   }
 
-  // Manager.prototype.signIn = function(method, email, password) {
-  //   method = method || 'email';
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   password = password || this.dom().select('.auth-password-input').getValue();
-  //   var This = this;
-  //   This.log('Signin attempt: ', method, email, password);
-  //   if (method == 'email') {
-  //     firebase.auth().signInWithEmailAndPassword(email, password)
-  //     .then(function(credential) {
-  //       This.log('Good signin');
-  //       This.properties.options.auth.signIn(false, credential.user);
-  //     })
-  //     .catch(function(error) {
-  //       This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //       This.log('error', error.message);
-  //       This.properties.options.auth.signIn(error);
-  //     });
-  //   }
-  // }
-
-  // Manager.prototype.signUp = function(method, email, password, passwordConfirm) {
-  //   method = method || 'email';
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   password = password || this.dom().select('.auth-password-input').getValue();
-  //   passwordConfirm = passwordConfirm || this.dom().select('.auth-password-confirm-input').getValue();
-  //   var This = this;
-  //   This.log('Signup attempt: ', method, email, password, passwordConfirm);
-  //   if (method == 'email') {
-  //     firebase.auth().createUserWithEmailAndPassword(email, password)
-  //     .then(function(credential) {
-  //       This.log('Good signup');
-  //       This.properties.options.auth.signUp(false, credential.user);
-  //     })
-  //     .catch(function(error) {
-  //       This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //       This.log('error', error.message);
-  //       This.properties.options.auth.signUp(error);
-  //     });
-  //   }
-  // }
-
-  // Manager.prototype.signOut = function() {
-  //   this.log('signOut');
-  //   var This = this;
-  //   firebase.auth().signOut()
-  //   .then(function() {
-  //     This.log('signOut success.');
-  //     This.properties.options.auth.signOut();
-  //   })
-  //   .catch(function(error) {
-  //     This.log('signOut failed: ', error);
-  //     This.properties.options.auth.signOut(error);
-  //   });
-  // }
-
-  // Manager.prototype.forgot = function(email) {
-  //   email = email || this.dom().select('.auth-email-input').getValue();
-  //   this.log('forgot');
-  //   var This = this;
-  //
-  //   firebase.auth().sendPasswordResetEmail(email)
-  //   .then(function() {
-  //     This.log('forgot success.');
-  //     This.properties.options.auth.forgot();
-  //   })
-  //   .catch(function(error) {
-  //     This.log('forgot failed: ', error);
-  //     This.dom().select('.auth-error-message-element').show().setInnerHTML(error.message);
-  //     This.properties.options.auth.forgot(error);
-  //   });
-  //
-  // }
-
   // Requires firebase auth to be determined
   function _setupTokenRefreshHandler(This) {
     console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
@@ -305,23 +232,29 @@ function Manager() {
     // This.log('_authHandle_in', user);
     if (This.properties.page.status.didSignUp) {
       var domLib = This.dom();
-      This.ajax().request({
-        url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
-        // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
-        data: {
-          email: user.email,
-          uid: user.uid,
-          newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
-          affiliateCode: This.storage().get('auth.affiliateCode', '')
-        }
-      })
-      .success(function (response, status, data) {
-        // console.log(data);
-      })
-      .always(function (response, status) {
-        // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
-        _authHandle_in_normal(This, user);
-      });
+
+      user.getIdToken(false)
+        .then(function(token) {
+          This.ajax().request({
+            url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
+            // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
+            body: {
+              authenticationToken: token,
+              newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+              affiliateCode: This.storage().get('auth.affiliateCode', '')
+            },
+            timeout: 5000,
+          })
+          .always(function (response, status) {
+            // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
+            _authHandle_in_normal(This, user);
+          });
+        })
+        .catch(function(error) {
+          console.error(error);
+          _authHandle_in_normal(This, user);
+        });
+
     // } else if (This.properties.page.status.didSignIn) {
       // This.notifications().isSubscribed(function (status) {
       //   if (status) {
@@ -344,21 +277,21 @@ function Manager() {
       window.location.href = decodeURIComponent(returnUrl);
       return;
     }
-    if (This.properties.options.auth.state == 'prohibited') {
+    if (This.properties.options.auth.state === 'prohibited') {
       window.location.href = This.properties.options.auth.sends.prohibited;
       return;
     }
     domLib.select('.auth-signedin-true-element').show();
     domLib.select('.auth-signedin-false-element').hide();
     domLib.select('.auth-email-element').each(function(i, e) {
-      if (e.tagName == 'INPUT') {
+      if (e.tagName === 'INPUT') {
         domLib.select(e).setValue(user.email)
       } else {
         domLib.select(e).setInnerHTML(user.email)
       }
     });
     domLib.select('.auth-uid-element').each(function(i, e) {
-      if (e.tagName == 'INPUT') {
+      if (e.tagName === 'INPUT') {
         domLib.select(e).setValue(user.uid)
       } else {
         domLib.select(e).setInnerHTML(user.uid)
@@ -368,7 +301,7 @@ function Manager() {
 
   function _authHandle_out(This) {
     // This.log('_authHandle_out: ', This.properties.options.auth.state);
-    if (This.properties.options.auth.state == 'required') {
+    if (This.properties.options.auth.state === 'required') {
       window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
       return;
     }
@@ -377,61 +310,24 @@ function Manager() {
   }
 
   Manager.prototype.ready = function(fn, options) {
-    options = options || {};
-    options.retryInterval = options.retryInterval || 100;
-    options.waitFor = options.waitFor || [];
-
     var This = this;
-
     var waitFor = true;
-    for (var i = 0; i < options.waitFor.length; i++) {
-      var cur = options.waitFor[i] || {};
-      var val = window[cur.name];
+    options = options || {};
+    options.interval = options.interval || 100;
 
-      if (cur.condition == '==' && val != cur.value) {
-        waitFor = false;
-        break;
-      }
-      if (cur.condition == '!=' && val == cur.value) {
-        waitFor = false;
-        break;
-      }
-      if (cur.condition == 'defined' && typeof val == 'undefined') {
-        waitFor = false;
-        break;
-      }
-    }
+    waitFor = !options.waitFor || (options.waitFor && options.waitFor())
 
-    if ( (utilities.get(this, 'properties.page.status.ready', false) == false) || !waitFor ) {
-      // console.log('polling b...', options.waitFor, !waitFor);
+    if (!utilities.get(this, 'properties.page.status.ready', false) || !waitFor) {
       setTimeout(function () {
         This.ready(fn, options);
-      }, options.retryInterval);
+      }, options.interval);
     } else {
       // Performance
       This.performance().mark('manager_ready');
 
       return fn();
-      // return checkDOMLoaded(window, fn);
     }
   }
-
-  // Manager.prototype.authReady = function(fn, options) {
-  //   options = options || {};
-  //   options.retryInterval = options.retryInterval || 100;
-  //   var This = this;
-  //   if ( (utilities.get(this, 'properties.page.status.authReady', false) == false) ) {
-  //     setTimeout(function () {
-  //       This.authReady(fn, options);
-  //     }, options.retryInterval);
-  //   } else {
-  //     // Performance
-  //     if ('performance' in window) {
-  //       window.performance.mark('manager_authReady');
-  //     }
-  //     return fn();
-  //   }
-  // }
 
   Manager.prototype.serviceWorker = function() {
     var This = this;
@@ -544,7 +440,7 @@ function Manager() {
   // init with polyfills
   Manager.prototype.init = function(configuration, callback) {
     var This = this;
-    if ((utilities.get(This, 'properties.page.status.ready', false) == false) && ((utilities.get(This, 'properties.page.status.initializing', false) == false))) {
+    if (!utilities.get(This, 'properties.page.status.ready', false) && (!utilities.get(This, 'properties.page.status.initializing', false))) {
 
       // Performance
       This.performance().mark('manager_init');
@@ -553,7 +449,6 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      // This.properties.meta.environment = ((window.location.href.indexOf('://localhost') != -1) || (window.location.href.indexOf('://127.0') != -1) || (window.location.href.indexOf('ngrok.io') != -1) || (window.location.href.indexOf('://192.') != -1) ) ? 'development' : 'production';
       This.properties.meta.environment = /((:\/\/)(local|127\.|192\.|.+ngrok\.))/.test(window.location.href) ? 'development' : 'production';
 
 
@@ -668,7 +563,7 @@ function Manager() {
           function eachRecursive(obj, parent) {
             parent = (!parent) ? '' : parent;
               for (var key in obj) {
-                if (typeof obj[key] == "object" && obj[key] !== null && !Array.isArray(obj[key])) {
+                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
                   eachRecursive(obj[key], parent + key + '.');
                 } else {
                   utilities.set(options_user, parent + key, utilities.get(options_defaults, parent + key) );
@@ -698,7 +593,7 @@ function Manager() {
 
           // check DOMContentLoaded
           // if (utilities.get(options_user, 'initChecks.DOMContentLoaded', false) == true) {
-          if (options_user.initChecks.DOMContentLoaded == true) {
+          if (options_user.initChecks.DOMContentLoaded === true) {
             This.dom().checkDOMContentLoaded(window, function() {
               This.properties.page.status.DOMContentLoaded = true;
               This.log('DOMContentLoaded = ', This.properties.page.status.DOMContentLoaded);
@@ -738,8 +633,8 @@ function Manager() {
             // display outdated if it is
             try {
               if (!This.properties.page.isSupportedBrowser) {
-                var box = document.getElementsByClassName("master-alert-outdated")[0];
-                box.style.display = "block";
+                var box = document.getElementsByClassName('master-alert-outdated')[0];
+                box.style.display = 'block';
                 document.body.insertBefore(box, document.body.firstChild);
               }
             } catch (e) {}
@@ -927,18 +822,18 @@ function Manager() {
       },
       ready: function (fn, options) {
         options = options || {};
-        options.retryInterval = options.retryInterval || 100;
-        // if ( (This.get('page.status.authReady', false) == false) ) {
+        options.interval = options.interval || 100;
+        // if ( (This.get('page.status.authReady', false) === false) ) {
         // Manager.log('--- authReady() REAL');
-        if ( (utilities.get(This, 'properties.page.status.authReady', false) == false) ) {
+        if (!utilities.get(This, 'properties.page.status.authReady', false)) {
           setTimeout(function () {
             This.auth().ready(fn, options);
-          }, options.retryInterval);
+          }, options.interval);
         } else {
           // Performance
           This.performance().mark('manager_authReady');
           // This.log('.authReady()', This.auth().getUser());
-          return fn();
+          return fn(This.auth().getUser());
         }
       },
       signIn: function (method, email, password) {
@@ -947,7 +842,7 @@ function Manager() {
         password = password || domLib.select('.auth-password-input').getValue();
         _preDisplayError();
         This.log('Signin attempt: ', method, email, password);
-        if (method == 'email') {
+        if (method === 'email') {
           signinButtonDisabled(true);
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
@@ -974,18 +869,18 @@ function Manager() {
         _preDisplayError();
         This.log('Signup attempt: ', method, email, password, passwordConfirm);
         var termEl = domLib.select('.auth-terms-input');
-        if (termEl.exists() && !termEl.getValue() == true) {
-          _displayError("Please review and accept our terms.");
+        if (termEl.exists() && !termEl.getValue() === true) {
+          _displayError('Please review and accept our terms.');
           return;
         }
-        if (method == 'email') {
-          if (password == passwordConfirm) {
+        if (method === 'email') {
+          if (password === passwordConfirm) {
             signupButtonDisabled(true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
               This.properties.page.status.didSignUp = true;
               This.log('Good signup');
-              signupButtonDisabled(false);
+              // signupButtonDisabled(false);
             })
             .catch(function(error) {
               signupButtonDisabled(false);
@@ -1032,13 +927,13 @@ function Manager() {
 
   //@@@NOTIFICATIONS
   Manager.prototype.notifications = function(options) {
-    var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator) && ("Notification" in window);
+    var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator) && ('Notification' in window);
     var This = this;
     return {
       isSubscribed: function () {
         This.log('isSubscribed()');
         return new Promise(function(resolve, reject) {
-          if (!supported || Notification.permission != 'granted') {return resolve(false)};
+          if (!supported || Notification.permission !== 'granted') {return resolve(false)};
           return resolve(true);
         })
       },
@@ -1063,7 +958,7 @@ function Manager() {
             var dateDifference = (currentDate.getTime() - new Date(localSubscription.lastSynced || 0).getTime()) / (1000 * 3600 * 24);
 
             // Run if local hash is different than the user hash OR it was last updated more than 1 day ago
-            if (localHash != userHash || dateDifference > 1) {
+            if (localHash !== userHash || dateDifference > 1) {
               var timestamp = currentDate.toISOString();
               var timestampUNIX = Math.floor((+new Date(timestamp)) / 1000);
               var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
@@ -1253,7 +1148,7 @@ function Manager() {
       if (typeof window.firebase !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.firebase_app.enabled == true) {
+      if (options.libraries.firebase_app.enabled === true) {
         require.ensure([], function() {
           window.firebase = require('firebase/app');
           window.app = firebase.initializeApp(options.libraries.firebase_app.config);
@@ -1290,7 +1185,7 @@ function Manager() {
       if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.firebase_auth.enabled == true) {
+      if (options.libraries.firebase_auth.enabled === true) {
         require.ensure([], function() {
           require('firebase/auth');
           This.log('Loaded Firebase Auth.');
@@ -1317,7 +1212,7 @@ function Manager() {
       if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.firebase_firestore.enabled == true) {
+      if (options.libraries.firebase_firestore.enabled === true) {
         require.ensure([], function() {
           require('firebase/firestore');
           This.log('Loaded Firestore.');
@@ -1340,7 +1235,7 @@ function Manager() {
       if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.firebase_messaging.enabled == true) {
+      if (options.libraries.firebase_messaging.enabled === true) {
         require.ensure([], function() {
           require('firebase/messaging');
           This.log('Loaded Firebase Messaging.');
@@ -1364,7 +1259,7 @@ function Manager() {
       if (typeof window.lazysizes !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.lazysizes.enabled == true) {
+      if (options.libraries.lazysizes.enabled === true) {
         require.ensure([], function() {
           window.lazysizes = require('lazysizes');
 
@@ -1395,7 +1290,7 @@ function Manager() {
       if (typeof window.cookieconsent !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.cookieconsent.enabled == true) {
+      if (options.libraries.cookieconsent.enabled === true) {
         require.ensure([], function() {
           require('cookieconsent');
           window.cookieconsent.initialise(options.libraries.cookieconsent.config);
@@ -1421,7 +1316,7 @@ function Manager() {
       if (typeof window.Tawk_API !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.tawk.enabled == true) {
+      if (options.libraries.tawk.enabled === true) {
         window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
         window.Tawk_API.onLoad = function(){
           dom.select('#prechat-btn').hide();
@@ -1447,7 +1342,7 @@ function Manager() {
       if (typeof window.Sentry !== 'undefined') {
         return resolve();
       }
-      if (options.libraries.sentry.enabled == true) {
+      if (options.libraries.sentry.enabled === true) {
         require.ensure([], function() {
           window.Sentry = require('@sentry/browser');
           var config = options.libraries.sentry.config;
@@ -1472,7 +1367,7 @@ function Manager() {
 
   Manager.prototype.log = function() {
     try {
-      if (this.properties.meta.environment == 'development') {
+      if (this.properties.meta.environment === 'development') {
         // 1. Convert args to a normal array
         var args = Array.prototype.slice.call(arguments);
 
@@ -1480,13 +1375,13 @@ function Manager() {
         args.unshift('[DEV LOG]');
 
         // 3. Pass along arguments to console.log
-        if (args[1] == 'error') {
+        if (args[1] === 'error') {
           args.splice(1,1);
           console.error.apply(console, args);
-        } else if (args[1] == 'warn') {
+        } else if (args[1] === 'warn') {
           args.splice(1,1);
           console.warn.apply(console, args);
-        } else if (args[1] == 'log') {
+        } else if (args[1] === 'log') {
           args.splice(1,1);
           console.log.apply(console, args);
         } else {
