@@ -67,7 +67,6 @@ function Manager() {
         authReady: false,
         masterSWRegistered: false,
 
-        DOMContentLoaded: false,
         eventHandlersSet: false
       },
       // initReady: false,
@@ -203,7 +202,7 @@ function Manager() {
 
   // Requires firebase auth to be determined
   function _setupTokenRefreshHandler(This) {
-    console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
+    // console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
     if (This.properties.page.status.authReady) {
       return firebase.messaging().onTokenRefresh(
         handleTokenRefresh(This)
@@ -470,7 +469,6 @@ function Manager() {
               path: ''
             },
             initChecks: {
-              DOMContentLoaded: false, // preset to false because takes a while and dont need if script is loaded at bottom of DOM
               features: [] // an array of javascript and dom features to check for (NIY)
             },
             auth: {
@@ -590,18 +588,6 @@ function Manager() {
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
 
           This.log('Config: ', options_user);
-
-          // check DOMContentLoaded
-          // if (utilities.get(options_user, 'initChecks.DOMContentLoaded', false) == true) {
-          if (options_user.initChecks.DOMContentLoaded === true) {
-            This.dom().checkDOMContentLoaded(window, function() {
-              This.properties.page.status.DOMContentLoaded = true;
-              This.log('DOMContentLoaded = ', This.properties.page.status.DOMContentLoaded);
-            });
-          } else {
-            This.properties.page.status.DOMContentLoaded = true;
-            This.log('DOMContentLoaded = ', This.properties.page.status.DOMContentLoaded);
-          }
 
           // parse query stringify
           This.properties.page.queryString = This.query()
