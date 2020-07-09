@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "1.6.2",
+  "version": "1.6.3",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "index.js",
   "scripts": {
@@ -23,9 +23,9 @@
   },
   "homepage": "https://itwcreativeworks.com",
   "dependencies": {
-    "@sentry/browser": "^5.10.2",
+    "@sentry/browser": "^5.19.1",
     "cookieconsent": "^3.1.1",
-    "firebase": "^7.6.1",
-    "lazysizes": "^5.2.0"
+    "firebase": "^7.15.5",
+    "lazysizes": "^5.2.2"
   }
 }
