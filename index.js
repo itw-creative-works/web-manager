@@ -14,9 +14,9 @@ https://github.com/pirxpilot/domready/blob/master/index.js
  * DEPENDENCIES
  */
 // @TODO: code split these: http://jonathancreamer.com/advanced-webpack-part-2-code-splitting/
-var ajax = require('./lib/ajax.js');
+// var ajax = require('./lib/ajax.js');
 var dom = require('./lib/dom.js');
-var query = require('./lib/query.js');
+// var query = require('./lib/query.js');
 var utilities = require('./lib/utilities.js');
 var storage = require('./lib/storage.js');
 var debug;
@@ -75,7 +75,7 @@ function Manager() {
         data: {},
         exists: undefined
       },
-      libErrors: [],
+      // libErrors: [],
       isSupportedBrowser: (!iev || iev >= 11) // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
 
       // auth: {
@@ -234,20 +234,43 @@ function Manager() {
 
       user.getIdToken(false)
         .then(function(token) {
-          This.ajax().request({
-            url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
-            // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
-            body: {
+          var done;
+          fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler', {
+            method: 'POST',
+            body: JSON.stringify({
               authenticationToken: token,
               newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
               affiliateCode: This.storage().get('auth.affiliateCode', '')
-            },
-            timeout: 5000,
+            }),
           })
-          .always(function (response, status) {
-            // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
-            _authHandle_in_normal(This, user);
+          .finally(function (response, status) {
+            if (!done) {
+              done = true;
+              _authHandle_in_normal(This, user);
+            }
           });
+
+          setTimeout(function () {
+            if (!done) {
+              done = true;
+              _authHandle_in_normal(This, user);
+            }
+          }, 5000);
+
+          // This.ajax().request({
+          //   url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
+          //   // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
+          //   body: {
+          //     authenticationToken: token,
+          //     newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+          //     affiliateCode: This.storage().get('auth.affiliateCode', '')
+          //   },
+          //   timeout: 5000,
+          // })
+          // .always(function (response, status) {
+          //   // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
+          //   _authHandle_in_normal(This, user);
+          // });
         })
         .catch(function(error) {
           console.error(error);
@@ -271,7 +294,7 @@ function Manager() {
 
   function _authHandle_in_normal(This, user) {
     var domLib = This.dom();
-    var returnUrl = This.query().create(window.location.href).get('auth_redirect');
+    var returnUrl = This.properties.page.queryString.get('auth_redirect');
     if (returnUrl) {
       window.location.href = decodeURIComponent(returnUrl);
       return;
@@ -301,7 +324,11 @@ function Manager() {
   function _authHandle_out(This) {
     // This.log('_authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state === 'required') {
-      window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
+      // window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
+      var sendSplit = This.properties.options.auth.sends.required.split('?');
+      var newQuery = new URLSearchParams(sendSplit[1]);
+      newQuery.set('auth_redirect', window.location.href);
+      window.location.href = sendSplit[0] + '?' + newQuery.toString();
       return;
     }
     This.dom().select('.auth-signedin-true-element').hide();
@@ -330,7 +357,7 @@ function Manager() {
 
   Manager.prototype.serviceWorker = function() {
     var This = this;
-    var SWAvailable = (('serviceWorker' in navigator));
+    var SWAvailable = 'serviceWorker' in navigator;
     if (SWAvailable) {
       try {
         var swref = This.properties.references.serviceWorker.active || navigator.serviceWorker.controller;
@@ -590,8 +617,7 @@ function Manager() {
           This.log('Config: ', options_user);
 
           // parse query stringify
-          This.properties.page.queryString = This.query()
-            .create(window.location.href, {});
+          This.properties.page.queryString = new URLSearchParams(window.location.search);
           if (This.properties.page.queryString.get('aff')) {
             This.storage().set('auth.affiliateCode', This.properties.page.queryString.get('aff'));
           }
@@ -644,7 +670,7 @@ function Manager() {
             load_cookieconsent(This, options_user);
             subscriptionManager(This, options_user);
 
-            This.log('Manager ', This);
+            This.log('Manager', This);
             return;
           }
 
@@ -658,7 +684,7 @@ function Manager() {
           })
           .catch(function (e) {
             //@@@ LOG TO SENTRY HERE?
-            console.error('manager', e);
+            console.error('Lib error', e);
             // postCrucial();
           })
           // console.log('HERE 0');
@@ -824,7 +850,7 @@ function Manager() {
       },
       signIn: function (method, email, password) {
         method = method || 'email';
-        email = email || domLib.select('.auth-email-input').getValue();
+        email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
         password = password || domLib.select('.auth-password-input').getValue();
         _preDisplayError();
         This.log('Signin attempt: ', method, email, password);
@@ -849,7 +875,7 @@ function Manager() {
       },
       signUp: function(method, email, password, passwordConfirm) {
         method = method || 'email';
-        email = email || domLib.select('.auth-email-input').getValue();
+        email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
         password = password || domLib.select('.auth-password-input').getValue();
         passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
         _preDisplayError();
@@ -1129,36 +1155,26 @@ function Manager() {
   EXTERNAL LIBS
   */
   var load_firebase = function(This, options) {
-    // console.log('HERE 1');
     return new Promise(function(resolve, reject) {
-      if (typeof window.firebase !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof window.firebase !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.firebase_app.enabled === true) {
-        require.ensure([], function() {
-          window.firebase = require('firebase/app');
+        import('firebase/app')
+        .then(function(mod) {
+          // This.log('Loaded Firebase.');
+          window.firebase = mod.default;
           window.app = firebase.initializeApp(options.libraries.firebase_app.config);
-          This.log('Loaded Firebase.');
-        }, 'firebase-app')
-        .then(function() {
-          // console.log('HERE 2');
 
           Promise.all([
             load_firebase_auth(This, options),
             load_firebase_firestore(This, options),
             load_firebase_messaging(This, options),
           ])
-          .then(function() {
-            // console.log('HERE 3');
-            return resolve();
-          })
-          .catch(function(e) {
-            // console.log('HERE 3 broke', e);
-            This.properties.page.libErrors.push({name: 'firebase_app', error: e})
-            return reject(e);
-          });
-          // console.log('HERE 4');
-         });
+          .then(resolve)
+          .catch(reject);
+         })
+         .catch(reject);
       } else {
         return resolve();
       }
@@ -1168,23 +1184,13 @@ function Manager() {
 
   var load_firebase_auth = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.firebase_auth.enabled === true) {
-        require.ensure([], function() {
-          require('firebase/auth');
-          This.log('Loaded Firebase Auth.');
-        }, 'firebase-auth')
-        .then(function() {
-          // firebase.auth().onAuthStateChanged(function(user) {
-          // })
-          return resolve();
-        })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'firebase_auth', error: e})
-          return reject(e);
-        });
+        import('firebase/auth')
+        .then(resolve)
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1195,21 +1201,13 @@ function Manager() {
 
   var load_firebase_firestore = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.firebase_firestore.enabled === true) {
-        require.ensure([], function() {
-          require('firebase/firestore');
-          This.log('Loaded Firestore.');
-        }, 'firebase-firestore')
-        .then(function() {
-          return resolve();
-        })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'firebase_firestore', error: e})
-          return reject(e);
-        });
+        import('firebase/firestore')
+        .then(resolve)
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1218,21 +1216,13 @@ function Manager() {
 
   var load_firebase_messaging = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.firebase_messaging.enabled === true) {
-        require.ensure([], function() {
-          require('firebase/messaging');
-          This.log('Loaded Firebase Messaging.');
-        }, 'firebase-messaging')
-        .then(function() {
-          return resolve();
-        })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'firebase_messaging', error: e})
-          return reject(e);
-        });
+        import('firebase/messaging')
+        .then(resolve)
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1242,12 +1232,13 @@ function Manager() {
 
   var load_lazysizes = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (typeof window.lazysizes !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof window.lazysizes !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.lazysizes.enabled === true) {
-        require.ensure([], function() {
-          window.lazysizes = require('lazysizes');
+        import('lazysizes')
+        .then(function (mod) {
+          window.lazysizes = mod.default;
 
           // configs come from official lazysizes demo
           var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
@@ -1256,15 +1247,9 @@ function Manager() {
             expand: expand,
             expFactor: expand < 380 ? 3 : 2,
           };
-          This.log('Loaded Lazysizes.');
-        }, 'lazysizes')
-        .then(function() {
-          return resolve();
+          // This.log('Loaded Lazysizes.');
         })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'lazysizes', error: e})
-          return reject(e);
-        });
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1273,22 +1258,17 @@ function Manager() {
 
   var load_cookieconsent = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (typeof window.cookieconsent !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof window.cookieconsent !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.cookieconsent.enabled === true) {
-        require.ensure([], function() {
-          require('cookieconsent');
+        import('cookieconsent')
+        .then(function(mod) {
           window.cookieconsent.initialise(options.libraries.cookieconsent.config);
-          This.log('Loaded Cookieconsent.');
-        }, 'cookieconsent')
-        .then(function() {
+          // This.log('Loaded Cookieconsent.');
           return resolve();
         })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'cookieconsent', error: e})
-          return reject(e);
-        });
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1299,9 +1279,9 @@ function Manager() {
   var load_tawk = function(This, options) {
     var dom = This.dom();
     return new Promise(function(resolve, reject) {
-      if (typeof window.Tawk_API !== 'undefined') {
-        return resolve();
-      }
+      // if (typeof window.Tawk_API !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.tawk.enabled === true) {
         window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
         window.Tawk_API.onLoad = function(){
@@ -1310,10 +1290,9 @@ function Manager() {
         };
         dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function(e) {
           if (e) {
-            This.properties.page.libErrors.push({name: 'tawk', error: e})
             return reject(e);
           }
-          This.log('Loaded tawk.');
+          // This.log('Loaded tawk.');
           return resolve();
         })
 
@@ -1324,27 +1303,22 @@ function Manager() {
   }
 
   var load_sentry = function(This, options) {
-    return new Promise(function(resolve) {
-      if (typeof window.Sentry !== 'undefined') {
-        return resolve();
-      }
+    return new Promise(function(resolve, reject) {
+      // if (typeof window.Sentry !== 'undefined') {
+      //   return resolve();
+      // }
       if (options.libraries.sentry.enabled === true) {
-        require.ensure([], function() {
-          window.Sentry = require('@sentry/browser');
+        import('@sentry/browser')
+        .then(function(mod) {
+          window.Sentry = mod;
           var config = options.libraries.sentry.config;
           config.release = config.release + '@' + This.properties.global.version;
           config.environment = This.properties.meta.environment;
           Sentry.init(config);
-          This.log('Loaded Sentry.');
-          // This.log('Loaded @sentry/browser.', config);
-        }, '@sentry/browser')
-        .then(function() {
+          // This.log('Loaded Sentry.');
           return resolve();
         })
-        .catch(function(e) {
-          This.properties.page.libErrors.push({name: 'sentry', error: e})
-          return reject(e);
-        });
+        .catch(reject);
       } else {
         return resolve();
       }
@@ -1463,9 +1437,9 @@ function Manager() {
   /**
   * QUERIES
   */
-  Manager.prototype.query = function() {
-    return query;
-  }
+  // Manager.prototype.query = function() {
+  //   return query;
+  // }
 
   /**
   * DOM OPERATIONS
@@ -1473,9 +1447,33 @@ function Manager() {
   Manager.prototype.dom = function() {
     return dom;
   }
-  Manager.prototype.ajax = function() {
-    return ajax;
-  }
+
+  // Manager.prototype.fetch = function(url, options) {
+  //   var response = {
+  //     status: 500,
+  //   };
+  //   return new Promise(function(resolve, reject) {
+  //     fetch(url, options)
+  //     .then(function (res) {
+  //       response = res;
+  //       if (res.status >= 200 && res.status < 300) {
+  //         return resolve({response: res});
+  //       } else {
+  //         return res.text()
+  //         .then(function (data) {
+  //           throw new Error(data || res.statusTest || 'Unknown error.')
+  //         })
+  //       }
+  //     })
+  //     .catch(function (e) {
+  //       return reject({response: response, error: e});
+  //     });
+  //   });
+  // }
+
+  // Manager.prototype.ajax = function() {
+  //   return ajax;
+  // }
 
   /**
   * OTHER

@@ -35,12 +35,10 @@ npm install web-manager
 ```
 
 ## Features
-* Dom API that acts as a super lightweight and optimized version of jQuery.
-* AJAX API to request resources and POST requests
-* URL query constructor and deconstructor
-* Localstorage API
-* Utility API with our favorite methods from Lodash such as `get` and `set`
-* Polyfill detection and implementation for Promises, Array methods, and more!
+* Polyfill detection and implementation for Promises, Array methods, window.fetch, and more!
+* Dom API that acts as a super lightweight and optimized version of jQuery
+* Improved Localstorage API
+* Utility API with the most useful Lodash methods `get` and `set`
 
 ## Libraries
 * Firebase (Firebase app, Firestore, Auth, & Messaging)
@@ -203,36 +201,6 @@ The Web Manager .dom() API is like a super lightweight and efficient version of 
       Manager.log('Loaded Twitter script.');
     });
 
-
-
-  });
-</script>
-```
-
-### Utilizing the .query() API
-The Web Manager .query() API is used to construct and deconstruct a query string.
-```html
-<script type="text/javascript">
-  Manager.ready(function() {
-    console.log('--- Exploring the .query() API ---');
-    // var url = window.location.href;
-    var url = 'https://google.com?key1=val1'; // For testing purposes, you can use this since your URL may not have a query string
-
-    var query = Manager.query().create(url);
-    console.log('getUrl ', query.getUrl()); // Get url (with query string appended)
-    console.log('getAll ', query.getAll()); // Get all queries
-    query.set('key2', 'val2'); // Add a key
-    query.set('key3', 'val3'); // Add another key
-    query.set('key4', ); // Add a blank key
-    query.remove('key3'); // Remove a key
-
-    console.log('getAll (2)', query.getAll());
-    console.log('getUrl (2)', query.getUrl());
-
-    query.removeAll(); // Remove all keys
-
-    console.log('getAll (3)', query.getAll());
-    console.log('getUrl (3)', query.getUrl());
 
 
   });
