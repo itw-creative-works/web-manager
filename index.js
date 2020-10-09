@@ -305,14 +305,14 @@ function Manager() {
     }
     domLib.select('.auth-signedin-true-element').show();
     domLib.select('.auth-signedin-false-element').hide();
-    domLib.select('.auth-email-element').each(function(i, e) {
+    domLib.select('.auth-email-element').each(function(e, i) {
       if (e.tagName === 'INPUT') {
         domLib.select(e).setValue(user.email)
       } else {
         domLib.select(e).setInnerHTML(user.email)
       }
     });
-    domLib.select('.auth-uid-element').each(function(i, e) {
+    domLib.select('.auth-uid-element').each(function(e, i) {
       if (e.tagName === 'INPUT') {
         domLib.select(e).setValue(user.uid)
       } else {

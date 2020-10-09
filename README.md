@@ -161,7 +161,7 @@ The Web Manager .dom() API is like a super lightweight and efficient version of 
     const el = Manager.dom().select('.el'); // Select using a standard querySelectorAll argument
     el.addClass('new-class'); // Add a class
     el.removeClass('old-class'); // Remove a class
-    el.each(function(index, element) { // Iterate through the elements
+    el.each(function(element, index) { // Iterate through the elements
       console.log('Loop number: ', index, element);
       Manager.dom().select(element).setInnerHTML('Element number: ' + index); // Set setInnerHTML
     });
