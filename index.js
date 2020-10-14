@@ -201,24 +201,27 @@ function Manager() {
   }
 
   // Requires firebase auth to be determined
-  function _setupTokenRefreshHandler(This) {
-    // console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
-    if (This.properties.page.status.authReady) {
-      return firebase.messaging().onTokenRefresh(
-        handleTokenRefresh(This)
-        .catch(function (e) {
-          console.error(e);
-        })
-      );
-    }
-    setTimeout(function () {_setupTokenRefreshHandler(This)}, 300);
-  }
+  // function _setupTokenRefreshHandler(This) {
+  //   // console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
+  //   if (This.properties.page.status.authReady) {
+  //     return firebase.messaging().onTokenRefresh(
+  //       handleTokenRefresh(This)
+  //       .catch(function (e) {
+  //         console.error(e);
+  //       })
+  //     );
+  //   }
+  //   setTimeout(function () {_setupTokenRefreshHandler(This)}, 300);
+  // }
 
   function _authStateHandler(This, user) {
     // This.log('----authStateHandler', user);
     if (user) {
-      if (user.isAnonymous === false) {
+      if (!user.isAnonymous) {
         _authHandle_in(This, user);
+        This.notifications().subscribe().catch(function (e) {
+          console.error(e);
+        });
       } else {
         _authHandle_out(This);
       }
@@ -953,14 +956,14 @@ function Manager() {
         This.log('subscribe()');
         return new Promise(function(resolve, reject) {
           // var subscribed = !This.notifications().isSubscribed();
-
-          // return resolve(firebase.messaging().getToken());
-          firebase.messaging().getToken()
+          firebase.messaging().getToken({
+            serviceWorkerRegistration: This.properties.references.serviceWorker,
+          })
           .then(function (token) {
             var user = This.auth().getUser();
             var localSubscription = This.storage().get('notifications', {});
-            var localHash = localSubscription.token + '|' + localSubscription.email;
-            var userHash = token + '|' + user.email;
+            var localHash = localSubscription.token + '|' + localSubscription.uid;
+            var userHash = token + '|' + user.uid;
             // console.log('user', user);
             // console.log('localHash', localHash);
             // console.log('userHash', userHash);
@@ -978,13 +981,13 @@ function Manager() {
               function saveLocal() {
                 // console.log('---------saveLocal');
                 // This.log('Saved local token: ', token);
-                This.storage().set('notifications', {email: user.email, token: token, lastSynced: timestamp});
+                This.storage().set('notifications', {uid: user.uid, token: token, lastSynced: timestamp});
               }
 
               function saveServer(doc) {
-                // console.log('-------saveServer', !doc.exists, !This.utilities().get(doc.data(), 'link.user.data.email', ''), user.email);
-                // Run if it (DOES NOT EXIST on server) OR (it does AND the email field is null AND the current user is not null)
-                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.email', '') && user.email)) {
+                // console.log('-------saveServer', !doc.exists, !This.utilities().get(doc.data(), 'link.user.data.uid', ''), user.uid);
+                // Run if it (DOES NOT EXIST on server) OR (it does AND the uid field is null AND the current user is not null)
+                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.uid', '') && user.uid)) {
                   subscriptionRef
                   .set(
                     {
@@ -1049,103 +1052,103 @@ function Manager() {
     }
   }
 
-  function handleTokenRefresh(This) {
-    This.log('handleTokenRefresh()');
-    return new Promise(function(resolve, reject) {
-      var notifications = This.notifications();
-      notifications.isSubscribed()
-      .then(function (result) {
-        if (result) {
-          return resolve(This.notifications().subscribe());
-        } else {
-          return resolve();
-        }
-      })
-    });
-  }
+  // function handleTokenRefresh(This) {
+  //   This.log('handleTokenRefresh()');
+  //   return new Promise(function(resolve, reject) {
+  //     var notifications = This.notifications();
+  //     notifications.isSubscribed()
+  //     .then(function (result) {
+  //       if (result) {
+  //         return resolve(This.notifications().subscribe());
+  //       } else {
+  //         return resolve();
+  //       }
+  //     })
+  //   });
+  // }
 
   /*
   HELPERS
   */
   function subscriptionManager(This, options_user) {
-    // if (('serviceWorker' in navigator) && (options_user.pushNotifications.enabled) && (typeof firebase.messaging !== 'undefined')) {
-    if (('serviceWorker' in navigator) && (typeof firebase.messaging !== 'undefined')) {
-      var swaddress = options_user.serviceWorker.path || 'master-service-worker.js';
-      // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
-      navigator.serviceWorker.register('/' + swaddress + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
-      .then(function (registration) {
-        firebase.messaging().useServiceWorker(registration);
-        This.properties.references.serviceWorker = registration;
-        // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
-        // --- leverage this example ^^^ for caching! It's grat and you can do one page at a time through postMessage!
+    if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
 
-        // function listenForWaitingServiceWorker(reg, callback) {
-        //   function awaitStateChange() {
-        //     reg.installing.addEventListener('statechange', function() {
-        //       if (this.state === 'installed') callback(reg);
-        //     });
-        //   }
-        //   if (!reg) return;
-        //   if (reg.waiting) return callback(reg);
-        //   if (reg.installing) awaitStateChange();
-        //   reg.addEventListener('updatefound', awaitStateChange);
-        // }
-        //
-        // // reload once when the new Service Worker starts activating
-        // var refreshing;
-        // navigator.serviceWorker.addEventListener('controllerchange',
-        //   function() {
-        //     if (refreshing) return;
-        //     refreshing = true;
-        //     window.location.reload();
-        //   }
-        // );
-        // function promptUserToRefresh(reg) {
-        //   // this is just an example
-        //   // don't use window.confirm in real life; it's terrible
-        //   if (window.confirm("New version available! OK to refresh?")) {
-        //     reg.waiting.postMessage({command: 'skipWaiting'});
-        //   }
-        // }
-        // listenForWaitingServiceWorker(registration, promptUserToRefresh);
+    // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
+    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
+    .then(function (registration) {
+      // firebase.messaging().useServiceWorker(registration);
+      This.properties.references.serviceWorker = registration;
+      // console.log('====registration', registration);
+      // console.log('navigator.serviceWorker.controller', navigator.serviceWorker.controller);
+      // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
+      // --- leverage this example ^^^ for caching! It's grat and you can do one page at a time through postMessage!
 
-        // registration.update();
-        This.properties.page.status.masterSWRegistered = true;
+      // function listenForWaitingServiceWorker(reg, callback) {
+      //   function awaitStateChange() {
+      //     reg.installing.addEventListener('statechange', function() {
+      //       if (this.state === 'installed') callback(reg);
+      //     });
+      //   }
+      //   if (!reg) return;
+      //   if (reg.waiting) return callback(reg);
+      //   if (reg.installing) awaitStateChange();
+      //   reg.addEventListener('updatefound', awaitStateChange);
+      // }
+      //
+      // // reload once when the new Service Worker starts activating
+      // var refreshing;
+      // navigator.serviceWorker.addEventListener('controllerchange',
+      //   function() {
+      //     if (refreshing) return;
+      //     refreshing = true;
+      //     window.location.reload();
+      //   }
+      // );
+      // function promptUserToRefresh(reg) {
+      //   // this is just an example
+      //   // don't use window.confirm in real life; it's terrible
+      //   if (window.confirm("New version available! OK to refresh?")) {
+      //     reg.waiting.postMessage({command: 'skipWaiting'});
+      //   }
+      // }
+      // listenForWaitingServiceWorker(registration, promptUserToRefresh);
+
+      // registration.update();
+      This.properties.page.status.masterSWRegistered = true;
 
 
-        This.log('SW Registered.');
-        //@@@NOTIFICATIONS
-        _setupTokenRefreshHandler(This);
+      This.log('SW Registered.');
+      //@@@NOTIFICATIONS
+      // _setupTokenRefreshHandler(This);
 
-        if (options_user.pushNotifications.autoRequest) {
-          setTimeout(function () {
-            //@@@NOTIFICATIONS
-            This.notifications().subscribe()
-            .catch(function (e) {
-              console.error(e);
-            });
-          }, options_user.pushNotifications.autoRequest * 1000);
-        }
+      if (options_user.pushNotifications.autoRequest) {
+        setTimeout(function () {
+          //@@@NOTIFICATIONS
+          This.notifications().subscribe()
+          .catch(function (e) {
+            console.error(e);
+          });
+        }, options_user.pushNotifications.autoRequest * 1000);
+      }
 
-        try {
-          firebase.messaging().onMessage(function (payload) {
-            new Notification(payload.notification.title, payload.notification);
-          })
-        } catch (e) {
-          console.error('onMessage', e);
-        }
-
-      })
-      .catch(function (e) {
-        // console.log('***2');
+      try {
+        // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
+        firebase.messaging().onMessage(function (payload) {
+          new Notification(payload.notification.title, payload.notification);
+        })
+      } catch (e) {
         console.error(e);
-      });
+      }
 
-      // SW Ready
-      // navigator.serviceWorker.ready.then(function(registration) {
-      // });
+    })
+    .catch(function (e) {
+      // console.log('***2');
+      console.error(e);
+    });
 
-    }
+    // SW Ready
+    // navigator.serviceWorker.ready.then(function(registration) {
+    // });
   }
 
 
