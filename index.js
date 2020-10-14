@@ -1064,7 +1064,6 @@ function Manager() {
     });
   }
 
-
   /*
   HELPERS
   */
