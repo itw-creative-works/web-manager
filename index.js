@@ -71,10 +71,7 @@ function Manager() {
       },
       // initReady: false,
       // initSecondaryReady: false,
-      queryString: {
-        data: {},
-        exists: undefined
-      },
+      queryString: {},
       // libErrors: [],
       isSupportedBrowser: (!iev || iev >= 11) // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
 
@@ -489,9 +486,9 @@ function Manager() {
             // debug: {
             //   environment: This.properties.meta.environment,
             // },
-            queryString: {
-              saveToStorage: false
-            },
+            // queryString: {
+            //   saveToStorage: false
+            // },
             pushNotifications: {
               autoRequest: 60 // how long to wait before auto ask, 0 to disable
             },
