@@ -1325,30 +1325,26 @@ function Manager() {
   }
 
   Manager.prototype.log = function() {
-    try {
-      if (this.properties.meta.environment === 'development') {
-        // 1. Convert args to a normal array
-        var args = Array.prototype.slice.call(arguments);
+    if (this.properties.meta.environment === 'development') {
+      // 1. Convert args to a normal array
+      var args = Array.prototype.slice.call(arguments);
 
-        // 2. Prepend log prefix log string
-        args.unshift('[DEV LOG]');
+      // 2. Prepend log prefix log string
+      args.unshift('[ DEV ' + new Date().toLocaleTimeString() + ' ]');
 
-        // 3. Pass along arguments to console.log
-        if (args[1] === 'error') {
-          args.splice(1,1);
-          console.error.apply(console, args);
-        } else if (args[1] === 'warn') {
-          args.splice(1,1);
-          console.warn.apply(console, args);
-        } else if (args[1] === 'log') {
-          args.splice(1,1);
-          console.log.apply(console, args);
-        } else {
-          console.log.apply(console, args);
-        }
+      // 3. Pass along arguments to console.log
+      if (args[1] === 'error') {
+        args.splice(1,1);
+        console.error.apply(console, args);
+      } else if (args[1] === 'warn') {
+        args.splice(1,1);
+        console.warn.apply(console, args);
+      } else if (args[1] === 'log') {
+        args.splice(1,1);
+        console.log.apply(console, args);
+      } else {
+        console.log.apply(console, args);
       }
-    } catch (e) {
-      console.log(args);
     }
   }
 
