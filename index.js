@@ -1360,54 +1360,17 @@ function Manager() {
   // }
 
   function init_loadPolyfills(This, configuration, cb) {
-    // console.log('POLY TEST', document.querySelectorAll);
     // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
     var featuresDefault = (
-      // (typeof Promise !== "undefined" && Promise.toString().indexOf("[native code]")) &&
-      'Promise' in window &&
-      Element.prototype.matches &&
-      // 'startsWith' in String.prototype &&
-      // 'endsWith' in String.prototype &&
-
-      'includes' in Array.prototype &&
-      'forEach' in Array.prototype &&
-      'isArray' in Array &&
-
-      'assign' in Object &&
-      'keys' in Object &&
-
-      'stringify' in JSON &&
-      'parse' in JSON &&
-
-      document.querySelectorAll &&
-      document.querySelector &&
-
-      'IntersectionObserver' in window &&
-      'IntersectionObserverEntry' in window &&
-      'intersectionRatio' in window.IntersectionObserverEntry.prototype &&
-      // (
-      // !('IntersectionObserver' in window) ||
-      // !('IntersectionObserverEntry' in window) ||
-      // !('intersectionRatio' in window.IntersectionObserverEntry.prototype)
-      // ) &&
-
-      'HTMLPictureElement' in window &&
-      'createEvent' in document &&
-      'addEventListener' in window &&
-      'localStorage' in window &&
-
-      true
+      typeof Symbol !== 'undefined'
     )
     var featuresCustom = true;
-    // for (var i = 0; i < options_user.initChecks.features.length; i++) {
-    //   array[i]
-    // }
 
     if (featuresDefault && featuresCustom) {
       cb();
     } else {
-      This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
-        // console.log('%cLoaded polyfill.io.', 'font-weight: bold');
+      // This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
+      This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'}, function() {
         This.log('Loaded polyfill.io')
         cb();
       });
