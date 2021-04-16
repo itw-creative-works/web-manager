@@ -19,6 +19,7 @@ var dom = require('./lib/dom.js');
 // var query = require('./lib/query.js');
 var utilities = require('./lib/utilities.js');
 var storage = require('./lib/storage.js');
+var account;
 var debug;
 
 // var ajax;
@@ -1404,6 +1405,35 @@ function Manager() {
   */
   Manager.prototype.dom = function() {
     return dom;
+  }
+
+  /**
+  * ACCOUNT
+  */
+  // Manager.prototype.account = function() {
+  //   var self = this;
+  //   return {
+  //     resolve: function (options) {
+  //       return import('./lib/account.js')
+  //         .then(function(mod) {
+  //           self.account = function () { return mod.default }
+  //           return self.account().resolve(options);
+  //         })
+  //     }
+  //   }
+  // }
+
+  Manager.prototype.account = function() {
+    var self = this;
+    return {
+      import: function () {
+        return import('./lib/account.js')
+        .then(function(mod) {
+          self.account = function () { return mod.default }
+          return self.account();
+        })
+      }
+    }
   }
 
   // Manager.prototype.fetch = function(url, options) {
