@@ -177,6 +177,10 @@ function Manager() {
           This.auth().signIn('email');
         } else if (event.target.matches('.auth-signup-email-btn')) {
           This.auth().signUp('email');
+        } else if (event.target.matches('.auth-signin-provider-btn')) {
+          This.auth().signIn(event.target.getAttribute('data-provider'));
+        } else if (event.target.matches('.auth-signup-provider-btn')) {
+          This.auth().signUp(event.target.getAttribute('data-provider'));
         } else if (event.target.matches('.auth-signout-all-btn')) {
           This.auth().signOut();
         } else if (event.target.matches('.auth-forgot-email-btn')) {
@@ -666,7 +670,7 @@ function Manager() {
               This.dom().select('#prechat-btn').css({background: tawkOps.config.prechatColor}).show();
             }
 
-            // loan non-critical libraries
+            // load non-critical libraries
             load_lazysizes(This, options_user);
             load_cookieconsent(This, options_user);
             subscriptionManager(This, options_user);
@@ -797,6 +801,7 @@ function Manager() {
     var firebaseActive = typeof firebase !== 'undefined';
     var erel = '.auth-error-message-element';
     var domLib = This.dom();
+
     function _displayError(msg) {
       domLib.select(erel).show().setInnerHTML(msg);
     }
@@ -825,6 +830,7 @@ function Manager() {
         domLib.select('.auth-forgot-email-btn').removeAttribute('disabled');
       }
     }
+
     return {
       isAuthenticated: function () {
         return firebaseActive ? !!firebase.auth().currentUser : false;
@@ -843,19 +849,31 @@ function Manager() {
             This.auth().ready(fn, options);
           }, options.interval);
         } else {
+
+          // Set up listener for redirect (for provider login)
+          if (!This._redirectResultSetup) {
+            This._redirectResultSetup = true;
+            firebase.auth()
+              .getRedirectResult()
+              .catch(function (error) {
+                console.error(error);
+                _displayError(error.message);
+              });
+          }
+
           // Performance
           This.performance().mark('manager_authReady');
-          // This.log('.authReady()', This.auth().getUser());
+
           return fn(This.auth().getUser());
         }
       },
       signIn: function (method, email, password) {
         method = method || 'email';
-        email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-        password = password || domLib.select('.auth-password-input').getValue();
         _preDisplayError();
-        This.log('Signin attempt: ', method, email, password);
+        // This.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
+          email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          password = password || domLib.select('.auth-password-input').getValue();
           signinButtonDisabled(true);
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
@@ -865,44 +883,50 @@ function Manager() {
             // })
             This.properties.page.status.didSignIn = true;
             signinButtonDisabled(false);
-            This.log('Good signin');
+            // This.log('Good signin');
           })
           .catch(function(error) {
             signinButtonDisabled(false);
             _displayError(error.message);
-            This.log('Error', error.message);
+            // This.log('Error', error.message);
           });
+        } else {
+          firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method));
         }
       },
       signUp: function(method, email, password, passwordConfirm) {
         method = method || 'email';
-        email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-        password = password || domLib.select('.auth-password-input').getValue();
-        passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
+
         _preDisplayError();
-        This.log('Signup attempt: ', method, email, password, passwordConfirm);
+        // This.log('Signup attempt: ', method, email, password, passwordConfirm);
         var termEl = domLib.select('.auth-terms-input');
         if (termEl.exists() && !termEl.getValue() === true) {
           _displayError('Please review and accept our terms.');
           return;
         }
         if (method === 'email') {
+          email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          password = password || domLib.select('.auth-password-input').getValue();
+          passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
+
           if (password === passwordConfirm) {
             signupButtonDisabled(true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
               This.properties.page.status.didSignUp = true;
-              This.log('Good signup');
+              // This.log('Good signup');
               // signupButtonDisabled(false);
             })
             .catch(function(error) {
               signupButtonDisabled(false);
               _displayError(error.message);
-              This.log('error', error.message);
+              // This.log('error', error.message);
             });
           } else {
             _displayError("Passwords don't match.");
           }
+        } else {
+          This.auth().signIn(method);
         }
 
       },
@@ -1115,7 +1139,7 @@ function Manager() {
       This.properties.page.status.masterSWRegistered = true;
 
 
-      This.log('SW Registered.');
+      // This.log('SW Registered.');
       //@@@NOTIFICATIONS
       // _setupTokenRefreshHandler(This);
 
