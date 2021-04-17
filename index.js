@@ -171,7 +171,7 @@ function Manager() {
       // document.addEventListener('click', function (event) {
       This.dom().select('body').on('click', function (event) {
         // console.log('Clicked.... NEW');
-        This.log('Clicked', event.target);
+        // This.log('Clicked', event.target);
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
           This.auth().signIn('email');
@@ -619,7 +619,7 @@ function Manager() {
           This.properties.global.brand.name = configuration.global.brand.name;
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
 
-          This.log('Config: ', options_user);
+          // This.log('Config: ', options_user);
 
           // parse query stringify
           This.properties.page.queryString = new URLSearchParams(window.location.search);
@@ -675,7 +675,7 @@ function Manager() {
             load_cookieconsent(This, options_user);
             subscriptionManager(This, options_user);
 
-            This.log('Manager', This);
+            // This.log('Manager', This);
             return;
           }
 
@@ -891,7 +891,11 @@ function Manager() {
             // This.log('Error', error.message);
           });
         } else {
-          firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method));
+          firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method))
+          .catch(function (e) {
+            console.error(e);
+            _displayError(e);
+          })
         }
       },
       signUp: function(method, email, password, passwordConfirm) {
@@ -935,10 +939,11 @@ function Manager() {
         // var This = this;
         firebase.auth().signOut()
         .then(function() {
-          This.log('signOut success.');
+          // This.log('signOut success.');
         })
-        .catch(function(error) {
-          This.log('signOut failed: ', error);
+        .catch(function(e) {
+          console.error(e);
+          // This.log('signOut failed: ', error);
         });
       },
       forgot: function(email) {
@@ -949,12 +954,12 @@ function Manager() {
         firebase.auth().sendPasswordResetEmail(email)
         .then(function() {
           forgotButtonDisabled(false);
-          This.log('forgot success.');
+          // This.log('forgot success.');
           _displayError('A reset link has been sent to you.');
         })
         .catch(function(error) {
           forgotButtonDisabled(false);
-          This.log('forgot failed: ', error);
+          // This.log('forgot failed: ', error);
           _displayError(error.message);
         });
       },
@@ -968,14 +973,14 @@ function Manager() {
     var This = this;
     return {
       isSubscribed: function () {
-        This.log('isSubscribed()');
+        // This.log('isSubscribed()');
         return new Promise(function(resolve, reject) {
           if (!supported || Notification.permission !== 'granted') {return resolve(false)};
           return resolve(true);
         })
       },
       subscribe: function () {
-        This.log('subscribe()');
+        // This.log('subscribe()');
         return new Promise(function(resolve, reject) {
           // var subscribed = !This.notifications().isSubscribed();
           firebase.messaging().getToken({
@@ -1396,7 +1401,7 @@ function Manager() {
     } else {
       // This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
       This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'}, function() {
-        This.log('Loaded polyfill.io')
+        // This.log('Loaded polyfill.io')
         cb();
       });
     }
@@ -1525,6 +1530,5 @@ function Manager() {
   /**
   * HELPERS
   */
-
 
 module.exports = Manager;
