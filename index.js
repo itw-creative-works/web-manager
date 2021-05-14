@@ -1317,7 +1317,8 @@ function Manager() {
           dom.select('#prechat-btn').hide();
           Tawk_API.maximize();
         };
-        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, 'libraries.tawk.config.chatId', '') + '/default', crossorigin: true}, function(e) {
+        var tawkPath = 'libraries.tawk.config';
+        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + utilities.get(options, tawkPath + '.widgetId', 'default'), crossorigin: true}, function(e) {
           if (e) {
             return reject(e);
           }
