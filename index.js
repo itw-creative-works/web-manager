@@ -557,6 +557,7 @@ function Manager() {
                 enabled: true,
                 config: {
                   chatId: '',
+                  widgetId: 'default',
                   prechatColor: '#02A84E'
                 }
               },
