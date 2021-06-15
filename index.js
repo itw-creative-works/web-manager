@@ -248,6 +248,7 @@ function Manager() {
               affiliateCode: This.storage().get('auth.affiliateCode', '')
             }),
           })
+          .catch(function () {})
           .finally(function (response, status) {
             if (!done) {
               done = true;
@@ -1461,6 +1462,7 @@ function Manager() {
         return import('./lib/account.js')
         .then(function(mod) {
           self.account = function () { return mod.default }
+          mod.default.prototype.Manager = self;
           return self.account();
         })
       }

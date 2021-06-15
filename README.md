@@ -261,12 +261,26 @@ The Firebase login system works like charm out of the box without you having to 
 * `.auth-email-input`: Add to an input for the user's email
 * `.auth-password-input`: Add to an input for the user's password
 * `.auth-signin-email-btn`: Add to a button to handle the signin process
-* `.auth-signuup-email-btn`: Add to a button to handle the signup process
+* `.auth-signup-email-btn`: Add to a button to handle the signup process
 * `.auth-signout-all-btn`: Add to a button to handle the signout process
-* `.auth-email-element`: Add to a div to display the user's email
-* `.auth-uid-element`: Add to a div to display the user's uid
+* `.auth-email-element`: Add to any element to display the user's email
+* `.auth-terms-input`: Add to a checkbox to require a TOS agreement before signup occurs
+* `.auth-uid-element`: Add to any element to display the user's uid
 * `.auth-signedin-true-element`: Add to any element and it will be hidden if the user *is* signed in
 * `.auth-signedin-false-element`: Add to any element and it will be hidden if the user *is not* signed in
+
+For these, you must first call `.account().resolve()`
+* `.auth-apikey-element`: Add to any element and it will display the user's API key
+* `.auth-delete-account-btn`: Add to a button to handle the account deletion process
+* `.auth-delete-account-confirmation-input`: Add to a checkbox to require confirmation before deleting
+* `.auth-delete-account-error-message-element`: Add to any element to show any error about account deletion
+
+* `.auth-billing-subscribe-btn`: Add to any button to turn it into a subscribe button
+* `.auth-billing-update-btn`: Add to any button to turn it into a button to update an existing subscription
+* `.auth-billing-plan-id-element`: Add to any element and it will display the user's plan ID
+* `.auth-billing-frequency-element`: Add to any element and it will display the user's plan frequency
+* `.auth-billing-start-date-element`: Add to any element and it will display the user's plan start date
+* `.auth-billing-expiration-date-element`: Add to any element and it will display the user's plan expiration date
 
 ```html
 <div class="auth-signedin-false-element">
@@ -335,6 +349,19 @@ Also included is an API wrapper for some ServiceWorker functions to make develop
   Manager.serviceWorker().postMessage({command: 'debug', args: {key: 'value'}}, function (response) {
     Manager.log('Callback...', response);
   });
+</script>
+```
+
+### Utilizing the .account() API
+To preserve file size and enforce optimization, the `.account()` library must be explicitly loaded.
+
+```html
+<script type="text/javascript">
+  Manager.account().import()
+  .then(function (Account) {
+    var account = new Account();
+    account.resolve()
+  })
 </script>
 ```
 
