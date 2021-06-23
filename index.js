@@ -625,13 +625,23 @@ function Manager() {
 
           // parse query stringify
           This.properties.page.queryString = new URLSearchParams(window.location.search);
-          if (This.properties.page.queryString.get('aff')) {
-            This.storage().set('auth.affiliateCode', This.properties.page.queryString.get('aff'));
+          var pageQueryString = This.properties.page.queryString
+          var pagePathname = window.location.pathname;
+          if (pageQueryString.get('aff')) {
+            This.storage().set('auth.affiliateCode', pageQueryString.get('aff'));
           }
-          if (This.properties.page.queryString.get('redirect')) {
-            window.location.href = decodeURIComponent(This.properties.page.queryString.get('redirect'));
+          if (pageQueryString.get('redirect')) {
+            window.location.href = decodeURIComponent(pageQueryString.get('redirect'));
             return;
           }
+          var authRegex = /\/(signin|signup|forgot)\//;
+          if (pagePathname.match(authRegex)) {
+            import('./helpers/auth-pages.js')
+            .then(function(mod) {
+              mod.default()
+            })
+          }
+
 
           // load critical libraries
           function postCrucial() {
@@ -1320,7 +1330,7 @@ function Manager() {
           Tawk_API.maximize();
         };
         var tawkPath = 'libraries.tawk.config';
-        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + utilities.get(options, tawkPath + '.widgetId', 'default'), crossorigin: true}, function(e) {
+        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + (utilities.get(options, tawkPath + '.widgetId') || 'default'), crossorigin: true}, function(e) {
           if (e) {
             return reject(e);
           }
