@@ -615,6 +615,7 @@ function Manager() {
           This.properties.options = options_user;
 
           // set non-option properties
+          This.properties.global.app = configuration.global.app;
           This.properties.global.version = configuration.global.version;
           This.properties.global.url = configuration.global.url;
           This.properties.global.cacheBreaker = configuration.global.cacheBreaker;
