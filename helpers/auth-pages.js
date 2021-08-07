@@ -12,7 +12,7 @@ function AuthPages() {
   if (pageAuthRedirect) {
     dom.select('a').each(function (el) {
       var href = el.getAttribute('href');
-      if (href.match(authRegex)) {
+      if (href && href.match(authRegex)) {
         try {
           var newURL = new URL(href);
           if (newURL.pathname.match(authRegex)) {
@@ -20,10 +20,10 @@ function AuthPages() {
             el.setAttribute('href', newURL.toString())
           }
         } catch (e) {
-          console.warn('Failed to set auth URL', e);
+          // console.warn('Failed to set auth URL', e);
         }
       }
-    })    
+    })
   }
 }
 

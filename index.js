@@ -507,7 +507,7 @@ function Manager() {
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
-                required: (tempUrl + '/signin/'),
+                required: (tempUrl + '/signup/'),
                 prohibited: (tempUrl + '/')
               }
             },
