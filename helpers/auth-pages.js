@@ -5,7 +5,7 @@ var dom;
 function AuthPages() {
   var self = this;
   dom = window.Manager.dom();
-  var authRegex = /\/(signin|signup|forgot)\//;
+  var authRegex = /\/(signin|signup|forgot)/;
   var pageQueryString = window.Manager.properties.page.queryString;
   var pageAuthRedirect = pageQueryString.get('auth_redirect')
 
