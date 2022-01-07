@@ -240,6 +240,17 @@ function Manager() {
       user.getIdToken(false)
         .then(function(token) {
           var done;
+          // fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
+          //   method: 'POST',
+          //   body: JSON.stringify({
+          //     authenticationToken: token,
+          //     command: 'signup-handler',
+          //     payload: {
+          //       newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+          //       affiliateCode: This.storage().get('auth.affiliateCode', '')
+          //     }
+          //   }),
+          // })
           fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler', {
             method: 'POST',
             body: JSON.stringify({
