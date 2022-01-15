@@ -536,6 +536,7 @@ function Manager() {
             libraries: {
               firebase_app: {
                 enabled: true,
+                load: false,
                 config: {
                   apiKey: '',
                   authDomain: '',
@@ -547,13 +548,16 @@ function Manager() {
                 }
               },
               firebase_firestore: {
-                enabled: true
+                enabled: true,
+                load: false,
               },
               firebase_messaging: {
-                enabled: true
+                enabled: true,
+                load: false,
               },
               firebase_auth: {
                 enabled: true,
+                load: false,
               },
               lazysizes: {
                 enabled: true
@@ -1212,12 +1216,11 @@ function Manager() {
       // if (typeof window.firebase !== 'undefined') {
       //   return resolve();
       // }
-      if (options.libraries.firebase_app.enabled === true) {
-        import('firebase/app')
-        .then(function(mod) {
+      var setting = options.libraries.firebase_app
+      if (setting.enabled === true) {
+        function _post() {
           // This.log('Loaded Firebase.');
-          window.firebase = mod.default;
-          window.app = firebase.initializeApp(options.libraries.firebase_app.config);
+          window.app = firebase.initializeApp(setting.config);
 
           Promise.all([
             load_firebase_auth(This, options),
@@ -1226,8 +1229,19 @@ function Manager() {
           ])
           .then(resolve)
           .catch(reject);
-         })
-         .catch(reject);
+        }
+        if (setting.load) {
+          setting.load()
+          _post()
+        } else {
+          import('firebase/app')
+          .then(function(mod) {
+            window.firebase = mod.default;
+            _post()
+           })
+           .catch(reject);
+        }
+        return resolve()
       } else {
         return resolve();
       }
@@ -1240,10 +1254,16 @@ function Manager() {
       // if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
       //   return resolve();
       // }
-      if (options.libraries.firebase_auth.enabled === true) {
-        import('firebase/auth')
-        .then(resolve)
-        .catch(reject);
+      var setting = options.libraries.firebase_auth;
+      if (setting.enabled === true) {
+        if (setting.load) {
+          setting.load()
+          resolve()
+        } else {
+          import('firebase/auth')
+          .then(resolve)
+          .catch(reject);
+        }
       } else {
         return resolve();
       }
@@ -1257,10 +1277,16 @@ function Manager() {
       // if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
       //   return resolve();
       // }
-      if (options.libraries.firebase_firestore.enabled === true) {
-        import('firebase/firestore')
-        .then(resolve)
-        .catch(reject);
+      var setting = options.libraries.firebase_firestore;
+      if (setting.enabled === true) {
+        if (setting.load) {
+          setting.load()
+          resolve()
+        } else {
+          import('firebase/firestore')
+          .then(resolve)
+          .catch(reject);
+        }
       } else {
         return resolve();
       }
@@ -1272,10 +1298,16 @@ function Manager() {
       // if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
       //   return resolve();
       // }
-      if (options.libraries.firebase_messaging.enabled === true) {
-        import('firebase/messaging')
-        .then(resolve)
-        .catch(reject);
+      var setting = options.libraries.firebase_messaging;
+      if (setting.enabled === true) {
+        if (setting.load) {
+          setting.load()
+          resolve()
+        } else {
+          import('firebase/messaging')
+          .then(resolve)
+          .catch(reject);
+        }
       } else {
         return resolve();
       }
