@@ -1220,6 +1220,7 @@ function Manager() {
       if (setting.enabled === true) {
         function _post() {
           // This.log('Loaded Firebase.');
+          // console.log('_post.');
           window.app = firebase.initializeApp(setting.config);
 
           Promise.all([
@@ -1231,8 +1232,9 @@ function Manager() {
           .catch(reject);
         }
         if (setting.load) {
-          setting.load()
-          _post()
+          setting.load(This)
+          .then(_post)
+          .catch(reject);
         } else {
           import('firebase/app')
           .then(function(mod) {
@@ -1256,8 +1258,9 @@ function Manager() {
       var setting = options.libraries.firebase_auth;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load()
-          resolve()
+          setting.load(This)
+          .then(resolve)
+          .catch(reject);
         } else {
           import('firebase/auth')
           .then(resolve)
@@ -1279,8 +1282,9 @@ function Manager() {
       var setting = options.libraries.firebase_firestore;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load()
-          resolve()
+          setting.load(This)
+          .then(resolve)
+          .catch(reject);
         } else {
           import('firebase/firestore')
           .then(resolve)
@@ -1300,8 +1304,9 @@ function Manager() {
       var setting = options.libraries.firebase_messaging;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load()
-          resolve()
+          setting.load(This)
+          .then(resolve)
+          .catch(reject);
         } else {
           import('firebase/messaging')
           .then(resolve)
