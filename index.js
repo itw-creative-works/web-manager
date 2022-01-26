@@ -1241,9 +1241,8 @@ function Manager() {
            })
            .catch(reject);
         }
-        return resolve()
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
@@ -1265,7 +1264,7 @@ function Manager() {
           .catch(reject);
         }
       } else {
-        return resolve();
+        resolve();
       }
 
     });
@@ -1288,7 +1287,7 @@ function Manager() {
           .catch(reject);
         }
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
@@ -1309,7 +1308,7 @@ function Manager() {
           .catch(reject);
         }
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
@@ -1336,7 +1335,7 @@ function Manager() {
         })
         .catch(reject);
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
@@ -1351,11 +1350,11 @@ function Manager() {
         .then(function(mod) {
           window.cookieconsent.initialise(options.libraries.cookieconsent.config);
           // This.log('Loaded Cookieconsent.');
-          return resolve();
+          resolve();
         })
         .catch(reject);
       } else {
-        return resolve();
+        resolve();
       }
 
     });
@@ -1379,11 +1378,11 @@ function Manager() {
             return reject(e);
           }
           // This.log('Loaded tawk.');
-          return resolve();
+          resolve();
         })
 
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
@@ -1402,11 +1401,11 @@ function Manager() {
           config.environment = This.properties.meta.environment;
           Sentry.init(config);
           // This.log('Loaded Sentry.');
-          return resolve();
+          resolve();
         })
         .catch(reject);
       } else {
-        return resolve();
+        resolve();
       }
     });
   }
