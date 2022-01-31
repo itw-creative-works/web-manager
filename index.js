@@ -169,7 +169,7 @@ function Manager() {
       this.properties.page.status.eventHandlersSet = true;
       var This = this;
       // document.addEventListener('click', function (event) {
-      This.dom().select('body').on('click', function (event) {
+      document.addEventListener('click', function (event) {
         // console.log('Clicked.... NEW');
         // This.log('Clicked', event.target);
         // auth events
@@ -837,26 +837,45 @@ function Manager() {
       domLib.select(erel).hide().setInnerHTML('');
     }
 
-    function signinButtonDisabled(status) {
+    // function signinButtonDisabled(status) {
+    //   if (status) {
+    //     domLib.select('.auth-signin-email-btn').setAttribute('disabled', true);
+    //   } else {
+    //     domLib.select('.auth-signin-email-btn').removeAttribute('disabled');
+    //   }
+    // }
+    // function signupButtonDisabled(status) {
+    //   if (status) {
+    //     domLib.select('.auth-signup-email-btn').setAttribute('disabled', true);
+    //   } else {
+    //     domLib.select('.auth-signup-email-btn').removeAttribute('disabled');
+    //   }
+    // }
+    // function forgotButtonDisabled(status) {
+    //   if (status) {
+    //     domLib.select('.auth-forgot-email-btn').setAttribute('disabled', true);
+    //   } else {
+    //     domLib.select('.auth-forgot-email-btn').removeAttribute('disabled');
+    //   }
+    // }
+
+    function setAuthButtonDisabled(button, status) {
+      var el = domLib.select('.auth-' + button + '-email-btn');
+      var disabled = 'disabled';
       if (status) {
-        domLib.select('.auth-signin-email-btn').setAttribute('disabled', true);
+        el.setAttribute(disabled, true);
       } else {
-        domLib.select('.auth-signin-email-btn').removeAttribute('disabled');
+        el.removeAttribute(disabled);
       }
     }
-    function signupButtonDisabled(status) {
-      if (status) {
-        domLib.select('.auth-signup-email-btn').setAttribute('disabled', true);
-      } else {
-        domLib.select('.auth-signup-email-btn').removeAttribute('disabled');
-      }
-    }
-    function forgotButtonDisabled(status) {
-      if (status) {
-        domLib.select('.auth-forgot-email-btn').setAttribute('disabled', true);
-      } else {
-        domLib.select('.auth-forgot-email-btn').removeAttribute('disabled');
-      }
+
+    function resolveAuthInput(existing, mode, input) {
+      var authSelector = '.auth-';
+      var inputSelector = authSelector + input + '-input';
+      var formSelector = authSelector + mode + '-form ';
+      // var temp
+
+      return existing || domLib.select(formSelector + inputSelector).getValue() || domLib.select(inputSelector).getValue()
     }
 
     return {
@@ -896,13 +915,20 @@ function Manager() {
         }
       },
       signIn: function (method, email, password) {
+        var mode = 'signin';
         method = method || 'email';
         _preDisplayError();
         // This.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
-          email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-          password = password || domLib.select('.auth-password-input').getValue();
-          signinButtonDisabled(true);
+          // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+          // password = password || domLib.select('.auth-password-input').getValue();
+          password = resolveAuthInput(password, mode, 'password');
+          // console.log('Signin attempt: ', method, email, password);
+
+          // signinButtonDisabled(true);
+          setAuthButtonDisabled(mode, true);
+
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
             // _postAuthSubscriptionCheck(This)
@@ -910,11 +936,13 @@ function Manager() {
             //
             // })
             This.properties.page.status.didSignIn = true;
-            signinButtonDisabled(false);
+            // signinButtonDisabled(false);
+            setAuthButtonDisabled(mode, false);
             // This.log('Good signin');
           })
           .catch(function(error) {
-            signinButtonDisabled(false);
+            // signinButtonDisabled(false);
+            setAuthButtonDisabled(mode, false);
             _displayError(error.message);
             // This.log('Error', error.message);
           });
@@ -927,22 +955,37 @@ function Manager() {
         }
       },
       signUp: function(method, email, password, passwordConfirm) {
+        var mode = 'signup';
         method = method || 'email';
 
         _preDisplayError();
         // This.log('Signup attempt: ', method, email, password, passwordConfirm);
-        var termEl = domLib.select('.auth-terms-input');
-        if (termEl.exists() && !termEl.getValue() === true) {
+        // var acceptedTerms
+        // var termEl = domLib.select('.auth-terms-input');
+        // if (termEl.exists() && !termEl.getValue() === true) {
+        //   _displayError('Please review and accept our terms.');
+        //   return;
+        // }
+        var termsSelector = '.auth-terms-input';
+        var termSpecificEl = domLib.select('.auth-signup-form ' + termsSelector)
+        var termGenericEl = domLib.select(termsSelector)
+        if ((termSpecificEl.exists() && !termSpecificEl.getValue() === true) || (termGenericEl.exists() && !termGenericEl.getValue() === true)) {
           _displayError('Please review and accept our terms.');
           return;
         }
+
         if (method === 'email') {
-          email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-          password = password || domLib.select('.auth-password-input').getValue();
-          passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
+          // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+          // password = password || domLib.select('.auth-password-input').getValue();
+          password = resolveAuthInput(password, mode, 'password');
+          // passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
+          passwordConfirm = resolveAuthInput(passwordConfirm, mode, 'password-confirm');
+          // console.log('Signup attempt: ', method, email, password, passwordConfirm);
 
           if (password === passwordConfirm) {
-            signupButtonDisabled(true);
+            // signupButtonDisabled(true);
+            setAuthButtonDisabled(mode, true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
               This.properties.page.status.didSignUp = true;
@@ -950,7 +993,8 @@ function Manager() {
               // signupButtonDisabled(false);
             })
             .catch(function(error) {
-              signupButtonDisabled(false);
+              // signupButtonDisabled(false);
+              setAuthButtonDisabled(mode, false);
               _displayError(error.message);
               // This.log('error', error.message);
             });
@@ -976,17 +1020,24 @@ function Manager() {
       },
       forgot: function(email) {
         // This.log('forgot()');
-        email = email || domLib.select('.auth-email-input').getValue();
-        forgotButtonDisabled(true);
+        var mode = 'forgot';
+        // email = email || domLib.select('.auth-email-input').getValue();
+        email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+
+        // forgotButtonDisabled(true);
+        setAuthButtonDisabled(mode, true);
         _preDisplayError();
+
         firebase.auth().sendPasswordResetEmail(email)
         .then(function() {
-          forgotButtonDisabled(false);
+          // forgotButtonDisabled(false);
+          setAuthButtonDisabled(mode, false);
           // This.log('forgot success.');
           _displayError('A reset link has been sent to you.');
         })
         .catch(function(error) {
-          forgotButtonDisabled(false);
+          // forgotButtonDisabled(false);
+          setAuthButtonDisabled(mode, false);
           // This.log('forgot failed: ', error);
           _displayError(error.message);
         });
