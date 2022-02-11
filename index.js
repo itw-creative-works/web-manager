@@ -1062,6 +1062,9 @@ function Manager() {
         // This.log('subscribe()');
         return new Promise(function(resolve, reject) {
           // var subscribed = !This.notifications().isSubscribed();
+          if (!supported) {
+            return resolve(false)
+          }
           firebase.messaging().getToken({
             serviceWorkerRegistration: This.properties.references.serviceWorker,
           })
