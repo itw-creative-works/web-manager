@@ -240,23 +240,15 @@ function Manager() {
       user.getIdToken(false)
         .then(function(token) {
           var done;
-          // fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
-          //   method: 'POST',
-          //   body: JSON.stringify({
-          //     authenticationToken: token,
-          //     command: 'signup-handler',
-          //     payload: {
-          //       newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
-          //       affiliateCode: This.storage().get('auth.affiliateCode', '')
-          //     }
-          //   }),
-          // })
-          fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler', {
+          fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
             method: 'POST',
             body: JSON.stringify({
               authenticationToken: token,
-              newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
-              affiliateCode: This.storage().get('auth.affiliateCode', '')
+              command: 'user:sign-up',
+              payload: {
+                newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+                affiliateCode: This.storage().get('auth.affiliateCode', ''),
+              }
             }),
           })
           .catch(function () {})
@@ -274,20 +266,6 @@ function Manager() {
             }
           }, 5000);
 
-          // This.ajax().request({
-          //   url: 'https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_signUpHandler',
-          //   // url: 'http://localhost:5001/ultimate-jekyll/us-central1/bm_signUpHandler',
-          //   body: {
-          //     authenticationToken: token,
-          //     newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
-          //     affiliateCode: This.storage().get('auth.affiliateCode', '')
-          //   },
-          //   timeout: 5000,
-          // })
-          // .always(function (response, status) {
-          //   // This.storage().set('notifications.lastSynced', new Date(0).toISOString())
-          //   _authHandle_in_normal(This, user);
-          // });
         })
         .catch(function(error) {
           console.error(error);
