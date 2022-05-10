@@ -1082,7 +1082,8 @@ function Manager() {
                         dateSubscribed: {
                           timestamp: timestamp,
                           timestampUNIX: timestampUNIX
-                        }
+                        },
+                        url: window.location.href,
                       },
                       token: token,
                       link: {
@@ -1164,6 +1165,7 @@ function Manager() {
     navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
     .then(function (registration) {
       // firebase.messaging().useServiceWorker(registration);
+      // console.log('----TEST registration', registration);
       This.properties.references.serviceWorker = registration;
       // console.log('====registration', registration);
       // console.log('navigator.serviceWorker.controller', navigator.serviceWorker.controller);
@@ -1221,8 +1223,14 @@ function Manager() {
       try {
         // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
         firebase.messaging().onMessage(function (payload) {
-          new Notification(payload.notification.title, payload.notification);
+          // console.log('---payload', payload);
+          new Notification(payload.notification.title, payload.notification)
+          .onclick = function(event) {
+            event.preventDefault(); // prevent the browser from focusing the Notification's tab
+            window.open(payload.notification.click_action, '_blank');
+          }
         })
+        // console.log('---SKIPPING ONMESSAGE');
       } catch (e) {
         console.error(e);
       }
