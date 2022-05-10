@@ -1162,7 +1162,7 @@ function Manager() {
     if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
 
     // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
-    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
+    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, app: This.properties.global.app, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
     .then(function (registration) {
       // firebase.messaging().useServiceWorker(registration);
       // console.log('----TEST registration', registration);
