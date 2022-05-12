@@ -615,6 +615,9 @@ function Manager() {
           This.properties.global.brand.name = configuration.global.brand.name;
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
 
+          // This.properties.global.cacheBreaker = This.properties.meta.environment === 'development'
+          //   ? new Date().getTime()
+          //   : This.properties.global.cacheBreaker;
           // This.log('Config: ', options_user);
 
           // parse query stringify
@@ -1162,7 +1165,7 @@ function Manager() {
     if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
 
     // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
-    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, app: This.properties.global.app, env: This.properties.meta.environment, v: This.properties.global.version, firebase: options_user.libraries.firebase_app.config})) )
+    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, app: This.properties.global.app, env: This.properties.meta.environment, v: This.properties.global.version, cb: This.properties.global.cacheBreaker, firebase: options_user.libraries.firebase_app.config})) )
     .then(function (registration) {
       // firebase.messaging().useServiceWorker(registration);
       // console.log('----TEST registration', registration);
