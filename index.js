@@ -287,10 +287,17 @@ function Manager() {
     }
   }
 
+  function _isValidRedirectUrl(This, url) {
+    var returnUrlObject = new URL(decodeURIComponent(url));
+    var currentUrlObject = new URL(window.location.href);
+    return returnUrlObject.host === currentUrlObject.host
+      || returnUrlObject.protocol === This.properties.global.app + ':'
+  }
+
   function _authHandle_in_normal(This, user) {
     var domLib = This.dom();
     var returnUrl = This.properties.page.queryString.get('auth_redirect');
-    if (returnUrl) {
+    if (returnUrl && _isValidRedirectUrl(This, returnUrl)) {
       window.location.href = decodeURIComponent(returnUrl);
       return;
     }
@@ -624,11 +631,13 @@ function Manager() {
           This.properties.page.queryString = new URLSearchParams(window.location.search);
           var pageQueryString = This.properties.page.queryString
           var pagePathname = window.location.pathname;
-          if (pageQueryString.get('aff')) {
-            This.storage().set('auth.affiliateCode', pageQueryString.get('aff'));
+          var qsAff = pageQueryString.get('aff');
+          if (qsAff) {
+            This.storage().set('auth.affiliateCode', qsAff);
           }
-          if (pageQueryString.get('redirect')) {
-            window.location.href = decodeURIComponent(pageQueryString.get('redirect'));
+          var qsRedirect = pageQueryString.get('redirect');
+          if (qsRedirect && _isValidRedirectUrl(This, qsRedirect)) {
+            window.location.href = decodeURIComponent(qsRedirect);
             return;
           }
           var authRegex = /\/(signin|signup|forgot)\//;
