@@ -287,17 +287,12 @@ function Manager() {
     }
   }
 
-  function _isValidRedirectUrl(This, url) {
-    var returnUrlObject = new URL(decodeURIComponent(url));
-    var currentUrlObject = new URL(window.location.href);
-    return returnUrlObject.host === currentUrlObject.host
-      || returnUrlObject.protocol === This.properties.global.app + ':'
-  }
+
 
   function _authHandle_in_normal(This, user) {
     var domLib = This.dom();
     var returnUrl = This.properties.page.queryString.get('auth_redirect');
-    if (returnUrl && _isValidRedirectUrl(This, returnUrl)) {
+    if (returnUrl && This.isValidRedirectUrl(returnUrl)) {
       window.location.href = decodeURIComponent(returnUrl);
       return;
     }
@@ -636,7 +631,7 @@ function Manager() {
             This.storage().set('auth.affiliateCode', qsAff);
           }
           var qsRedirect = pageQueryString.get('redirect');
-          if (qsRedirect && _isValidRedirectUrl(This, qsRedirect)) {
+          if (qsRedirect && This.isValidRedirectUrl(qsRedirect)) {
             window.location.href = decodeURIComponent(qsRedirect);
             return;
           }
@@ -999,14 +994,19 @@ function Manager() {
       signOut: function() {
         // This.log('signOut()');
         // var This = this;
-        firebase.auth().signOut()
-        .then(function() {
-          // This.log('signOut success.');
-        })
+        return firebase.auth().signOut()
         .catch(function(e) {
           console.error(e);
           // This.log('signOut failed: ', error);
         });
+        // return firebase.auth().signOut()
+        // .then(function() {
+        //   // This.log('signOut success.');
+        // })
+        // .catch(function(e) {
+        //   // console.error(e);
+        //   // This.log('signOut failed: ', error);
+        // });
       },
       forgot: function(email) {
         // This.log('forgot()');
@@ -1618,7 +1618,7 @@ function Manager() {
   //     }
   //   }
   // }
-  Manager.prototype.performance = function() {
+  Manager.prototype.performance = function () {
     return {
       mark: function(mark) {
         try {
@@ -1627,6 +1627,13 @@ function Manager() {
         }
       }
     }
+  }
+
+  Manager.prototype.isValidRedirectUrl = function (url) {
+    var returnUrlObject = new URL(decodeURIComponent(url));
+    var currentUrlObject = new URL(window.location.href);
+    return returnUrlObject.host === currentUrlObject.host
+      || returnUrlObject.protocol === This.properties.global.app + ':'
   }
 
   // Manager.prototype.performance = function() {
