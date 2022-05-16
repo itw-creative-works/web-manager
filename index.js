@@ -1633,7 +1633,7 @@ function Manager() {
     var returnUrlObject = new URL(decodeURIComponent(url));
     var currentUrlObject = new URL(window.location.href);
     return returnUrlObject.host === currentUrlObject.host
-      || returnUrlObject.protocol === This.properties.global.app + ':'
+      || returnUrlObject.protocol === this.properties.global.app + ':'
   }
 
   // Manager.prototype.performance = function() {
