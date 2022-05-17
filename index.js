@@ -816,6 +816,7 @@ function Manager() {
     var domLib = This.dom();
 
     function _displayError(msg) {
+      console.error(msg);
       domLib.select(erel).show().setInnerHTML(msg);
     }
     function _preDisplayError() {
@@ -858,9 +859,9 @@ function Manager() {
       var authSelector = '.auth-';
       var inputSelector = authSelector + input + '-input';
       var formSelector = authSelector + mode + '-form ';
-      // var temp
+      var result = existing || domLib.select(formSelector + inputSelector).getValue() || domLib.select(inputSelector).getValue();
 
-      return existing || domLib.select(formSelector + inputSelector).getValue() || domLib.select(inputSelector).getValue()
+      return input === 'email' ? result.trim().toLowerCase() : result;
     }
 
     return {
@@ -888,7 +889,6 @@ function Manager() {
             firebase.auth()
               .getRedirectResult()
               .catch(function (error) {
-                console.error(error);
                 _displayError(error.message);
               });
           }
@@ -906,7 +906,7 @@ function Manager() {
         // This.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
           // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-          email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+          email = resolveAuthInput(email, mode, 'email');
           // password = password || domLib.select('.auth-password-input').getValue();
           password = resolveAuthInput(password, mode, 'password');
           // console.log('Signin attempt: ', method, email, password);
@@ -934,7 +934,6 @@ function Manager() {
         } else {
           firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method))
           .catch(function (e) {
-            console.error(e);
             _displayError(e);
           })
         }
@@ -961,7 +960,7 @@ function Manager() {
 
         if (method === 'email') {
           // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
-          email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+          email = resolveAuthInput(email, mode, 'email');
           // password = password || domLib.select('.auth-password-input').getValue();
           password = resolveAuthInput(password, mode, 'password');
           // passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
@@ -1012,7 +1011,7 @@ function Manager() {
         // This.log('forgot()');
         var mode = 'forgot';
         // email = email || domLib.select('.auth-email-input').getValue();
-        email = resolveAuthInput(email, mode, 'email').trim().toLowerCase();
+        email = resolveAuthInput(email, mode, 'email')
 
         // forgotButtonDisabled(true);
         setAuthButtonDisabled(mode, true);
