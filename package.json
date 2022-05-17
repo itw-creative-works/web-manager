@@ -23,7 +23,7 @@
   },
   "homepage": "https://itwcreativeworks.com",
   "dependencies": {
-    "@sentry/browser": "^6.17.3",
+    "@sentry/browser": "^6.19.7",
     "cookieconsent": "^3.1.1",
     "firebase": "^8.10.1",
     "lazysizes": "^5.3.2"
