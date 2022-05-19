@@ -265,6 +265,7 @@ The Firebase login system works like charm out of the box without you having to 
 * `.auth-signout-all-btn`: Add to a button to handle the signout process
 * `.auth-email-element`: Add to any element to display the user's email
 * `.auth-terms-input`: Add to a checkbox to require a TOS agreement before signup occurs
+* `.auth-newsletter-input`: Add to a checkbox to opt-in the user to newsletters upon signup
 * `.auth-uid-element`: Add to any element to display the user's uid
 * `.auth-signedin-true-element`: Add to any element and it will be hidden if the user *is* signed in
 * `.auth-signedin-false-element`: Add to any element and it will be hidden if the user *is not* signed in
