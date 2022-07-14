@@ -283,6 +283,20 @@ For these, you must first call `.account().resolve()`
 * `.auth-billing-start-date-element`: Add to any element and it will display the user's plan start date
 * `.auth-billing-expiration-date-element`: Add to any element and it will display the user's plan expiration date
 
+* `.auth-created-element`: Add to any element to show the local string for account creation date
+* `.auth-phone-element`: Add to any element to display the user's phone
+
+* `.auth-referral-count-element`: Update this element with the user's referral count
+* `.auth-referral-code-element`: Update this element with the user's referral code
+* `.auth-referral-link-element`: Update this element with the user's referral link
+* `.auth-referral-social-link`: Update this element with the user's referral link for socials where `data-provider` is the social network
+
+*  Future additions (not added yet)
+  * `auth-link-provider-btn`: Initiate a link to the `data-provider` in this element
+  * `auth-unlink-provider-btn`: Initiate an unlink to the `data-provider` in this element
+  * `auth-signout-all-sessions-btn`: Call the server to sign out of all sessions and then log out of the current one.
+
+
 ```html
 <div class="auth-signedin-false-element">
   <form onsubmit="return false;">
