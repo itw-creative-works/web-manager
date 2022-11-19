@@ -212,6 +212,8 @@ The Web Manager .utilities() API wraps some useful functions such as getting and
 ```html
 <script type="text/javascript">
   console.log('--- Exploring the .utilities() API ---');
+  
+  // .get() and .set()
   Manager.ready(function() {
     var object = {
       key1: 'val1',
@@ -234,6 +236,12 @@ The Web Manager .utilities() API wraps some useful functions such as getting and
     console.log('Root object (final)', Manager.utilities().get(object)); // Get whole object a final time
 
   });
+
+  // .clipboardCopy()
+  Manager.utilities().clipboardCopy('I am copied to the clipboard!')
+
+  // .escapeHTML()
+  Manager.utilities().escapeHTML('<strong>This will will NOT render as bold!</strong>')  
 </script>
 ```
 
