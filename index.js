@@ -164,14 +164,12 @@ function Manager() {
   }
 
   Manager.prototype.setEventListeners = function() {
-    // console.log('--------setEventListeners');
+    var This = this;
+
     if (!utilities.get(this, 'properties.page.status.eventHandlersSet', false)) {
       this.properties.page.status.eventHandlersSet = true;
-      var This = this;
-      // document.addEventListener('click', function (event) {
+      
       document.addEventListener('click', function (event) {
-        // console.log('Clicked.... NEW');
-        // This.log('Clicked', event.target);
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
           This.auth().signIn('email');
@@ -187,16 +185,18 @@ function Manager() {
           This.auth().forgot();
         } else if (event.target.matches('#prechat-btn')) {
           load_tawk(This, This.properties.options);
-        }
-
-        // push notification events
-        if (event.target.matches('.auth-subscribe-notifications-btn')) {
-          //@@@NOTIFICATIONS
+        } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
           This.notifications().subscribe()
-          .catch(function (e) {
-            console.error(e);
-          });
         }
+      
+        // Autorequest
+        if (!This._notificationRequested && This.properties.options.pushNotifications.autoRequest) {
+          This._notificationRequested = true;
+          
+          setTimeout(function () {
+            This.notifications().subscribe()
+          }, This.properties.options.pushNotifications.autoRequest * 1000);
+        }        
 
       }, false);
     }
@@ -1220,16 +1220,6 @@ function Manager() {
       // This.log('SW Registered.');
       //@@@NOTIFICATIONS
       // _setupTokenRefreshHandler(This);
-
-      if (options_user.pushNotifications.autoRequest) {
-        setTimeout(function () {
-          //@@@NOTIFICATIONS
-          This.notifications().subscribe()
-          .catch(function (e) {
-            console.error(e);
-          });
-        }, options_user.pushNotifications.autoRequest * 1000);
-      }
 
       try {
         // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
