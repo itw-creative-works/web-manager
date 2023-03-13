@@ -589,21 +589,22 @@ function Manager() {
           var options_user = {};
           function eachRecursive(obj, parent) {
             parent = (!parent) ? '' : parent;
-              for (var key in obj) {
-                if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-                  eachRecursive(obj[key], parent + key + '.');
-                } else {
-                  utilities.set(options_user, parent + key, utilities.get(options_defaults, parent + key) );
-                  var t_globalItem = utilities.get(configuration, 'global.settings.' + parent + key, undefined);
-                  var t_pageItem = utilities.get(configuration, 'page.settings.' + parent + key, undefined);
-                  if (typeof t_globalItem !== 'undefined') {
-                    utilities.set(options_user, parent + key, t_globalItem);
-                  }
-                  if (typeof t_pageItem !== 'undefined') {
-                    utilities.set(options_user, parent + key, t_pageItem);
-                  }
+
+            for (var key in obj) {
+              if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
+                eachRecursive(obj[key], parent + key + '.');
+              } else {
+                utilities.set(options_user, parent + key, utilities.get(options_defaults, parent + key) );
+                var t_globalItem = utilities.get(configuration, 'global.settings.' + parent + key, undefined);
+                var t_pageItem = utilities.get(configuration, 'page.settings.' + parent + key, undefined);
+                if (typeof t_globalItem !== 'undefined') {
+                  utilities.set(options_user, parent + key, t_globalItem);
+                }
+                if (typeof t_pageItem !== 'undefined') {
+                  utilities.set(options_user, parent + key, t_pageItem);
                 }
               }
+            }
           }
 
           eachRecursive(options_defaults);
