@@ -554,8 +554,8 @@ function Manager() {
                 config: {
                   accountId: '',
                   chatId: '',
-                  options: {
-                    button: {
+                  settings: {
+                    openChatButton: {
                       background: '#237afc',
                       text: '#ffffff',                      
                     }
@@ -687,7 +687,7 @@ function Manager() {
             var chatsyOps = options_user.libraries.chatsy;
             if (chatsyOps.enabled) {
               This.dom().select('#prechat-btn').css({
-                background: chatsyOps.config.options.button.background,
+                background: chatsyOps.config.settings.openChatButton.background,
               })
               .show();
             }
