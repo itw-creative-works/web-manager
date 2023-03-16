@@ -44,7 +44,7 @@ npm install web-manager
 * Firebase (Firebase app, Firestore, Auth, & Messaging)
 * Lazysizes to lazyload images
 * Sentry to report errors
-* Tawk to implement a chatbox
+* [Chatsy.ai](https://chatsy.ai) AI chatbot integration
 * Cookieconsent to comply with GDPR
 
 ## Example Setup

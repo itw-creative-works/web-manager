@@ -184,7 +184,7 @@ function Manager() {
         } else if (event.target.matches('.auth-forgot-email-btn')) {
           This.auth().forgot();
         } else if (event.target.matches('#prechat-btn')) {
-          load_tawk(This, This.properties.options);
+          load_chatsy(This, This.properties.options);
         } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
           This.notifications().subscribe()
         }
@@ -549,12 +549,12 @@ function Manager() {
                   release: ''
                 }
               },
-              tawk: {
+              chatsy: {
                 enabled: true,
                 config: {
+                  accountId: '',
                   chatId: '',
-                  widgetId: 'default',
-                  prechatColor: '#02A84E'
+                  options: {},
                 }
               },
               cookieconsent: {
@@ -679,9 +679,9 @@ function Manager() {
               console.error(e);
             }
 
-            var tawkOps = options_user.libraries.tawk;
-            if (tawkOps.enabled) {
-              This.dom().select('#prechat-btn').css({background: tawkOps.config.prechatColor}).show();
+            var chatsyOps = options_user.libraries.chatsy;
+            if (chatsyOps.enabled) {
+              This.dom().select('#prechat-btn').css({background: chatsyOps.config.prechatColor}).show();
             }
 
             // load non-critical libraries
@@ -1407,24 +1407,29 @@ function Manager() {
     });
   }
 
-  var load_tawk = function(This, options) {
+  var load_chatsy = function(This, options) {
     var dom = This.dom();
     return new Promise(function(resolve, reject) {
-      // if (typeof window.Tawk_API !== 'undefined') {
-      //   return resolve();
-      // }
-      if (options.libraries.tawk.enabled === true) {
-        window.Tawk_API = window.Tawk_API || {}, window.Tawk_LoadStart = new Date();
-        window.Tawk_API.onLoad = function(){
-          dom.select('#prechat-btn').hide();
-          Tawk_API.maximize();
-        };
-        var tawkPath = 'libraries.tawk.config';
-        dom.loadScript({src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + (utilities.get(options, tawkPath + '.widgetId') || 'default'), crossorigin: true}, function(e) {
+      if (options.libraries.chatsy.enabled === true) {
+        var chatsyPath = 'libraries.chatsy.config';
+
+        dom.loadScript({
+          // src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + (utilities.get(options, tawkPath + '.widgetId') || 'default'), 
+          src: 'https://app.chatsy.ai/resources/script.js', 
+          // src: 'http://192.168.86.248:4001/resources/script.js', 
+          attributes: [
+            {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
+            {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
+          ],
+          crossorigin: true,          
+        }, function(e) {
           if (e) {
             return reject(e);
           }
-          // This.log('Loaded tawk.');
+          // This.log('Loaded chatsy.');
+          chatsy.open();
+          dom.select('#prechat-btn').hide();
+
           resolve();
         })
 
