@@ -554,7 +554,12 @@ function Manager() {
                 config: {
                   accountId: '',
                   chatId: '',
-                  options: {},
+                  options: {
+                    button: {
+                      background: '#237afc',
+                      text: '#ffffff',                      
+                    }
+                  },
                 }
               },
               cookieconsent: {
@@ -681,7 +686,10 @@ function Manager() {
 
             var chatsyOps = options_user.libraries.chatsy;
             if (chatsyOps.enabled) {
-              This.dom().select('#prechat-btn').css({background: chatsyOps.config.prechatColor}).show();
+              This.dom().select('#prechat-btn').css({
+                background: chatsyOps.config.options.button.background,
+              })
+              .show();
             }
 
             // load non-critical libraries
