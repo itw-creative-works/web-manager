@@ -1434,7 +1434,7 @@ function Manager() {
           if (e) {
             return reject(e);
           }
-          // This.log('Loaded chatsy.');
+
           chatsy.open();
           dom.select('#prechat-btn').hide();
 
