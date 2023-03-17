@@ -28,6 +28,9 @@ var debug;
 // var utilities;
 // var storage;
 
+// Shortcuts
+var select;
+
 
 /**
 * MODULE
@@ -150,6 +153,8 @@ function Manager() {
 
   }
 
+  select = this.dom().select;
+
 }
 
   /**
@@ -235,8 +240,6 @@ function Manager() {
   function _authHandle_in(This, user) {
     // This.log('_authHandle_in', user);
     if (This.properties.page.status.didSignUp) {
-      var domLib = This.dom();
-
       user.getIdToken(false)
         .then(function(token) {
           var done;
@@ -246,7 +249,7 @@ function Manager() {
               authenticationToken: token,
               command: 'user:sign-up',
               payload: {
-                newsletterSignUp: domLib.select('.auth-newsletter-input').getValue(),
+                newsletterSignUp: select('.auth-newsletter-input').getValue(),
                 affiliateCode: This.storage().get('auth.affiliateCode', ''),
               }
             }),
@@ -290,7 +293,6 @@ function Manager() {
 
 
   function _authHandle_in_normal(This, user) {
-    var domLib = This.dom();
     var returnUrl = This.properties.page.queryString.get('auth_redirect');
     if (returnUrl && This.isValidRedirectUrl(returnUrl)) {
       window.location.href = decodeURIComponent(returnUrl);
@@ -300,20 +302,20 @@ function Manager() {
       window.location.href = This.properties.options.auth.sends.prohibited;
       return;
     }
-    domLib.select('.auth-signedin-true-element').show();
-    domLib.select('.auth-signedin-false-element').hide();
-    domLib.select('.auth-email-element').each(function(e, i) {
+    select('.auth-signedin-true-element').show();
+    select('.auth-signedin-false-element').hide();
+    select('.auth-email-element').each(function(e, i) {
       if (e.tagName === 'INPUT') {
-        domLib.select(e).setValue(user.email)
+        select(e).setValue(user.email)
       } else {
-        domLib.select(e).setInnerHTML(user.email)
+        select(e).setInnerHTML(user.email)
       }
     });
-    domLib.select('.auth-uid-element').each(function(e, i) {
+    select('.auth-uid-element').each(function(e, i) {
       if (e.tagName === 'INPUT') {
-        domLib.select(e).setValue(user.uid)
+        select(e).setValue(user.uid)
       } else {
-        domLib.select(e).setInnerHTML(user.uid)
+        select(e).setInnerHTML(user.uid)
       }
     });
   }
@@ -686,10 +688,17 @@ function Manager() {
 
             var chatsyOps = options_user.libraries.chatsy;
             if (chatsyOps.enabled) {
-              This.dom().select('#prechat-btn').css({
+              var preChatBtn = select('#prechat-btn');
+              
+              preChatBtn.css({
                 background: chatsyOps.config.settings.openChatButton.background,
               })
               .show();
+
+              window.chatsy = {};
+              window.chatsy.open = function() {
+                preChatBtn.get(0).click();
+              }
             }
 
             // load non-critical libraries
@@ -822,40 +831,39 @@ function Manager() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
     var erel = '.auth-error-message-element';
-    var domLib = This.dom();
 
     function _displayError(msg) {
       console.error(msg);
-      domLib.select(erel).show().setInnerHTML(msg);
+      select(erel).show().setInnerHTML(msg);
     }
     function _preDisplayError() {
-      domLib.select(erel).hide().setInnerHTML('');
+      select(erel).hide().setInnerHTML('');
     }
 
     // function signinButtonDisabled(status) {
     //   if (status) {
-    //     domLib.select('.auth-signin-email-btn').setAttribute('disabled', true);
+    //     select('.auth-signin-email-btn').setAttribute('disabled', true);
     //   } else {
-    //     domLib.select('.auth-signin-email-btn').removeAttribute('disabled');
+    //     select('.auth-signin-email-btn').removeAttribute('disabled');
     //   }
     // }
     // function signupButtonDisabled(status) {
     //   if (status) {
-    //     domLib.select('.auth-signup-email-btn').setAttribute('disabled', true);
+    //     select('.auth-signup-email-btn').setAttribute('disabled', true);
     //   } else {
-    //     domLib.select('.auth-signup-email-btn').removeAttribute('disabled');
+    //     select('.auth-signup-email-btn').removeAttribute('disabled');
     //   }
     // }
     // function forgotButtonDisabled(status) {
     //   if (status) {
-    //     domLib.select('.auth-forgot-email-btn').setAttribute('disabled', true);
+    //     select('.auth-forgot-email-btn').setAttribute('disabled', true);
     //   } else {
-    //     domLib.select('.auth-forgot-email-btn').removeAttribute('disabled');
+    //     select('.auth-forgot-email-btn').removeAttribute('disabled');
     //   }
     // }
 
     function setAuthButtonDisabled(button, status) {
-      var el = domLib.select('.auth-' + button + '-email-btn');
+      var el = select('.auth-' + button + '-email-btn');
       var disabled = 'disabled';
       if (status) {
         el.setAttribute(disabled, true);
@@ -868,7 +876,7 @@ function Manager() {
       var authSelector = '.auth-';
       var inputSelector = authSelector + input + '-input';
       var formSelector = authSelector + mode + '-form ';
-      var result = existing || domLib.select(formSelector + inputSelector).getValue() || domLib.select(inputSelector).getValue();
+      var result = existing || select(formSelector + inputSelector).getValue() || select(inputSelector).getValue();
 
       return input === 'email' ? result.trim().toLowerCase() : result;
     }
@@ -914,9 +922,9 @@ function Manager() {
         _preDisplayError();
         // This.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
-          // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          // email = (email || select('.auth-email-input').getValue()).trim().toLowerCase();
           email = resolveAuthInput(email, mode, 'email');
-          // password = password || domLib.select('.auth-password-input').getValue();
+          // password = password || select('.auth-password-input').getValue();
           password = resolveAuthInput(password, mode, 'password');
           // console.log('Signin attempt: ', method, email, password);
 
@@ -954,25 +962,25 @@ function Manager() {
         _preDisplayError();
         // This.log('Signup attempt: ', method, email, password, passwordConfirm);
         // var acceptedTerms
-        // var termEl = domLib.select('.auth-terms-input');
+        // var termEl = select('.auth-terms-input');
         // if (termEl.exists() && !termEl.getValue() === true) {
         //   _displayError('Please review and accept our terms.');
         //   return;
         // }
         var termsSelector = '.auth-terms-input';
-        var termSpecificEl = domLib.select('.auth-signup-form ' + termsSelector)
-        var termGenericEl = domLib.select(termsSelector)
+        var termSpecificEl = select('.auth-signup-form ' + termsSelector)
+        var termGenericEl = select(termsSelector)
         if ((termSpecificEl.exists() && !termSpecificEl.getValue() === true) || (termGenericEl.exists() && !termGenericEl.getValue() === true)) {
           _displayError('Please review and accept our terms.');
           return;
         }
 
         if (method === 'email') {
-          // email = (email || domLib.select('.auth-email-input').getValue()).trim().toLowerCase();
+          // email = (email || select('.auth-email-input').getValue()).trim().toLowerCase();
           email = resolveAuthInput(email, mode, 'email');
-          // password = password || domLib.select('.auth-password-input').getValue();
+          // password = password || select('.auth-password-input').getValue();
           password = resolveAuthInput(password, mode, 'password');
-          // passwordConfirm = passwordConfirm || domLib.select('.auth-password-confirm-input').getValue();
+          // passwordConfirm = passwordConfirm || select('.auth-password-confirm-input').getValue();
           passwordConfirm = resolveAuthInput(passwordConfirm, mode, 'password-confirm');
           // console.log('Signup attempt: ', method, email, password, passwordConfirm);
 
@@ -1019,7 +1027,7 @@ function Manager() {
       forgot: function(email) {
         // This.log('forgot()');
         var mode = 'forgot';
-        // email = email || domLib.select('.auth-email-input').getValue();
+        // email = email || select('.auth-email-input').getValue();
         email = resolveAuthInput(email, mode, 'email')
 
         // forgotButtonDisabled(true);
@@ -1417,6 +1425,7 @@ function Manager() {
 
   var load_chatsy = function(This, options) {
     var dom = This.dom();
+
     return new Promise(function(resolve, reject) {
       if (options.libraries.chatsy.enabled === true) {
         var chatsyPath = 'libraries.chatsy.config';
@@ -1437,7 +1446,7 @@ function Manager() {
           }
 
           chatsy.open();
-          dom.select('#prechat-btn').hide();
+          select('#prechat-btn').hide();
 
           resolve();
         })
