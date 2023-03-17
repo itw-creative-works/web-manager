@@ -1428,6 +1428,7 @@ function Manager() {
           attributes: [
             {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
             {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
+            {name: 'data-settings', value: JSON.stringify(utilities.get(options, chatsyPath + '.settings', ''))},
           ],
           crossorigin: true,          
         }, function(e) {
