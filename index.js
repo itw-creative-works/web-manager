@@ -474,9 +474,11 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = /((:\/\/)(local|127\.|192\.|.+ngrok\.))/.test(window.location.href) ? 'development' : 'production';
+      This.properties.meta.environment = window.location.host.match(/:40|ngrok/) 
+        ? 'development' 
+        : 'production';
 
-
+      // Load polyfills
       init_loadPolyfills(This, configuration, function() {
           This.properties.page.status.initializing = false;
           // This.properties.genericPromise = new Promise(resolve => { resolve() });
