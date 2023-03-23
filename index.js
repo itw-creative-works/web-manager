@@ -30,6 +30,7 @@ var debug;
 
 // Shortcuts
 var select;
+var loadScript;
 
 
 /**
@@ -154,7 +155,7 @@ function Manager() {
   }
 
   select = this.dom().select;
-
+  loadScript = this.dom().loadScript;
 }
 
   /**
@@ -330,8 +331,9 @@ function Manager() {
       window.location.href = sendSplit[0] + '?' + newQuery.toString();
       return;
     }
-    This.dom().select('.auth-signedin-true-element').hide();
-    This.dom().select('.auth-signedin-false-element').show();
+
+    select('.auth-signedin-true-element').hide();
+    select('.auth-signedin-false-element').show();
   }
 
   Manager.prototype.ready = function(fn, options) {
@@ -1426,29 +1428,31 @@ function Manager() {
   }
 
   var load_chatsy = function(This, options) {
-    var dom = This.dom();
-
     return new Promise(function(resolve, reject) {
       if (options.libraries.chatsy.enabled === true) {
         var chatsyPath = 'libraries.chatsy.config';
 
-        dom.loadScript({
-          // src: 'https://embed.tawk.to/' + utilities.get(options, tawkPath + '.chatId', '') + '/' + (utilities.get(options, tawkPath + '.widgetId') || 'default'), 
+        loadScript({
           src: 'https://app.chatsy.ai/resources/script.js', 
-          // src: 'http://192.168.86.248:4001/resources/script.js', 
+          // src: 'http://localhost:4001/resources/script.js', 
           attributes: [
             {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
             {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
             {name: 'data-settings', value: JSON.stringify(utilities.get(options, chatsyPath + '.settings', ''))},
           ],
-          crossorigin: true,          
-        }, function(e) {
-          if (e) {
-            return reject(e);
-          }
+          crossorigin: true,
+        })
+        .then(function () {
+          // Listen for Chatsy status
+          chatsy.on('status', function(event, status) {
+            if (status === 'loaded') {
+              setTimeout(function () {
+                select('#prechat-btn').hide();
+              }, 1000);
 
-          chatsy.open();
-          select('#prechat-btn').hide();
+              chatsy.open();
+            }
+          })
 
           resolve();
         })
@@ -1461,9 +1465,6 @@ function Manager() {
 
   var load_sentry = function(This, options) {
     return new Promise(function(resolve, reject) {
-      // if (typeof window.Sentry !== 'undefined') {
-      //   return resolve();
-      // }
       if (options.libraries.sentry.enabled === true) {
         import('@sentry/browser')
         .then(function(mod) {
@@ -1527,11 +1528,11 @@ function Manager() {
     if (featuresDefault && featuresCustom) {
       cb();
     } else {
-      // This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default'}, function() {
-      This.dom().loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'}, function() {
-        // This.log('Loaded polyfill.io')
-        cb();
-      });
+      loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'})
+        .then(function() {
+          // This.log('Loaded polyfill.io')
+          cb();
+        })
     }
 
   }
