@@ -244,6 +244,7 @@ function Manager() {
       user.getIdToken(false)
         .then(function(token) {
           var done;
+
           fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
             method: 'POST',
             body: JSON.stringify({
@@ -252,7 +253,7 @@ function Manager() {
               payload: {
                 newsletterSignUp: select('.auth-newsletter-input').getValue(),
                 affiliateCode: This.storage().get('auth.affiliateCode', ''),
-              }
+              },
             }),
           })
           .catch(function () {})
