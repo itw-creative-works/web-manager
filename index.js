@@ -31,6 +31,7 @@ var debug;
 // Shortcuts
 var select;
 var loadScript;
+var store;
 
 
 /**
@@ -156,6 +157,7 @@ function Manager() {
 
   select = this.dom().select;
   loadScript = this.dom().loadScript;
+  store = this.storage();
 }
 
   /**
@@ -227,6 +229,7 @@ function Manager() {
     if (user) {
       if (!user.isAnonymous) {
         _authHandle_in(This, user);
+
         This.notifications().subscribe().catch(function (e) {
           console.error(e);
         });
@@ -240,10 +243,22 @@ function Manager() {
 
   function _authHandle_in(This, user) {
     // This.log('_authHandle_in', user);
-    if (This.properties.page.status.didSignUp) {
+    // if (This.properties.page.status.didSignUp) {
+    var didSignUp = 'auth.didSignUp';
+    var done;
+    var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.a)) / 36e5;
+
+    function _done() {
+      if (!done) {
+        done = true;
+        store.set(didSignUp, true)
+        _authHandle_in_normal(This, user);
+      }            
+    }
+
+    if (!store.get(didSignUp) && hoursSinceCreation < 0.5) {
       user.getIdToken(false)
         .then(function(token) {
-          var done;
 
           fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
             method: 'POST',
@@ -252,43 +267,24 @@ function Manager() {
               command: 'user:sign-up',
               payload: {
                 newsletterSignUp: select('.auth-newsletter-input').getValue(),
-                affiliateCode: This.storage().get('auth.affiliateCode', ''),
+                affiliateCode: store.get('auth.affiliateCode', ''),
               },
             }),
           })
           .catch(function () {})
-          .finally(function (response, status) {
-            if (!done) {
-              done = true;
-              _authHandle_in_normal(This, user);
-            }
-          });
+          .finally(_done);
 
           setTimeout(function () {
-            if (!done) {
-              done = true;
-              _authHandle_in_normal(This, user);
-            }
+            _done()
           }, 5000);
 
         })
         .catch(function(error) {
           console.error(error);
-          _authHandle_in_normal(This, user);
+          _done();
         });
-
-    // } else if (This.properties.page.status.didSignIn) {
-      // This.notifications().isSubscribed(function (status) {
-      //   if (status) {
-      //     This.notifications().subscribe()
-      //     .then(function () {
-      //
-      //     })
-      //   }
-      // })
-      // _authHandle_in_normal(This, user);
     } else {
-      _authHandle_in_normal(This, user);
+      _done();
     }
   }
 
@@ -641,7 +637,7 @@ function Manager() {
           var pagePathname = window.location.pathname;
           var qsAff = pageQueryString.get('aff');
           if (qsAff) {
-            This.storage().set('auth.affiliateCode', qsAff);
+            store.set('auth.affiliateCode', qsAff);
           }
           var qsRedirect = pageQueryString.get('redirect');
           if (qsRedirect && This.isValidRedirectUrl(qsRedirect)) {
@@ -994,7 +990,7 @@ function Manager() {
             setAuthButtonDisabled(mode, true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
-              This.properties.page.status.didSignUp = true;
+              // This.properties.page.status.didSignUp = true;
               // This.log('Good signup');
               // signupButtonDisabled(false);
             })
@@ -1081,7 +1077,7 @@ function Manager() {
           })
           .then(function (token) {
             var user = This.auth().getUser();
-            var localSubscription = This.storage().get('notifications', {});
+            var localSubscription = store.get('notifications', {});
             var localHash = localSubscription.token + '|' + localSubscription.uid;
             var userHash = token + '|' + user.uid;
             // console.log('user', user);
@@ -1101,7 +1097,7 @@ function Manager() {
               function saveLocal() {
                 // console.log('---------saveLocal');
                 // This.log('Saved local token: ', token);
-                This.storage().set('notifications', {uid: user.uid, token: token, lastSynced: timestamp});
+                store.set('notifications', {uid: user.uid, token: token, lastSynced: timestamp});
               }
 
               function saveServer(doc) {
