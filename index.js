@@ -490,20 +490,20 @@ function Manager() {
             //   saveToStorage: false
             // },
             pushNotifications: {
-              autoRequest: 60 // how long to wait before auto ask, 0 to disable
+              autoRequest: 60, // how long to wait before auto ask, 0 to disable
             },
             serviceWorker: {
-              path: ''
+              path: '',
             },
             initChecks: {
-              features: [] // an array of javascript and dom features to check for (NIY)
+              features: [], // an array of javascript and dom features to check for (NIY)
             },
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
-                required: (tempUrl + '/authentication/signup/'),
-                prohibited: (tempUrl + '/')
-              }
+                required: tempUrl + '/signup/',
+                prohibited: tempUrl + '/',
+              },
             },
             popup: {
               enabled: true,
@@ -512,9 +512,9 @@ function Manager() {
                 message: '',
                 btn_ok: {
                   text: '',
-                  link: ''
-                }
-              }
+                  link: '',
+                },
+              },
             },
             libraries: {
               firebase_app: {
@@ -527,8 +527,8 @@ function Manager() {
                   projectId: '',
                   storageBucket: '',
                   messagingSenderId: '',
-                  appId: ''
-                }
+                  appId: '',
+                },
               },
               firebase_firestore: {
                 enabled: true,
@@ -543,14 +543,14 @@ function Manager() {
                 load: false,
               },
               lazysizes: {
-                enabled: true
+                enabled: true,
               },
               sentry: {
                 enabled: true,
                 config: {
                   dsn: '',
-                  release: ''
-                }
+                  release: '',
+                },
               },
               chatsy: {
                 enabled: true,
@@ -561,9 +561,9 @@ function Manager() {
                     openChatButton: {
                       background: '#237afc',
                       text: '#ffffff',                      
-                    }
+                    },
                   },
-                }
+                },
               },
               cookieconsent: {
                 enabled: true,
@@ -571,12 +571,12 @@ function Manager() {
                   palette: {
                     popup: {
                       background: '#237afc',
-                      text: '#ffffff'
+                      text: '#ffffff',
                     },
                     button: {
                       background: '#fff',
-                      text: '#237afc'
-                    }
+                      text: '#237afc',
+                    },
                   },
                   theme: 'classic',
                   position: 'bottom-left',
@@ -588,10 +588,10 @@ function Manager() {
                     // link: 'Learn more',
                     // href: '' || This.properties.global.urlRoot + '/cookies/',
                     // href: (tempUrl + '/cookies/')
-                  }
-                }
-              }
-            }
+                  },
+                },
+              },
+            },
           };
 
           var options_user = {};
