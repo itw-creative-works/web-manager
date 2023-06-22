@@ -93,6 +93,11 @@ function Manager() {
       brand: {
         name: 'default'
       },
+      contact: {
+        emailSupport: '',
+        emailBusiness: '',
+      },      
+      validRedirectHosts: [],
       // preferences: {
       //   // firebase: {
       //   //   enabled: false
@@ -624,14 +629,10 @@ function Manager() {
           This.properties.global.url = configuration.global.url;
           This.properties.global.cacheBreaker = configuration.global.cacheBreaker;
           This.properties.global.brand.name = configuration.global.brand.name;
+          This.properties.global.contact.emailSupport = configuration.global.contact.emailSupport;
+          This.properties.global.contact.emailBusiness = configuration.global.contact.emailBusiness;
+          This.properties.global.validRedirectHosts = configuration.global.validRedirectHosts;
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
-
-          // This.properties.global.cacheBreaker = This.properties.meta.environment === 'development'
-          //   ? new Date().getTime()
-          //   : This.properties.global.cacheBreaker;
-          // This.log('Config: ', options_user);
-
-          // parse query stringify
           This.properties.page.queryString = new URLSearchParams(window.location.search);
           var pageQueryString = This.properties.page.queryString
           var pagePathname = window.location.pathname;
@@ -1643,10 +1644,14 @@ function Manager() {
   }
 
   Manager.prototype.isValidRedirectUrl = function (url) {
+    var self = this;
+
     var returnUrlObject = new URL(decodeURIComponent(url));
     var currentUrlObject = new URL(window.location.href);
+
     return returnUrlObject.host === currentUrlObject.host
       || returnUrlObject.protocol === this.properties.global.app + ':'
+      || self.properties.global.validRedirectHosts.includes(returnUrlObject.host)
   }
 
   // Manager.prototype.performance = function() {
