@@ -96,7 +96,20 @@ function Manager() {
       contact: {
         emailSupport: '',
         emailBusiness: '',
-      },      
+      },
+      download: {
+        windows: '',
+        mac: '',
+        linuxDebian: '',
+        linuxSnap: '',
+      },
+      extension: {
+        chrome: '',
+        firefox: '',
+        edge: '',
+        opera: '',
+        safari: '',
+      },
       validRedirectHosts: [],
       // preferences: {
       //   // firebase: {
@@ -628,9 +641,12 @@ function Manager() {
           This.properties.global.version = configuration.global.version;
           This.properties.global.url = configuration.global.url;
           This.properties.global.cacheBreaker = configuration.global.cacheBreaker;
-          This.properties.global.brand.name = configuration.global.brand.name;
-          This.properties.global.contact.emailSupport = configuration.global.contact.emailSupport;
-          This.properties.global.contact.emailBusiness = configuration.global.contact.emailBusiness;
+          
+          This.properties.global.brand = configuration.global.brand;
+          This.properties.global.contact = configuration.global.contact;
+          This.properties.global.download = configuration.global.download;
+          This.properties.global.extension = configuration.global.extension;
+
           This.properties.global.validRedirectHosts = configuration.global.validRedirectHosts;
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
           This.properties.page.queryString = new URLSearchParams(window.location.search);
