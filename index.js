@@ -1443,7 +1443,11 @@ function Manager() {
 
   var load_chatsy = function(This, options) {
     return new Promise(function(resolve, reject) {
-      if (options.libraries.chatsy.enabled === true) {
+
+      if (
+        options.libraries.chatsy.enabled === true
+        && !This.properties.page._chatsyRequested
+      ) {
         var chatsyPath = 'libraries.chatsy.config';
 
         loadScript({
@@ -1471,6 +1475,7 @@ function Manager() {
           resolve();
         })
 
+        This.properties.page._chatsyRequested = true;
       } else {
         resolve();
       }
