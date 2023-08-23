@@ -194,7 +194,7 @@ function Manager() {
 
     if (!utilities.get(this, 'properties.page.status.eventHandlersSet', false)) {
       this.properties.page.status.eventHandlersSet = true;
-      
+
       document.addEventListener('click', function (event) {
         // auth events
         if (event.target.matches('.auth-signin-email-btn')) {
@@ -214,15 +214,15 @@ function Manager() {
         } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
           This.notifications().subscribe()
         }
-      
+
         // Autorequest
         if (!This._notificationRequested && This.properties.options.pushNotifications.autoRequest) {
           This._notificationRequested = true;
-          
+
           setTimeout(function () {
             This.notifications().subscribe()
           }, This.properties.options.pushNotifications.autoRequest * 1000);
-        }        
+        }
 
       }, false);
     }
@@ -271,7 +271,7 @@ function Manager() {
         done = true;
         store.set(didSignUp, true)
         _authHandle_in_normal(This, user);
-      }            
+      }
     }
 
     if (!store.get(didSignUp) && hoursSinceCreation < 0.5) {
@@ -491,8 +491,8 @@ function Manager() {
       This.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = window.location.host.match(/:40|ngrok/) 
-        ? 'development' 
+      This.properties.meta.environment = window.location.host.match(/:40|ngrok/)
+        ? 'development'
         : 'production';
 
       // Load polyfills
@@ -578,7 +578,7 @@ function Manager() {
                   settings: {
                     openChatButton: {
                       background: '#237afc',
-                      text: '#ffffff',                      
+                      text: '#ffffff',
                     },
                   },
                 },
@@ -641,7 +641,7 @@ function Manager() {
           This.properties.global.version = configuration.global.version;
           This.properties.global.url = configuration.global.url;
           This.properties.global.cacheBreaker = configuration.global.cacheBreaker;
-          
+
           This.properties.global.brand = configuration.global.brand;
           This.properties.global.contact = configuration.global.contact;
           This.properties.global.download = configuration.global.download;
@@ -707,7 +707,7 @@ function Manager() {
             var chatsyOps = options_user.libraries.chatsy;
             if (chatsyOps.enabled) {
               var preChatBtn = select('#prechat-btn');
-              
+
               preChatBtn.css({
                 background: chatsyOps.config.settings.openChatButton.background,
               })
@@ -1451,8 +1451,8 @@ function Manager() {
         var chatsyPath = 'libraries.chatsy.config';
 
         loadScript({
-          src: 'https://app.chatsy.ai/resources/script.js', 
-          // src: 'http://localhost:4001/resources/script.js', 
+          src: 'https://app.chatsy.ai/resources/script.js',
+          // src: 'http://localhost:4001/resources/script.js',
           attributes: [
             {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
             {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
