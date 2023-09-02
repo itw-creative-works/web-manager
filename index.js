@@ -587,7 +587,7 @@ function Manager() {
                   settings: {
                     openChatButton: {
                       background: '#237afc',
-                      text: '#ffffff',
+                      text: '#fff',
                     },
                   },
                 },
@@ -598,7 +598,7 @@ function Manager() {
                   palette: {
                     popup: {
                       background: '#237afc',
-                      text: '#ffffff',
+                      text: '#fff',
                     },
                     button: {
                       background: '#fff',
@@ -716,16 +716,22 @@ function Manager() {
 
             var chatsyOps = options_user.libraries.chatsy;
             if (chatsyOps.enabled) {
-              var preChatBtn = select('#prechat-btn');
+              var $preChatBtn = select('#prechat-btn');
+              var $preChatBtnSvg = select('#prechat-btn svg path');
+              var settings = chatsyOps.config.settings
 
-              preChatBtn.css({
-                background: chatsyOps.config.settings.openChatButton.background,
+              $preChatBtn.css({
+                background: settings.background,
               })
               .show();
 
+              $preChatBtnSvg.each(function ($el) {
+                $el.setAttribute('fill', settings.text)
+              })
+
               window.chatsy = {};
               window.chatsy.open = function() {
-                preChatBtn.get(0).click();
+                $preChatBtn.get(0).click();
               }
             }
 
