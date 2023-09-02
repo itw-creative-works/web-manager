@@ -718,15 +718,15 @@ function Manager() {
             if (chatsyOps.enabled) {
               var $preChatBtn = select('#prechat-btn');
               var $preChatBtnSvg = select('#prechat-btn svg path');
-              var settings = chatsyOps.config.settings
+              var openChatButtonSettings = chatsyOps.config.settings.openChatButton;
 
               $preChatBtn.css({
-                background: settings.background,
+                background: openChatButtonSettings.background,
               })
               .show();
 
               $preChatBtnSvg.each(function ($el) {
-                $el.setAttribute('fill', settings.text)
+                $el.setAttribute('fill', openChatButtonSettings.text)
               })
 
               window.chatsy = {};
