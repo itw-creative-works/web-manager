@@ -285,7 +285,8 @@ function Manager() {
               command: 'user:sign-up',
               payload: {
                 newsletterSignUp: select('.auth-newsletter-input').getValue(),
-                affiliateCode: store.get('auth.affiliateCode', ''),
+                // affiliateCode: store.get('auth.affiliateCode', ''),
+                affiliateCode: store.get('affiliateCode', ''),
               },
             }),
           })
@@ -546,7 +547,12 @@ function Manager() {
                   storageBucket: '',
                   messagingSenderId: '',
                   appId: '',
+                  measurementId: '',
                 },
+              },
+              firebase_auth: {
+                enabled: true,
+                load: false,
               },
               firebase_firestore: {
                 enabled: true,
@@ -556,9 +562,12 @@ function Manager() {
                 enabled: true,
                 load: false,
               },
-              firebase_auth: {
+              firebase_appCheck: {
                 enabled: true,
                 load: false,
+                config: {
+                  siteKey: '',
+                },
               },
               lazysizes: {
                 enabled: true,
@@ -650,11 +659,13 @@ function Manager() {
           This.properties.global.validRedirectHosts = configuration.global.validRedirectHosts;
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
           This.properties.page.queryString = new URLSearchParams(window.location.search);
+
           var pageQueryString = This.properties.page.queryString
           var pagePathname = window.location.pathname;
           var qsAff = pageQueryString.get('aff');
           if (qsAff) {
-            store.set('auth.affiliateCode', qsAff);
+            // store.set('auth.affiliateCode', qsAff);
+            store.set('affiliateCode', qsAff);
           }
           var qsRedirect = pageQueryString.get('redirect');
           if (qsRedirect && This.isValidRedirectUrl(qsRedirect)) {
@@ -668,7 +679,6 @@ function Manager() {
               mod.default()
             })
           }
-
 
           // load critical libraries
           function postCrucial() {
@@ -1303,6 +1313,7 @@ function Manager() {
             load_firebase_auth(This, options),
             load_firebase_firestore(This, options),
             load_firebase_messaging(This, options),
+            load_firebase_appCheck(This, options),
           ])
           .then(resolve)
           .catch(reject);
@@ -1312,7 +1323,8 @@ function Manager() {
           .then(_post)
           .catch(reject);
         } else {
-          import('firebase/app')
+          // import('firebase/app')
+          import('firebase/compat/app')
           .then(function(mod) {
             window.firebase = mod.default;
             _post()
@@ -1338,7 +1350,8 @@ function Manager() {
           .then(resolve)
           .catch(reject);
         } else {
-          import('firebase/auth')
+          // import('firebase/auth')
+          import('firebase/compat/auth')
           .then(resolve)
           .catch(reject);
         }
@@ -1362,7 +1375,8 @@ function Manager() {
           .then(resolve)
           .catch(reject);
         } else {
-          import('firebase/firestore')
+          // import('firebase/firestore')
+          import('firebase/compat/firestore')
           .then(resolve)
           .catch(reject);
         }
@@ -1384,7 +1398,8 @@ function Manager() {
           .then(resolve)
           .catch(reject);
         } else {
-          import('firebase/messaging')
+          // import('firebase/messaging')
+          import('firebase/compat/messaging')
           .then(resolve)
           .catch(reject);
         }
@@ -1394,6 +1409,39 @@ function Manager() {
     });
   }
 
+  var load_firebase_appCheck = function(This, options) {
+    return new Promise(function(resolve, reject) {
+      var setting = options.libraries.firebase_appCheck;
+      if (setting.enabled === true) {
+        if (setting.load) {
+          setting.load(This)
+          .then(resolve)
+          .catch(reject);
+        } else {
+          // import('firebase/app-check')
+          import('firebase/compat/app-check')
+          .then(function (mod) {
+            var appCheck = firebase.appCheck;
+            var siteKey = setting.config.siteKey;
+
+            if (!siteKey) {
+              return resolve();
+            }
+
+            appCheck().activate(
+              new appCheck.ReCaptchaEnterpriseProvider(siteKey),
+              true,
+            );
+
+            resolve();
+          })
+          .catch(reject);
+        }
+      } else {
+        resolve();
+      }
+    });
+  }
 
   var load_lazysizes = function(This, options) {
     return new Promise(function(resolve, reject) {
