@@ -660,20 +660,30 @@ function Manager() {
           This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
           This.properties.page.queryString = new URLSearchParams(window.location.search);
 
-          var pageQueryString = This.properties.page.queryString
           var pagePathname = window.location.pathname;
-          var qsAff = pageQueryString.get('aff');
-          if (qsAff) {
-            // store.set('auth.affiliateCode', qsAff);
-            store.set('affiliateCode', qsAff);
+          var redirect = false;
+
+          This.properties.page.queryString.forEach(function(value, key) {
+            if (key.startsWith('utm_')) {
+              store.set('utm.tags.' + key, value);
+              store.set('utm.timestamp', new Date().toISOString());
+            }
+
+            if (key === 'aff') {
+              store.set('affiliateCode', value);
+            }
+
+            if (key === 'redirect') {
+              // redirect = decodeURIComponent(value) // 9/22/23 - Removed this and replace without the decode
+              redirect = value;
+            }
+          })
+
+          if (redirect && This.isValidRedirectUrl(redirect)) {
+            return window.location.href = redirect;
           }
-          var qsRedirect = pageQueryString.get('redirect');
-          if (qsRedirect && This.isValidRedirectUrl(qsRedirect)) {
-            window.location.href = decodeURIComponent(qsRedirect);
-            return;
-          }
-          var authRegex = /\/(signin|signup|forgot)\//;
-          if (pagePathname.match(authRegex)) {
+
+          if (pagePathname.match(/\/(signin|signup|forgot)\//)) {
             import('./helpers/auth-pages.js')
             .then(function(mod) {
               mod.default()
