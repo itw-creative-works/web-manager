@@ -264,7 +264,7 @@ function Manager() {
     // if (This.properties.page.status.didSignUp) {
     var didSignUp = 'auth.didSignUp';
     var done;
-    var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.a)) / 36e5;
+    var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.createdAt)) / 36e5;
 
     function _done() {
       if (!done) {
