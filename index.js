@@ -694,7 +694,7 @@ function Manager() {
             // console.log('HERE 5');
 
             // handle firebase user
-            if (firebase.auth) {
+            if (typeof firebase !== 'undefined' && firebase.auth) {
               firebase.auth().onAuthStateChanged(function(user) {
                 This.properties.page.status.authReady = true;
                 This.properties.auth.user = user || false;
