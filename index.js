@@ -262,19 +262,18 @@ function Manager() {
   function _authHandle_in(This, user) {
     // This.log('_authHandle_in', user);
     // if (This.properties.page.status.didSignUp) {
-    var didSignUp = 'auth.didSignUp';
     var done;
     var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.createdAt)) / 36e5;
 
     function _done() {
       if (!done) {
         done = true;
-        store.set(didSignUp, true)
+        store.set('didSignUp', true)
         _authHandle_in_normal(This, user);
       }
     }
 
-    if (!store.get(didSignUp) && hoursSinceCreation < 0.5) {
+    if (!store.get('didSignUp') && hoursSinceCreation < 0.5) {
       user.getIdToken(false)
         .then(function(token) {
 
