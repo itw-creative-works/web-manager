@@ -71,9 +71,6 @@ function Manager() {
         ready: false,
         initilizing: false,
         authReady: false,
-        masterSWRegistered: false,
-
-        eventHandlersSet: false
       },
       // initReady: false,
       // initSecondaryReady: false,
@@ -111,22 +108,6 @@ function Manager() {
         safari: '',
       },
       validRedirectHosts: [],
-      // preferences: {
-      //   // firebase: {
-      //   //   enabled: false
-      //   // },
-      //   // pushNotifications: {
-      //   //   enabled: false
-      //   // },
-      //   // load: {
-      //   //   variables: '',
-      //   //   functionsFirebase: '',
-      //   // },
-      //   // auth: {
-      //   //   prohibitedReturnURL: '',
-      //   //   requiredReturnURL: '',
-      //   // },
-      // },
     },
     auth: {
       user: false
@@ -134,40 +115,12 @@ function Manager() {
     references: {
       serviceWorker: undefined
     },
-    // firebase: {
-    //   user: {
-    //     exists: false,
-    //     authStateChangeRan: false,
-    //     authObject: {}
-    //   },
-    //   config: {
-    //     apiKey: '',
-    //     authDomain: '',
-    //     databaseURL: '',
-    //     projectId: '',
-    //     storageBucket: '',
-    //     messagingSenderId: '',
-    //   },
-    //   functions: {
-    //     auth: undefined,
-    //     messaging: undefined,
-    //     database: undefined,
-    //     firestore: undefined,
-    //   },
-    // },
     meta: {
       environment: 'production'
     }
   };
 
   try {
-    // set(this, 'properties.options.page', pageOptions);
-    // set(this, 'properties.options.global', globalOptions);
-    // set(this, 'properties.global.domain', document.location.hostname);
-    // set(this, 'properties.page.url', document.location.href);
-    // this.properties.options.page = pageOptions || {};
-    // this.properties.options.global = globalOptions || {};]
-    // this.properties.global.urlRoot = window.location.protocol + '//' + window.location.hostname;
     this.properties.page.url = window.location.href;
   } catch (e) {
 
@@ -192,55 +145,48 @@ function Manager() {
   Manager.prototype.setEventListeners = function() {
     var This = this;
 
-    if (!utilities.get(this, 'properties.page.status.eventHandlersSet', false)) {
-      this.properties.page.status.eventHandlersSet = true;
+    // Setup click handler
+    document.addEventListener('click', function (event) {
+      // auth events
+      if (event.target.matches('.auth-signin-email-btn')) {
+        This.auth().signIn('email');
+      } else if (event.target.matches('.auth-signup-email-btn')) {
+        This.auth().signUp('email');
+      } else if (event.target.matches('.auth-signin-provider-btn')) {
+        This.auth().signIn(event.target.getAttribute('data-provider'));
+      } else if (event.target.matches('.auth-signup-provider-btn')) {
+        This.auth().signUp(event.target.getAttribute('data-provider'));
+      } else if (event.target.matches('.auth-signout-all-btn')) {
+        This.auth().signOut();
+      } else if (event.target.matches('.auth-forgot-email-btn')) {
+        This.auth().forgot();
+      } else if (event.target.matches('#prechat-btn')) {
+        load_chatsy(This, This.properties.options);
+      } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
+        This.notifications().subscribe()
+      }
 
-      document.addEventListener('click', function (event) {
-        // auth events
-        if (event.target.matches('.auth-signin-email-btn')) {
-          This.auth().signIn('email');
-        } else if (event.target.matches('.auth-signup-email-btn')) {
-          This.auth().signUp('email');
-        } else if (event.target.matches('.auth-signin-provider-btn')) {
-          This.auth().signIn(event.target.getAttribute('data-provider'));
-        } else if (event.target.matches('.auth-signup-provider-btn')) {
-          This.auth().signUp(event.target.getAttribute('data-provider'));
-        } else if (event.target.matches('.auth-signout-all-btn')) {
-          This.auth().signOut();
-        } else if (event.target.matches('.auth-forgot-email-btn')) {
-          This.auth().forgot();
-        } else if (event.target.matches('#prechat-btn')) {
-          load_chatsy(This, This.properties.options);
-        } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
+      // Autorequest
+      if (!This._notificationRequested && This.properties.options.pushNotifications.autoRequest) {
+        This._notificationRequested = true;
+
+        setTimeout(function () {
           This.notifications().subscribe()
-        }
+        }, This.properties.options.pushNotifications.autoRequest * 1000);
+      }
 
-        // Autorequest
-        if (!This._notificationRequested && This.properties.options.pushNotifications.autoRequest) {
-          This._notificationRequested = true;
+    });
 
-          setTimeout(function () {
-            This.notifications().subscribe()
-          }, This.properties.options.pushNotifications.autoRequest * 1000);
-        }
+    // Mouse leave event
+    document.addEventListener('mouseleave', function() {
+      showExitPopup(This);
+    });
 
-      }, false);
-    }
+    // Window blur event
+    window.addEventListener('blur', function() {
+      showExitPopup(This);
+    });
   }
-
-  // Requires firebase auth to be determined
-  // function _setupTokenRefreshHandler(This) {
-  //   // console.log('_setupTokenRefreshHandler', This.properties.page.status.authReady);
-  //   if (This.properties.page.status.authReady) {
-  //     return firebase.messaging().onTokenRefresh(
-  //       handleTokenRefresh(This)
-  //       .catch(function (e) {
-  //         console.error(e);
-  //       })
-  //     );
-  //   }
-  //   setTimeout(function () {_setupTokenRefreshHandler(This)}, 300);
-  // }
 
   function _authStateHandler(This, user) {
     // This.log('----authStateHandler', user);
@@ -337,9 +283,7 @@ function Manager() {
   }
 
   function _authHandle_out(This) {
-    // This.log('_authHandle_out: ', This.properties.options.auth.state);
     if (This.properties.options.auth.state === 'required') {
-      // window.location.href = This.query().create(This.properties.options.auth.sends.required).set('auth_redirect', encodeURIComponent(window.location.href)).getUrl();
       var sendSplit = This.properties.options.auth.sends.required.split('?');
       var newQuery = new URLSearchParams(sendSplit[1]);
       newQuery.set('auth_redirect', window.location.href);
@@ -415,69 +359,7 @@ function Manager() {
         // }
       }
     }
-
   }
-
-  // navigator.serviceWorker.ready.then(function(serviceWorkerRegistration) {
-  //   // Let's see if you have a subscription already
-  //   console.log('&&& GET SUB');
-  //   return serviceWorkerRegistration.pushManager.getSubscription();
-  // })
-  // .then(function(subscription) {
-  //   if (!subscription) {
-  //     // You do not have subscription
-  //     console.log('&&& NO SUBSCRIPTION');
-  //   } else {
-  //     console.log('&&& YES SUBSCRIPTION');
-  //
-  //   }
-  //
-  //   // You have subscription.
-  //   // Send data to service worker
-  //   // navigator.serviceWorker.controller.postMessage({'data': dataToServiceWorker});
-  //
-  // })
-
-  // navigator.serviceWorker.ready.then(() => {
-  //   // I thought the page would be controlled at this point, thanks to clients.claim()
-  //   console.log('.ready resolved, and navigator.serviceWorker.controller is', navigator.serviceWorker.controller);
-  //   navigator.serviceWorker.addEventListener('controllerchange', () => {
-  //     console.log('Okay, now things are under control. navigator.serviceWorker.controller is', navigator.serviceWorker.controller);
-  //   });
-  // });
-
-  // Manager.prototype.init = async function() {
-  // Manager.prototype.init = function() {
-  //   if ((get(this, 'properties.page.status.ready', false) == false) && ((get(this, 'properties.page.status.initializing', false) == false))) {
-  //     set(this, 'properties.page.status.initializing', true);
-  //     console.log('INIT Called');
-  //     // await wait(300,100);
-  //     console.log('INIT finished waiting');
-  //     // this.testFunction();
-  //
-  //     // setup
-  //     this.setEventListeners();
-  //
-  //     // make sure firebase etc is loaded and elements on page are updated to reflect user's auth status
-  //     // also update properties so that it reflects whether the user is logged inspect
-  //
-  //     // check that navigator exists
-  //
-  //     //check local storage exists
-  //
-  //     // parse query string
-  //
-  //     // add cookie thing with settings
-  //     // _ready = true;
-  //     set(this, 'properties.page.status.initializing', false);
-  //     set(this, 'properties.page.status.ready', true);
-  //
-  //   }
-  //
-  //   return new Promise((resolve, reject) => {
-  //     resolve(true);
-  //   });
-  // }
 
   // init with polyfills
   Manager.prototype.init = function(configuration, callback) {
@@ -499,7 +381,6 @@ function Manager() {
       init_loadPolyfills(This, configuration, function() {
           This.properties.page.status.initializing = false;
           // This.properties.genericPromise = new Promise(resolve => { resolve() });
-          var tempUrl = This.properties.global.url;
           var options_defaults = {
             // debug: {
             //   environment: This.properties.meta.environment,
@@ -519,18 +400,20 @@ function Manager() {
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
-                required: tempUrl + '/signup/',
-                prohibited: tempUrl + '/',
+                required: '/signup/',
+                prohibited: '/',
               },
             },
-            popup: {
+            exitPopup: {
               enabled: true,
               config: {
-                title: '',
-                message: '',
-                btn_ok: {
-                  text: '',
-                  link: '',
+                timeout: 3600000,
+                handler: null,
+                title: 'Special Offer!',
+                message: 'Get 15% off your purchase of our <strong>Premium plans</strong>. <br><br> Get access to all features and unlimited usage.',
+                okButton: {
+                  text: 'Claim 15% Discount',
+                  link: '/pricing?utm_source=exitpopup&utm_medium=popup&utm_campaign=exitpopup',
                 },
               },
             },
@@ -609,11 +492,9 @@ function Manager() {
                   type: '',
                   showLink: false,
                   content: {
-                    message: 'We use cookies to ensure you get the best experience on our website. By continuing to use the site, you agree to our<a href="' + tempUrl + '/terms/" class="cc-link" style="padding-right: 0">terms of service</a>.',
-                    dismiss: 'Got it!',
-                    // link: 'Learn more',
-                    // href: '' || This.properties.global.urlRoot + '/cookies/',
-                    // href: (tempUrl + '/cookies/')
+                    message: 'We use cookies to ensure you get the best experience on our website. By continuing to use the site, you agree to our<a href="/terms/" class="cc-link" style="padding-right: 0">terms of service</a>.',
+                    // dismiss: 'Got it!',
+                    dismiss: 'I understand',
                   },
                 },
               },
@@ -753,7 +634,6 @@ function Manager() {
             return;
           }
 
-          // console.log('HERE 0');
           Promise.all([
             load_sentry(This, options_user),
             load_firebase(This, options_user),
@@ -762,46 +642,8 @@ function Manager() {
             postCrucial();
           })
           .catch(function (e) {
-            //@@@ LOG TO SENTRY HERE?
             console.error('Lib error', e);
-            // postCrucial();
           })
-          // console.log('HERE 0');
-          // Promise.all([
-          //   load_sentry(This, options_user),
-          //   load_firebase(This, options_user),
-          // ])
-          // .then(function() {
-          //   console.log('HERE 5');
-          //
-          //   // handle firebase user
-          //   if (firebase.auth) {
-          //     firebase.auth().onAuthStateChanged(function(user) {
-          //       This.properties.page.status.authReady = true;
-          //       This.properties.auth.user = user || false;
-          //       _authStateHandler(This, user);
-          //     })
-          //   }
-          //
-          //   // setup
-          //   This.setEventListeners();
-          //
-          //   // run the init callback
-          //   This.properties.page.status.ready = true;
-          //   callback();
-          //
-          //   // loan non-critical libraries
-          //   load_lazysizes(This, options_user);
-          //   load_cookieconsent(This, options_user);
-          //   subscriptionManager(This, options_user);
-          //
-          //   This.log('Manager ', This);
-          //   return;
-          // })
-          // .catch(function (e) {
-          //   console.log('E', e);
-          // })
-
       })
 
     } else {
@@ -809,38 +651,6 @@ function Manager() {
     }
 
   }
-
-  // Manager.prototype.subscribeToPushNotifications = function(options) {
-  //   if ((typeof firebase.messaging !== 'undefined')) {
-  //     return firebase.messaging().requestPermission()
-  //       .then(() => checkSubscription())
-  //       .catch((err) => {
-  //         console.error(err);
-  //       });
-  //   }
-  // }
-  // Sentry.configureScope(scope => {
-  //   scope.setExtra('battery', 0.7);
-  //   scope.setTag('user_mode', 'admin');
-  //   scope.setUser({ id: '4711' });
-  //   // scope.clear();
-  // });
-  //
-  // // Add a breadcrumb for future events
-  // Sentry.addBreadcrumb({
-  //   message: 'My Breadcrumb',
-  //   // ...
-  // });
-  //
-  // // Capture exceptions, messages or manual events
-  // Sentry.captureMessage('Hello, world!');
-  // Sentry.captureException(new Error('Good bye'));
-  // Sentry.captureEvent({
-  //   message: 'Manual',
-  //   stacktrace: [
-  //     // ...
-  //   ],
-  // });
 
   Manager.prototype.sentry = function() {
     // var en = (Sentry && Sentry)
@@ -864,12 +674,6 @@ function Manager() {
     };
   }
 
-  // function _postAuthSubscriptionCheck() {
-  //   return new Promise(function(resolve, reject) {
-  //
-  //   });
-  // }
-
   Manager.prototype.auth = function() {
     var This = this;
     var firebaseActive = typeof firebase !== 'undefined';
@@ -882,28 +686,6 @@ function Manager() {
     function _preDisplayError() {
       select(erel).hide().setInnerHTML('');
     }
-
-    // function signinButtonDisabled(status) {
-    //   if (status) {
-    //     select('.auth-signin-email-btn').setAttribute('disabled', true);
-    //   } else {
-    //     select('.auth-signin-email-btn').removeAttribute('disabled');
-    //   }
-    // }
-    // function signupButtonDisabled(status) {
-    //   if (status) {
-    //     select('.auth-signup-email-btn').setAttribute('disabled', true);
-    //   } else {
-    //     select('.auth-signup-email-btn').removeAttribute('disabled');
-    //   }
-    // }
-    // function forgotButtonDisabled(status) {
-    //   if (status) {
-    //     select('.auth-forgot-email-btn').setAttribute('disabled', true);
-    //   } else {
-    //     select('.auth-forgot-email-btn').removeAttribute('disabled');
-    //   }
-    // }
 
     function setAuthButtonDisabled(button, status) {
       var el = select('.auth-' + button + '-email-btn');
@@ -1211,21 +993,6 @@ function Manager() {
     }
   }
 
-  // function handleTokenRefresh(This) {
-  //   This.log('handleTokenRefresh()');
-  //   return new Promise(function(resolve, reject) {
-  //     var notifications = This.notifications();
-  //     notifications.isSubscribed()
-  //     .then(function (result) {
-  //       if (result) {
-  //         return resolve(This.notifications().subscribe());
-  //       } else {
-  //         return resolve();
-  //       }
-  //     })
-  //   });
-  // }
-
   /*
   HELPERS
   */
@@ -1233,13 +1000,21 @@ function Manager() {
     if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
 
     // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
-    navigator.serviceWorker.register('/' + (options_user.serviceWorker.path || 'master-service-worker.js') + '?config=' + encodeURIComponent(JSON.stringify({name: This.properties.global.brand.name, app: This.properties.global.app, env: This.properties.meta.environment, v: This.properties.global.version, cb: This.properties.global.cacheBreaker, firebase: options_user.libraries.firebase_app.config})) )
+    navigator.serviceWorker.register(
+      '/' + (options_user.serviceWorker.path || 'master-service-worker.js')
+      + '?config=' + encodeURIComponent(JSON.stringify({
+        name: This.properties.global.brand.name,
+        app: This.properties.global.app,
+        env: This.properties.meta.environment,
+        v: This.properties.global.version,
+        cb: This.properties.global.cacheBreaker,
+        firebase: options_user.libraries.firebase_app.config
+      }))
+    )
     .then(function (registration) {
       // firebase.messaging().useServiceWorker(registration);
-      // console.log('----TEST registration', registration);
       This.properties.references.serviceWorker = registration;
-      // console.log('====registration', registration);
-      // console.log('navigator.serviceWorker.controller', navigator.serviceWorker.controller);
+
       // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
       // --- leverage this example ^^^ for caching! It's grat and you can do one page at a time through postMessage!
 
@@ -1273,10 +1048,6 @@ function Manager() {
       // }
       // listenForWaitingServiceWorker(registration, promptUserToRefresh);
 
-      // registration.update();
-      This.properties.page.status.masterSWRegistered = true;
-
-
       // This.log('SW Registered.');
       //@@@NOTIFICATIONS
       // _setupTokenRefreshHandler(This);
@@ -1284,14 +1055,12 @@ function Manager() {
       try {
         // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
         firebase.messaging().onMessage(function (payload) {
-          // console.log('---payload', payload);
           new Notification(payload.notification.title, payload.notification)
           .onclick = function(event) {
             event.preventDefault(); // prevent the browser from focusing the Notification's tab
             window.open(payload.notification.click_action, '_blank');
           }
         })
-        // console.log('---SKIPPING ONMESSAGE');
       } catch (e) {
         console.error(e);
       }
@@ -1307,7 +1076,44 @@ function Manager() {
     // });
   }
 
+  function showExitPopup(This) {
+    var exitPopupSettings = This.properties.options.exitPopup;
 
+    if (!exitPopupSettings.enabled) return;
+
+    var lastTriggered = new Date(storage.get('exitPopup.lastTriggered', 0));
+    var now = new Date();
+    var diff = now - lastTriggered;
+
+    if (diff < exitPopupSettings.config.timeout) return;
+
+    showBootstrapModal(exitPopupSettings);
+
+    storage.set('exitPopup.lastTriggered', now.toISOString());
+  }
+
+  function showBootstrapModal(exitPopupSettings) {
+    var proceed = exitPopupSettings.config.handler
+      ? exitPopupSettings.config.handler()
+      : true;
+
+    if (!proceed) { return }
+
+    var $el = document.getElementById('modal-exit-popup');
+    var modal = new bootstrap.Modal($el);
+    modal.show();
+
+    var $title = $el.querySelector('.modal-title');
+    var $message = $el.querySelector('.modal-body');
+    var $okButton = $el.querySelector('.modal-footer .btn-primary');
+    var config = exitPopupSettings.config;
+
+    $title.innerHTML = config.title;
+    $message.innerHTML = config.message;
+    $okButton.innerHTML = config.okButton.text;
+    $okButton.setAttribute('href', config.okButton.link);
+
+  }
 
   /*
   EXTERNAL LIBS
@@ -1589,17 +1395,6 @@ function Manager() {
     }
   }
 
-  // Manager.prototype.time = function(mode, name) {
-  //   console.log('&&& called time ', mode, name);
-  //   if (this.properties.meta.environment == 'development') {
-  //     if (mode == 'start') {
-  //       console.time(name);
-  //     } else {
-  //       console.timeEnd(name);
-  //     }
-  //   }
-  // }
-
   function init_loadPolyfills(This, configuration, cb) {
     // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
     var featuresDefault = (
@@ -1612,7 +1407,6 @@ function Manager() {
     } else {
       loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'})
         .then(function() {
-          // This.log('Loaded polyfill.io')
           cb();
         })
     }
