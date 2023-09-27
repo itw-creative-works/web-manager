@@ -1103,19 +1103,23 @@ function Manager() {
     if (!proceed) { return }
 
     var $el = document.getElementById('modal-exit-popup');
-    var modal = new bootstrap.Modal($el);
-    modal.show();
-    $el.removeAttribute('hidden');
+    try {
+      var modal = new bootstrap.Modal($el);
+      modal.show();
+      $el.removeAttribute('hidden');
 
-    var $title = $el.querySelector('.modal-title');
-    var $message = $el.querySelector('.modal-body');
-    var $okButton = $el.querySelector('.modal-footer .btn-primary');
-    var config = exitPopupSettings.config;
+      var $title = $el.querySelector('.modal-title');
+      var $message = $el.querySelector('.modal-body');
+      var $okButton = $el.querySelector('.modal-footer .btn-primary');
+      var config = exitPopupSettings.config;
 
-    $title.innerHTML = config.title;
-    $message.innerHTML = config.message;
-    $okButton.innerHTML = config.okButton.text;
-    $okButton.setAttribute('href', config.okButton.link);
+      $title.innerHTML = config.title;
+      $message.innerHTML = config.message;
+      $okButton.innerHTML = config.okButton.text;
+      $okButton.setAttribute('href', config.okButton.link);
+    } catch (e) {
+      console.warn(e);
+    }
   }
 
   /*
@@ -1394,7 +1398,7 @@ function Manager() {
             event.user.uid = storage.get('user.auth.uid', '');
             // event.user.ip = storage.get('user.ip', '');
 
-            console.log('[SENTRY] Caught error', event, hint);
+            console.error('[SENTRY] Caught error', event, hint);
 
             if (self.isDevelopment()) {
               return null;
