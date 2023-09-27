@@ -43,23 +43,13 @@ function ieVersion() {
 }
 
 function Manager() {
+  var self = this;
+  var iev = ieVersion();
+
   /**
   * OPTIONS
   */
-  // Should this be changed?
-  // var parseDELETE = function (req) {
-  //   var result;
-  //   try {
-  //     result = JSON.parse(req.responseText);
-  //   } catch (e) {
-  //     result = req.responseText;
-  //   }
-  //   return [result, req];
-  // };
-
-  // var t1 = '16'; //@@@ Delete later
-  iev = ieVersion();
-  this.properties = {
+  self.properties = {
     options: {
       page: {},
       global: {},
@@ -76,8 +66,8 @@ function Manager() {
       // initSecondaryReady: false,
       queryString: {},
       // libErrors: [],
-      isSupportedBrowser: (!iev || iev >= 11) // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
-
+      isSupportedBrowser: (!iev || iev >= 11), // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
+      startTime: new Date(),
       // auth: {
       //   status: undefined,
       //   lastAction: 'unknown',
@@ -121,93 +111,97 @@ function Manager() {
   };
 
   try {
-    this.properties.page.url = window.location.href;
+    self.properties.page.url = window.location.href;
   } catch (e) {
 
   }
 
-  select = this.dom().select;
-  loadScript = this.dom().loadScript;
-  store = this.storage();
+  select = self.dom().select;
+  loadScript = self.dom().loadScript;
+  store = self.storage();
 }
 
   /**
   * METHODS
   */
   Manager.prototype.get = function(path) {
-    return utilities.get(this, 'properties.' + path);
+    var self = this;
+
+    return utilities.get(self, 'properties.' + path);
   }
 
   Manager.prototype.set = function(path, value) {
-   return utilities.set(this, 'properties.' + path, value);
+    var self = this;
+
+   return utilities.set(self, 'properties.' + path, value);
   }
 
   Manager.prototype.setEventListeners = function() {
-    var This = this;
+    var self = this;
 
     // Setup click handler
     document.addEventListener('click', function (event) {
       // auth events
       if (event.target.matches('.auth-signin-email-btn')) {
-        This.auth().signIn('email');
+        self.auth().signIn('email');
       } else if (event.target.matches('.auth-signup-email-btn')) {
-        This.auth().signUp('email');
+        self.auth().signUp('email');
       } else if (event.target.matches('.auth-signin-provider-btn')) {
-        This.auth().signIn(event.target.getAttribute('data-provider'));
+        self.auth().signIn(event.target.getAttribute('data-provider'));
       } else if (event.target.matches('.auth-signup-provider-btn')) {
-        This.auth().signUp(event.target.getAttribute('data-provider'));
+        self.auth().signUp(event.target.getAttribute('data-provider'));
       } else if (event.target.matches('.auth-signout-all-btn')) {
-        This.auth().signOut();
+        self.auth().signOut();
       } else if (event.target.matches('.auth-forgot-email-btn')) {
-        This.auth().forgot();
+        self.auth().forgot();
       } else if (event.target.matches('#prechat-btn')) {
-        load_chatsy(This, This.properties.options);
+        load_chatsy(self, self.properties.options);
       } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
-        This.notifications().subscribe()
+        self.notifications().subscribe()
       }
 
       // Autorequest
-      if (!This._notificationRequested && This.properties.options.pushNotifications.autoRequest) {
-        This._notificationRequested = true;
+      if (!self._notificationRequested && self.properties.options.pushNotifications.autoRequest) {
+        self._notificationRequested = true;
 
         setTimeout(function () {
-          This.notifications().subscribe()
-        }, This.properties.options.pushNotifications.autoRequest * 1000);
+          self.notifications().subscribe()
+        }, self.properties.options.pushNotifications.autoRequest * 1000);
       }
 
     });
 
     // Mouse leave event
     document.addEventListener('mouseleave', function() {
-      showExitPopup(This);
+      showExitPopup(self);
     });
 
     // Window blur event
     window.addEventListener('blur', function() {
-      showExitPopup(This);
+      showExitPopup(self);
     });
   }
 
-  function _authStateHandler(This, user) {
-    // This.log('----authStateHandler', user);
+  function _authStateHandler(self, user) {
+    // self.log('----authStateHandler', user);
     if (user) {
       if (!user.isAnonymous) {
-        _authHandle_in(This, user);
+        _authHandle_in(self, user);
 
-        This.notifications().subscribe().catch(function (e) {
+        self.notifications().subscribe().catch(function (e) {
           console.error(e);
         });
       } else {
-        _authHandle_out(This);
+        _authHandle_out(self);
       }
     } else {
-      _authHandle_out(This);
+      _authHandle_out(self);
     }
   }
 
-  function _authHandle_in(This, user) {
-    // This.log('_authHandle_in', user);
-    // if (This.properties.page.status.didSignUp) {
+  function _authHandle_in(self, user) {
+    // self.log('_authHandle_in', user);
+    // if (self.properties.page.status.didSignUp) {
     var done;
     var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.createdAt)) / 36e5;
 
@@ -215,7 +209,7 @@ function Manager() {
       if (!done) {
         done = true;
         store.set('didSignUp', true)
-        _authHandle_in_normal(This, user);
+        _authHandle_in_normal(self, user);
       }
     }
 
@@ -223,7 +217,7 @@ function Manager() {
       user.getIdToken(false)
         .then(function(token) {
 
-          fetch('https://us-central1-' + This.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
+          fetch('https://us-central1-' + self.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
             method: 'POST',
             body: JSON.stringify({
               authenticationToken: token,
@@ -254,14 +248,14 @@ function Manager() {
 
 
 
-  function _authHandle_in_normal(This, user) {
-    var returnUrl = This.properties.page.queryString.get('auth_redirect');
-    if (returnUrl && This.isValidRedirectUrl(returnUrl)) {
+  function _authHandle_in_normal(self, user) {
+    var returnUrl = self.properties.page.queryString.get('auth_redirect');
+    if (returnUrl && self.isValidRedirectUrl(returnUrl)) {
       window.location.href = decodeURIComponent(returnUrl);
       return;
     }
-    if (This.properties.options.auth.state === 'prohibited') {
-      window.location.href = This.properties.options.auth.sends.prohibited;
+    if (self.properties.options.auth.state === 'prohibited') {
+      window.location.href = self.properties.options.auth.sends.prohibited;
       return;
     }
     select('.auth-signedin-true-element').show();
@@ -282,9 +276,9 @@ function Manager() {
     });
   }
 
-  function _authHandle_out(This) {
-    if (This.properties.options.auth.state === 'required') {
-      var sendSplit = This.properties.options.auth.sends.required.split('?');
+  function _authHandle_out(self) {
+    if (self.properties.options.auth.state === 'required') {
+      var sendSplit = self.properties.options.auth.sends.required.split('?');
       var newQuery = new URLSearchParams(sendSplit[1]);
       newQuery.set('auth_redirect', window.location.href);
       window.location.href = sendSplit[0] + '?' + newQuery.toString();
@@ -296,8 +290,9 @@ function Manager() {
   }
 
   Manager.prototype.ready = function(fn, options) {
-    var This = this;
+    var self = this;
     var waitFor = true;
+
     options = options || {};
     options.interval = options.interval || 100;
 
@@ -305,24 +300,26 @@ function Manager() {
 
     if (!utilities.get(this, 'properties.page.status.ready', false) || !waitFor) {
       setTimeout(function () {
-        This.ready(fn, options);
+        self.ready(fn, options);
       }, options.interval);
     } else {
       // Performance
-      This.performance().mark('manager_ready');
+      self.performance().mark('manager_ready');
 
       return fn();
     }
   }
 
   Manager.prototype.serviceWorker = function() {
-    var This = this;
+    var self = this;
     var SWAvailable = 'serviceWorker' in navigator;
+
     if (SWAvailable) {
       try {
-        var swref = This.properties.references.serviceWorker.active || navigator.serviceWorker.controller;
+        var swref = self.properties.references.serviceWorker.active || navigator.serviceWorker.controller;
       } catch (e) {}
     }
+
     return {
       postMessage: function() {
         // var args = getArgs(arguments);
@@ -343,9 +340,9 @@ function Manager() {
         }
 
         // if (!navigator.serviceWorker.controller) {
-        //   This.log('postMessage...');
+        //   self.log('postMessage...');
         //   setTimeout(function () {
-        //     This.serviceWorker().postMessage(args[0], args[1]);
+        //     self.serviceWorker().postMessage(args[0], args[1]);
         //   }, 100);
         // } else {
         //   // post message: https://stackoverflow.com/questions/30177782/chrome-serviceworker-postmessage
@@ -363,27 +360,32 @@ function Manager() {
 
   // init with polyfills
   Manager.prototype.init = function(configuration, callback) {
-    var This = this;
-    if (!utilities.get(This, 'properties.page.status.ready', false) && (!utilities.get(This, 'properties.page.status.initializing', false))) {
+    var self = this;
+    var status = self.properties.page.status;
+
+    if (
+      !status.ready
+      && !status.initilizing
+    ) {
 
       // Performance
-      This.performance().mark('manager_init');
+      self.performance().mark('manager_init');
 
       // set initializing to true
-      This.properties.page.status.initializing = true;
+      self.properties.page.status.initializing = true;
 
       // set other properties
-      This.properties.meta.environment = window.location.host.match(/:40|ngrok/)
+      self.properties.meta.environment = window.location.host.match(/:40|ngrok/)
         ? 'development'
         : 'production';
 
       // Load polyfills
-      init_loadPolyfills(This, configuration, function() {
-          This.properties.page.status.initializing = false;
-          // This.properties.genericPromise = new Promise(resolve => { resolve() });
+      init_loadPolyfills(self, configuration, function() {
+          self.properties.page.status.initializing = false;
+          // self.properties.genericPromise = new Promise(resolve => { resolve() });
           var options_defaults = {
             // debug: {
-            //   environment: This.properties.meta.environment,
+            //   environment: self.properties.meta.environment,
             // },
             // queryString: {
             //   saveToStorage: false
@@ -523,27 +525,27 @@ function Manager() {
           }
 
           eachRecursive(options_defaults);
-          This.properties.options = options_user;
+          self.properties.options = options_user;
 
           // set non-option properties
-          This.properties.global.app = configuration.global.app;
-          This.properties.global.version = configuration.global.version;
-          This.properties.global.url = configuration.global.url;
-          This.properties.global.cacheBreaker = configuration.global.cacheBreaker;
+          self.properties.global.app = configuration.global.app;
+          self.properties.global.version = configuration.global.version;
+          self.properties.global.url = configuration.global.url;
+          self.properties.global.cacheBreaker = configuration.global.cacheBreaker;
 
-          This.properties.global.brand = configuration.global.brand;
-          This.properties.global.contact = configuration.global.contact;
-          This.properties.global.download = configuration.global.download;
-          This.properties.global.extension = configuration.global.extension;
+          self.properties.global.brand = configuration.global.brand;
+          self.properties.global.contact = configuration.global.contact;
+          self.properties.global.download = configuration.global.download;
+          self.properties.global.extension = configuration.global.extension;
 
-          This.properties.global.validRedirectHosts = configuration.global.validRedirectHosts;
-          This.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', This.properties.meta.environment);
-          This.properties.page.queryString = new URLSearchParams(window.location.search);
+          self.properties.global.validRedirectHosts = configuration.global.validRedirectHosts;
+          self.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', self.properties.meta.environment);
+          self.properties.page.queryString = new URLSearchParams(window.location.search);
 
           var pagePathname = window.location.pathname;
           var redirect = false;
 
-          This.properties.page.queryString.forEach(function(value, key) {
+          self.properties.page.queryString.forEach(function(value, key) {
             if (key.startsWith('utm_')) {
               store.set('utm.tags.' + key, value);
               store.set('utm.timestamp', new Date().toISOString());
@@ -559,7 +561,7 @@ function Manager() {
             }
           })
 
-          if (redirect && This.isValidRedirectUrl(redirect)) {
+          if (redirect && self.isValidRedirectUrl(redirect)) {
             return window.location.href = redirect;
           }
 
@@ -577,18 +579,18 @@ function Manager() {
             // handle firebase user
             if (typeof firebase !== 'undefined' && firebase.auth) {
               firebase.auth().onAuthStateChanged(function(user) {
-                This.properties.page.status.authReady = true;
-                This.properties.auth.user = user || false;
-                _authStateHandler(This, user);
+                self.properties.page.status.authReady = true;
+                self.properties.auth.user = user || false;
+                _authStateHandler(self, user);
               })
             }
 
             // setup
-            This.setEventListeners();
+            self.setEventListeners();
 
             // display outdated if it is
             try {
-              if (!This.properties.page.isSupportedBrowser) {
+              if (!self.properties.page.isSupportedBrowser) {
                 var box = document.getElementsByClassName('master-alert-outdated')[0];
                 box.style.display = 'block';
                 document.body.insertBefore(box, document.body.firstChild);
@@ -596,7 +598,7 @@ function Manager() {
             } catch (e) {}
 
             // run the init callback
-            This.properties.page.status.ready = true;
+            self.properties.page.status.ready = true;
 
             try {
               callback();
@@ -626,17 +628,17 @@ function Manager() {
             }
 
             // load non-critical libraries
-            load_lazysizes(This, options_user);
-            load_cookieconsent(This, options_user);
-            subscriptionManager(This, options_user);
+            load_lazysizes(self, options_user);
+            load_cookieconsent(self, options_user);
+            subscriptionManager(self, options_user);
 
-            // This.log('Manager', This);
+            // self.log('Manager', self);
             return;
           }
 
           Promise.all([
-            load_sentry(This, options_user),
-            load_firebase(This, options_user),
+            load_sentry(self, options_user),
+            load_firebase(self, options_user),
           ])
           .then(function() {
             postCrucial();
@@ -675,7 +677,7 @@ function Manager() {
   }
 
   Manager.prototype.auth = function() {
-    var This = this;
+    var self = this;
     var firebaseActive = typeof firebase !== 'undefined';
     var erel = '.auth-error-message-element';
 
@@ -717,17 +719,17 @@ function Manager() {
       ready: function (fn, options) {
         options = options || {};
         options.interval = options.interval || 100;
-        // if ( (This.get('page.status.authReady', false) === false) ) {
+        // if ( (self.get('page.status.authReady', false) === false) ) {
         // Manager.log('--- authReady() REAL');
-        if (!utilities.get(This, 'properties.page.status.authReady', false)) {
+        if (!utilities.get(self, 'properties.page.status.authReady', false)) {
           setTimeout(function () {
-            This.auth().ready(fn, options);
+            self.auth().ready(fn, options);
           }, options.interval);
         } else {
 
           // Set up listener for redirect (for provider login)
-          if (!This._redirectResultSetup) {
-            This._redirectResultSetup = true;
+          if (!self._redirectResultSetup) {
+            self._redirectResultSetup = true;
             firebase.auth()
               .getRedirectResult()
               .catch(function (error) {
@@ -736,16 +738,16 @@ function Manager() {
           }
 
           // Performance
-          This.performance().mark('manager_authReady');
+          self.performance().mark('manager_authReady');
 
-          return fn(This.auth().getUser());
+          return fn(self.auth().getUser());
         }
       },
       signIn: function (method, email, password) {
         var mode = 'signin';
         method = method || 'email';
         _preDisplayError();
-        // This.log('Signin attempt: ', method, email, password);
+        // self.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
           // email = (email || select('.auth-email-input').getValue()).trim().toLowerCase();
           email = resolveAuthInput(email, mode, 'email');
@@ -758,20 +760,20 @@ function Manager() {
 
           firebase.auth().signInWithEmailAndPassword(email, password)
           .then(function(credential) {
-            // _postAuthSubscriptionCheck(This)
+            // _postAuthSubscriptionCheck(self)
             // .then(function () {
             //
             // })
-            This.properties.page.status.didSignIn = true;
+            self.properties.page.status.didSignIn = true;
             // signinButtonDisabled(false);
             setAuthButtonDisabled(mode, false);
-            // This.log('Good signin');
+            // self.log('Good signin');
           })
           .catch(function(error) {
             // signinButtonDisabled(false);
             setAuthButtonDisabled(mode, false);
             _displayError(error.message);
-            // This.log('Error', error.message);
+            // self.log('Error', error.message);
           });
         } else {
           firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method))
@@ -785,7 +787,7 @@ function Manager() {
         method = method || 'email';
 
         _preDisplayError();
-        // This.log('Signup attempt: ', method, email, password, passwordConfirm);
+        // self.log('Signup attempt: ', method, email, password, passwordConfirm);
         // var acceptedTerms
         // var termEl = select('.auth-terms-input');
         // if (termEl.exists() && !termEl.getValue() === true) {
@@ -814,43 +816,43 @@ function Manager() {
             setAuthButtonDisabled(mode, true);
             firebase.auth().createUserWithEmailAndPassword(email, password)
             .then(function(credential) {
-              // This.properties.page.status.didSignUp = true;
-              // This.log('Good signup');
+              // self.properties.page.status.didSignUp = true;
+              // self.log('Good signup');
               // signupButtonDisabled(false);
             })
             .catch(function(error) {
               // signupButtonDisabled(false);
               setAuthButtonDisabled(mode, false);
               _displayError(error.message);
-              // This.log('error', error.message);
+              // self.log('error', error.message);
             });
           } else {
             _displayError("Passwords don't match.");
           }
         } else {
-          This.auth().signIn(method);
+          self.auth().signIn(method);
         }
 
       },
       signOut: function() {
-        // This.log('signOut()');
-        // var This = this;
+        // self.log('signOut()');
+        // var self = this;
         return firebase.auth().signOut()
         .catch(function(e) {
           console.error(e);
-          // This.log('signOut failed: ', error);
+          // self.log('signOut failed: ', error);
         });
         // return firebase.auth().signOut()
         // .then(function() {
-        //   // This.log('signOut success.');
+        //   // self.log('signOut success.');
         // })
         // .catch(function(e) {
         //   // console.error(e);
-        //   // This.log('signOut failed: ', error);
+        //   // self.log('signOut failed: ', error);
         // });
       },
       forgot: function(email) {
-        // This.log('forgot()');
+        // self.log('forgot()');
         var mode = 'forgot';
         // email = email || select('.auth-email-input').getValue();
         email = resolveAuthInput(email, mode, 'email')
@@ -863,13 +865,13 @@ function Manager() {
         .then(function() {
           // forgotButtonDisabled(false);
           setAuthButtonDisabled(mode, false);
-          // This.log('forgot success.');
+          // self.log('forgot success.');
           _displayError('A reset link has been sent to you.');
         })
         .catch(function(error) {
           // forgotButtonDisabled(false);
           setAuthButtonDisabled(mode, false);
-          // This.log('forgot failed: ', error);
+          // self.log('forgot failed: ', error);
           _displayError(error.message);
         });
       },
@@ -879,28 +881,29 @@ function Manager() {
 
   //@@@NOTIFICATIONS
   Manager.prototype.notifications = function(options) {
+    var self = this;
     var supported = (typeof firebase.messaging !== 'undefined') && ('serviceWorker' in navigator) && ('Notification' in window);
-    var This = this;
+
     return {
       isSubscribed: function () {
-        // This.log('isSubscribed()');
+        // self.log('isSubscribed()');
         return new Promise(function(resolve, reject) {
           if (!supported || Notification.permission !== 'granted') {return resolve(false)};
           return resolve(true);
         })
       },
       subscribe: function () {
-        // This.log('subscribe()');
+        // self.log('subscribe()');
         return new Promise(function(resolve, reject) {
-          // var subscribed = !This.notifications().isSubscribed();
+          // var subscribed = !self.notifications().isSubscribed();
           if (!supported) {
             return resolve(false)
           }
           firebase.messaging().getToken({
-            serviceWorkerRegistration: This.properties.references.serviceWorker,
+            serviceWorkerRegistration: self.properties.references.serviceWorker,
           })
           .then(function (token) {
-            var user = This.auth().getUser();
+            var user = self.auth().getUser();
             var localSubscription = store.get('notifications', {});
             var localHash = localSubscription.token + '|' + localSubscription.uid;
             var userHash = token + '|' + user.uid;
@@ -920,14 +923,14 @@ function Manager() {
 
               function saveLocal() {
                 // console.log('---------saveLocal');
-                // This.log('Saved local token: ', token);
+                // self.log('Saved local token: ', token);
                 store.set('notifications', {uid: user.uid, token: token, lastSynced: timestamp});
               }
 
               function saveServer(doc) {
-                // console.log('-------saveServer', !doc.exists, !This.utilities().get(doc.data(), 'link.user.data.uid', ''), user.uid);
+                // console.log('-------saveServer', !doc.exists, !self.utilities().get(doc.data(), 'link.user.data.uid', ''), user.uid);
                 // Run if it (DOES NOT EXIST on server) OR (it does AND the uid field is null AND the current user is not null)
-                if (!doc.exists || (doc.exists && !This.utilities().get(doc.data(), 'link.user.data.uid', '') && user.uid)) {
+                if (!doc.exists || (doc.exists && !self.utilities().get(doc.data(), 'link.user.data.uid', '') && user.uid)) {
                   subscriptionRef
                   .set(
                     {
@@ -959,13 +962,13 @@ function Manager() {
                     }
                   )
                   .then(function(data) {
-                    // This.log('Updated token: ', token);
+                    // self.log('Updated token: ', token);
                     saveLocal();
                     resolve(true);
                   })
                 } else {
                   saveLocal();
-                  // This.log('Skip sync, server data exists.');
+                  // self.log('Skip sync, server data exists.');
                   resolve(false);
                 }
               }
@@ -980,7 +983,7 @@ function Manager() {
                 saveServer({exists: false})
               })
             } else {
-              // This.log('Skip sync, recently done.');
+              // self.log('Skip sync, recently done.');
               resolve(false);
             }
 
@@ -996,24 +999,24 @@ function Manager() {
   /*
   HELPERS
   */
-  function subscriptionManager(This, options_user) {
+  function subscriptionManager(self, options_user) {
     if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
 
     // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
     navigator.serviceWorker.register(
       '/' + (options_user.serviceWorker.path || 'master-service-worker.js')
       + '?config=' + encodeURIComponent(JSON.stringify({
-        name: This.properties.global.brand.name,
-        app: This.properties.global.app,
-        env: This.properties.meta.environment,
-        v: This.properties.global.version,
-        cb: This.properties.global.cacheBreaker,
+        name: self.properties.global.brand.name,
+        app: self.properties.global.app,
+        env: self.properties.meta.environment,
+        v: self.properties.global.version,
+        cb: self.properties.global.cacheBreaker,
         firebase: options_user.libraries.firebase_app.config
       }))
     )
     .then(function (registration) {
       // firebase.messaging().useServiceWorker(registration);
-      This.properties.references.serviceWorker = registration;
+      self.properties.references.serviceWorker = registration;
 
       // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
       // --- leverage this example ^^^ for caching! It's grat and you can do one page at a time through postMessage!
@@ -1048,9 +1051,9 @@ function Manager() {
       // }
       // listenForWaitingServiceWorker(registration, promptUserToRefresh);
 
-      // This.log('SW Registered.');
+      // self.log('SW Registered.');
       //@@@NOTIFICATIONS
-      // _setupTokenRefreshHandler(This);
+      // _setupTokenRefreshHandler(self);
 
       try {
         // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
@@ -1076,8 +1079,8 @@ function Manager() {
     // });
   }
 
-  function showExitPopup(This) {
-    var exitPopupSettings = This.properties.options.exitPopup;
+  function showExitPopup(self) {
+    var exitPopupSettings = self.properties.options.exitPopup;
 
     if (!exitPopupSettings.enabled) return;
 
@@ -1102,6 +1105,7 @@ function Manager() {
     var $el = document.getElementById('modal-exit-popup');
     var modal = new bootstrap.Modal($el);
     modal.show();
+    $el.removeAttribute('hidden');
 
     var $title = $el.querySelector('.modal-title');
     var $message = $el.querySelector('.modal-body');
@@ -1112,13 +1116,12 @@ function Manager() {
     $message.innerHTML = config.message;
     $okButton.innerHTML = config.okButton.text;
     $okButton.setAttribute('href', config.okButton.link);
-
   }
 
   /*
   EXTERNAL LIBS
   */
-  var load_firebase = function(This, options) {
+  var load_firebase = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof window.firebase !== 'undefined') {
       //   return resolve();
@@ -1126,21 +1129,21 @@ function Manager() {
       var setting = options.libraries.firebase_app
       if (setting.enabled === true) {
         function _post() {
-          // This.log('Loaded Firebase.');
+          // self.log('Loaded Firebase.');
           // console.log('_post.');
           window.app = firebase.initializeApp(setting.config);
 
           Promise.all([
-            load_firebase_auth(This, options),
-            load_firebase_firestore(This, options),
-            load_firebase_messaging(This, options),
-            load_firebase_appCheck(This, options),
+            load_firebase_auth(self, options),
+            load_firebase_firestore(self, options),
+            load_firebase_messaging(self, options),
+            load_firebase_appCheck(self, options),
           ])
           .then(resolve)
           .catch(reject);
         }
         if (setting.load) {
-          setting.load(This)
+          setting.load(self)
           .then(_post)
           .catch(reject);
         } else {
@@ -1159,7 +1162,7 @@ function Manager() {
   }
 
 
-  var load_firebase_auth = function(This, options) {
+  var load_firebase_auth = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
       //   return resolve();
@@ -1167,7 +1170,7 @@ function Manager() {
       var setting = options.libraries.firebase_auth;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load(This)
+          setting.load(self)
           .then(resolve)
           .catch(reject);
         } else {
@@ -1184,7 +1187,7 @@ function Manager() {
   }
 
 
-  var load_firebase_firestore = function(This, options) {
+  var load_firebase_firestore = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
       //   return resolve();
@@ -1192,7 +1195,7 @@ function Manager() {
       var setting = options.libraries.firebase_firestore;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load(This)
+          setting.load(self)
           .then(resolve)
           .catch(reject);
         } else {
@@ -1207,7 +1210,7 @@ function Manager() {
     });
   }
 
-  var load_firebase_messaging = function(This, options) {
+  var load_firebase_messaging = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
       //   return resolve();
@@ -1215,7 +1218,7 @@ function Manager() {
       var setting = options.libraries.firebase_messaging;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load(This)
+          setting.load(self)
           .then(resolve)
           .catch(reject);
         } else {
@@ -1230,12 +1233,12 @@ function Manager() {
     });
   }
 
-  var load_firebase_appCheck = function(This, options) {
+  var load_firebase_appCheck = function(self, options) {
     return new Promise(function(resolve, reject) {
       var setting = options.libraries.firebase_appCheck;
       if (setting.enabled === true) {
         if (setting.load) {
-          setting.load(This)
+          setting.load(self)
           .then(resolve)
           .catch(reject);
         } else {
@@ -1264,7 +1267,7 @@ function Manager() {
     });
   }
 
-  var load_lazysizes = function(This, options) {
+  var load_lazysizes = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof window.lazysizes !== 'undefined') {
       //   return resolve();
@@ -1281,7 +1284,7 @@ function Manager() {
             expand: expand,
             expFactor: expand < 380 ? 3 : 2,
           };
-          // This.log('Loaded Lazysizes.');
+          // self.log('Loaded Lazysizes.');
         })
         .catch(reject);
       } else {
@@ -1290,7 +1293,7 @@ function Manager() {
     });
   }
 
-  var load_cookieconsent = function(This, options) {
+  var load_cookieconsent = function(self, options) {
     return new Promise(function(resolve, reject) {
       // if (typeof window.cookieconsent !== 'undefined') {
       //   return resolve();
@@ -1299,7 +1302,7 @@ function Manager() {
         import('cookieconsent')
         .then(function(mod) {
           window.cookieconsent.initialise(options.libraries.cookieconsent.config);
-          // This.log('Loaded Cookieconsent.');
+          // self.log('Loaded Cookieconsent.');
           resolve();
         })
         .catch(reject);
@@ -1310,12 +1313,12 @@ function Manager() {
     });
   }
 
-  var load_chatsy = function(This, options) {
+  var load_chatsy = function(self, options) {
     return new Promise(function(resolve, reject) {
 
       if (
         options.libraries.chatsy.enabled === true
-        && !This.properties.page._chatsyRequested
+        && !self.properties.page._chatsyRequested
       ) {
         var chatsyPath = 'libraries.chatsy.config';
 
@@ -1344,24 +1347,62 @@ function Manager() {
           resolve();
         })
 
-        This.properties.page._chatsyRequested = true;
+        self.properties.page._chatsyRequested = true;
       } else {
         resolve();
       }
     });
   }
 
-  var load_sentry = function(This, options) {
+  var load_sentry = function(self, options) {
     return new Promise(function(resolve, reject) {
       if (options.libraries.sentry.enabled === true) {
         import('@sentry/browser')
         .then(function(mod) {
           window.Sentry = mod;
           var config = options.libraries.sentry.config;
-          config.release = config.release + '@' + This.properties.global.version;
-          config.environment = This.properties.meta.environment;
+          config.release = config.release + '@' + self.properties.global.version;
+          config.environment = self.properties.meta.environment;
+
+          // if (self.isDevelopment()) {
+          //   config.dsn = 'https://901db748bbb9469f860dc36fb07a4374@o1120154.ingest.sentry.io/6155285';
+          // }
+
+          if (config.replaysSessionSampleRate > 0 || config.replaysOnErrorSampleRate > 0) {
+            config.integrations = [
+              new Sentry.Replay({
+                // Additional SDK configuration goes in here, for example:
+                // maskAllText: true,
+                // blockAllMedia: true,
+              }),
+            ]
+          }
+
+          config.beforeSend = function (event, hint) {
+            var startTime = self.properties.page.startTime;
+            var hoursSinceStart = (new Date() - startTime) / (1000 * 3600);
+
+            event.tags = event.tags || {};
+            event.tags['process.type'] = event.tags['process.type'] || 'browser';
+
+            // event.tags['usage.total.opens'] = parseInt(usage.total.opens);
+            // event.tags['usage.total.hours'] = usage.total.hours;
+            event.tags['usage.session.hours'] = hoursSinceStart.toFixed(2);
+            // event.tags['store'] = self.properties().isStore();
+            event.user = event.user || {};
+            event.user.email = storage.get('user.auth.email', '')
+            event.user.uid = storage.get('user.auth.uid', '');
+            // event.user.ip = storage.get('user.ip', '');
+
+            console.log('[SENTRY] Caught error', event, hint);
+
+            if (self.isDevelopment()) {
+              return null;
+            }
+
+            return event;
+          }
           Sentry.init(config);
-          // This.log('Loaded Sentry.');
           resolve();
         })
         .catch(reject);
@@ -1372,12 +1413,14 @@ function Manager() {
   }
 
   Manager.prototype.log = function() {
-    if (this.properties.meta.environment === 'development') {
+    var self = this;
+
+    if (self.isDevelopment()) {
       // 1. Convert args to a normal array
       var args = Array.prototype.slice.call(arguments);
 
       // 2. Prepend log prefix log string
-      args.unshift('[ DEV ' + new Date().toLocaleTimeString() + ' ]');
+      args.unshift('[DEV @ ' + new Date().toLocaleTimeString() + ']');
 
       // 3. Pass along arguments to console.log
       if (args[1] === 'error') {
@@ -1395,7 +1438,7 @@ function Manager() {
     }
   }
 
-  function init_loadPolyfills(This, configuration, cb) {
+  function init_loadPolyfills(self, configuration, cb) {
     // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
     var featuresDefault = (
       typeof Symbol !== 'undefined'
@@ -1459,6 +1502,7 @@ function Manager() {
 
   Manager.prototype.account = function() {
     var self = this;
+
     return {
       import: function () {
         return import('./lib/account.js')
@@ -1532,8 +1576,14 @@ function Manager() {
       || self.properties.global.validRedirectHosts.includes(returnUrlObject.host)
   }
 
+  Manager.prototype.isDevelopment = function () {
+    var self = this;
+
+    return self.properties.meta.environment === 'development';
+  }
+
   // Manager.prototype.performance = function() {
-  //   var This = this;
+  //   var self = this;
   //
   //   return {
   //     mark2: function () {
