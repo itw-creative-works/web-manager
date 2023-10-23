@@ -172,14 +172,29 @@ function Manager() {
     });
 
     // Mouse leave event
-    document.addEventListener('mouseleave', function() {
+    document.addEventListener('mouseleave', function () {
       showExitPopup(self);
     });
 
     // Window blur event
-    window.addEventListener('blur', function() {
+    window.addEventListener('blur', function () {
       showExitPopup(self);
     });
+
+    // Re-focus events
+    window.addEventListener('focus', function () {
+      refreshNewVersion(self);
+    });
+    window.addEventListener('online', function () {
+      refreshNewVersion(self);
+    });
+    setInterval(function () {
+      refreshNewVersion(self);
+    }, self.properties.meta.environment === 'development'
+      ? 1000
+      : (1000 * 60 * 60 * 24 * 7)
+    );
+
   }
 
   function _authStateHandler(self, user) {
@@ -415,7 +430,7 @@ function Manager() {
                 message: 'Get 15% off your purchase of our <strong>Premium plans</strong>. <br><br> Get access to all features and unlimited usage.',
                 okButton: {
                   text: 'Claim 15% Discount',
-                  link: '/pricing?utm_source=exitpopup&utm_medium=popup&utm_campaign=exitpopup',
+                  link: '/pricing?utm_source=exit-popup&utm_medium=popup&utm_campaign={pathname}',
                 },
               },
             },
@@ -545,8 +560,11 @@ function Manager() {
           var pagePathname = window.location.pathname;
           var redirect = false;
 
-          self.properties.page.queryString.forEach(function(value, key) {
-            if (key.startsWith('utm_')) {
+          var previousUTMTimestamp = new Date(store.get('utm.timestamp', 0));
+          var UTMDifferenceInHours = (new Date() - previousUTMTimestamp) / 36e5;
+
+          self.properties.page.queryString.forEach(function (value, key) {
+            if (key.startsWith('utm_') && UTMDifferenceInHours > 72) {
               store.set('utm.tags.' + key, value);
               store.set('utm.timestamp', new Date().toISOString());
             }
@@ -1082,17 +1100,19 @@ function Manager() {
   function showExitPopup(self) {
     var exitPopupSettings = self.properties.options.exitPopup;
 
-    if (!exitPopupSettings.enabled) return;
+    if (!exitPopupSettings.enabled) {
+      return;
+    };
 
     var lastTriggered = new Date(storage.get('exitPopup.lastTriggered', 0));
     var now = new Date();
     var diff = now - lastTriggered;
 
-    if (diff < exitPopupSettings.config.timeout) return;
+    if (diff < exitPopupSettings.config.timeout) {
+      return;
+    };
 
     showBootstrapModal(exitPopupSettings);
-
-    storage.set('exitPopup.lastTriggered', now.toISOString());
   }
 
   function showBootstrapModal(exitPopupSettings) {
@@ -1100,7 +1120,9 @@ function Manager() {
       ? exitPopupSettings.config.handler()
       : true;
 
-    if (!proceed) { return }
+    if (!proceed) {
+      return;
+    }
 
     var $el = document.getElementById('modal-exit-popup');
     try {
@@ -1113,13 +1135,47 @@ function Manager() {
       var $okButton = $el.querySelector('.modal-footer .btn-primary');
       var config = exitPopupSettings.config;
 
+      var link = config.okButton.link
+        .replace(/{pathname}/ig, window.location.pathname)
+
       $title.innerHTML = config.title;
       $message.innerHTML = config.message;
       $okButton.innerHTML = config.okButton.text;
-      $okButton.setAttribute('href', config.okButton.link);
+      $okButton.setAttribute('href', link);
+
+      storage.set('exitPopup.lastTriggered', new Date().toISOString());
     } catch (e) {
       console.warn(e);
     }
+  }
+
+  function refreshNewVersion(self) {
+    console.log('refreshNewVersion()');
+
+    fetch('/@output/build/build.json' + '?cb=' + new Date().getTime())
+    .then(function (res) {
+      if (res.ok) {
+        return res.json();
+      } else {
+        throw new Error('Bad response');
+      }
+    })
+    .then(function (data) {
+      var buildTime = new Date(data['npm-build'].timestamp_utc);
+      var startTime = self.properties.page.startTime;
+
+      if (buildTime > startTime) {
+        // console.log('refreshNewVersion(): Refreshing...');
+
+        window.onbeforeunload = function () {
+          return undefined;
+        }
+        window.location.reload(true);
+      }
+    })
+    .catch(function (e) {
+      console.error(e);
+    })
   }
 
   /*
