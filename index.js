@@ -190,10 +190,7 @@ function Manager() {
     });
     setInterval(function () {
       refreshNewVersion(self);
-    }, self.properties.meta.environment === 'development'
-      ? 1000
-      : (1000 * 60 * 60 * 24 * 7)
-    );
+    }, 1000 * 60 * 60 * 24 * 7);
 
   }
 
@@ -794,21 +791,10 @@ function Manager() {
             // self.log('Error', error.message);
           });
         } else {
-          // @@@ REMOVED NOV 6, 2023
-          // firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method))
-          // .catch(function (e) {
-          //   _displayError(e);
-          // })
-
-          // @@@ ADDED NOV 6, 2023
-          var authDomain = self.properties.options.libraries.firebase_app.config.authDomain;
-          var newURL = new URL('https://' + authDomain + '/auth/handler');
-
-          newURL.searchParams.set('provider', method);
-          newURL.searchParams.set('destination', window.location.href);
-
-          window.location.href = newURL.toString();
-
+          firebase.auth().signInWithRedirect(new firebase.auth.OAuthProvider(method))
+          .catch(function (e) {
+            _displayError(e);
+          })
         }
       },
       signUp: function(method, email, password, passwordConfirm) {
