@@ -58,8 +58,8 @@ function Manager() {
       code: '',
       url: '',
       status: {
-        ready: false,
         initilizing: false,
+        ready: false,
         authReady: false,
       },
       // initReady: false,
@@ -737,8 +737,7 @@ function Manager() {
       ready: function (fn, options) {
         options = options || {};
         options.interval = options.interval || 100;
-        // if ( (self.get('page.status.authReady', false) === false) ) {
-        // Manager.log('--- authReady() REAL');
+
         if (!utilities.get(self, 'properties.page.status.authReady', false)) {
           setTimeout(function () {
             self.auth().ready(fn, options);
@@ -746,14 +745,15 @@ function Manager() {
         } else {
 
           // Set up listener for redirect (for provider login)
-          if (!self._redirectResultSetup) {
-            self._redirectResultSetup = true;
-            firebase.auth()
-              .getRedirectResult()
-              .catch(function (error) {
-                _displayError(error.message);
-              });
-          }
+          // @@@ DISABLED NOV 8, 2023
+          // if (!self._redirectResultSetup) {
+          //   self._redirectResultSetup = true;
+          //   firebase.auth()
+          //     .getRedirectResult()
+          //     .catch(function (error) {
+          //       _displayError(error.message);
+          //     });
+          // }
 
           // Performance
           self.performance().mark('manager_authReady');
@@ -1103,7 +1103,7 @@ function Manager() {
       console.error(e);
     });
 
-    // SW Ready
+    // Service Worker Ready
     // navigator.serviceWorker.ready.then(function(registration) {
     // });
   }
