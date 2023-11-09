@@ -414,7 +414,7 @@ function Manager() {
             auth: {
               state: 'default', // required, prohibited, default
               sends: {
-                required: '/signup/',
+                required: '/signup',
                 prohibited: '/',
               },
             },
