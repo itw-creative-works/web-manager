@@ -580,7 +580,7 @@ function Manager() {
             return window.location.href = redirect;
           }
 
-          if (pagePathname.match(/\/(signin|signup|forgot)\//)) {
+          if (pagePathname.match(/\/(authentication-required|authentication-success|authentication-token|forgot|oauth2|signin|signout|signup)/)) {
             import('./helpers/auth-pages.js')
             .then(function(mod) {
               mod.default()
