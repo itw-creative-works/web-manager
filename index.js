@@ -1379,6 +1379,10 @@ function Manager() {
       ) {
         var chatsyPath = 'libraries.chatsy.config';
 
+        // Immediately hide the fake button
+        select('#prechat-btn').hide();
+
+        // Load the script
         loadScript({
           src: 'https://app.chatsy.ai/resources/script.js',
           // src: 'http://localhost:4001/resources/script.js',
@@ -1393,10 +1397,6 @@ function Manager() {
           // Listen for Chatsy status
           chatsy.on('status', function(event, status) {
             if (status === 'loaded') {
-              setTimeout(function () {
-                select('#prechat-btn').hide();
-              }, 1000);
-
               chatsy.open();
             }
           })
