@@ -1015,7 +1015,13 @@ function Manager() {
   HELPERS
   */
   function subscriptionManager(self, options_user) {
-    if (!('serviceWorker' in navigator) || !(typeof firebase.messaging !== 'undefined')) {return}
+    if (
+      !('serviceWorker' in navigator)
+      || (typeof firebase === 'undefined')
+      || (typeof firebase.messaging === 'undefined')
+    ) {
+      return
+    }
 
     // service worker guide: https://developers.google.com/web/updates/2018/06/fresher-sw
     navigator.serviceWorker.register(
