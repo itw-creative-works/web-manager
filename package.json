@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "3.2.29",
+  "version": "3.2.30",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,7 @@
     }
   },
   "dependencies": {
-    "@sentry/browser": "^7.85.0",
+    "@sentry/browser": "^7.88.0",
     "cookieconsent": "^3.1.1",
     "firebase": "^9.23.0",
     "lazysizes": "^5.3.2"
