@@ -190,73 +190,70 @@ function Manager() {
     });
     setInterval(function () {
       refreshNewVersion(self);
-    }, 1000 * 60 * 60 * 24 * 7);
+    }, 1000 * 60 * 60); // Fetch new version every 1 hour
 
   }
 
   function _authStateHandler(self, user) {
     // self.log('----authStateHandler', user);
-    if (user) {
-      if (!user.isAnonymous) {
-        _authHandle_in(self, user);
-
-        self.notifications().subscribe().catch(function (e) {
-          console.error(e);
-        });
-      } else {
-        _authHandle_out(self);
-      }
-    } else {
-      _authHandle_out(self);
+    if (!user || user.isAnonymous) {
+      return _authHandle_out(self);
     }
+
+    _authHandle_in_normal(self, user);
+
+    self.notifications().subscribe().catch(function (e) {
+      console.error(e);
+    });
   }
 
-  function _authHandle_in(self, user) {
-    // self.log('_authHandle_in', user);
-    // if (self.properties.page.status.didSignUp) {
-    var done;
-    var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.createdAt)) / 36e5;
+  // MOVED TO UJ - 12/15/23
+  // function _authHandle_in(self, user) {
+  //   // self.log('_authHandle_in', user);
+  //   // if (self.properties.page.status.didSignUp) {
+  //   var done;
+  //   var hoursSinceCreation = Math.abs(new Date() - new Date(+user.metadata.createdAt)) / 36e5;
 
-    function _done() {
-      if (!done) {
-        done = true;
-        store.set('didSignUp', true)
-        _authHandle_in_normal(self, user);
-      }
-    }
+  //   function _done() {
+  //     if (!done) {
+  //       done = true;
+  //       store.set('didSignUp', true)
+  //       _authHandle_in_normal(self, user);
+  //     }
+  //   }
 
-    if (!store.get('didSignUp') && hoursSinceCreation < 0.5) {
-      user.getIdToken(false)
-        .then(function(token) {
+  //   if (!store.get('didSignUp') && hoursSinceCreation < 0.5) {
+  //     user.getIdToken(false)
+  //       .then(function(token) {
 
-          fetch('https://us-central1-' + self.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
-            method: 'POST',
-            body: JSON.stringify({
-              authenticationToken: token,
-              command: 'user:sign-up',
-              payload: {
-                newsletterSignUp: select('.auth-newsletter-input').getValue(),
-                // affiliateCode: store.get('auth.affiliateCode', ''),
-                affiliateCode: store.get('affiliateCode', ''),
-              },
-            }),
-          })
-          .catch(function () {})
-          .finally(_done);
+  //         fetch('https://us-central1-' + self.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net/bm_api', {
+  //           method: 'POST',
+  //           body: JSON.stringify({
+  //             authenticationToken: token,
+  //             command: 'user:sign-up',
+  //             payload: {
+  //               newsletterSignUp: select('.auth-newsletter-input').getValue(),
+  //               // affiliateCode: store.get('auth.affiliateCode', ''),
+  //               affiliateCode: store.get('affiliateCode', ''),
+  //             },
+  //           }),
+  //         })
+  //         .catch(function () {})
+  //         .finally(_done);
 
-          setTimeout(function () {
-            _done()
-          }, 5000);
+  //         setTimeout(function () {
+  //           _done()
+  //         }, 5000);
 
-        })
-        .catch(function(error) {
-          console.error(error);
-          _done();
-        });
-    } else {
-      _done();
-    }
-  }
+  //       })
+  //       .catch(function(error) {
+  //         console.error(error);
+  //         _done();
+  //       });
+  //   } else {
+  //     _done();
+  //   }
+  // }
 
 
 
