@@ -37,14 +37,25 @@ var store;
 /**
 * MODULE
 */
-function ieVersion() {
+function getIEVersion() {
+  // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
   var match = /\b(MSIE |Trident.*?rv:|Edge\/)(\d+)/.exec(navigator.userAgent);
   if (match) {return parseInt(match[2])};
 }
 
+function isSupportedBrowser() {
+  var ieVersion = getIEVersion();
+
+  // IE 10 and below
+  if (ieVersion && ieVersion <= 11) {
+    return false;
+  }
+
+  return true;
+}
+
 function Manager() {
   var self = this;
-  var iev = ieVersion();
 
   /**
   * OPTIONS
@@ -66,7 +77,7 @@ function Manager() {
       // initSecondaryReady: false,
       queryString: {},
       // libErrors: [],
-      isSupportedBrowser: (!iev || iev >= 11), // https://makandracards.com/makandra/53475-minimal-javascript-function-to-detect-version-of-internet-explorer-or-edge
+      isSupportedBrowser: isSupportedBrowser(),
       startTime: new Date(),
       // auth: {
       //   status: undefined,
