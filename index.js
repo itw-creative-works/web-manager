@@ -133,7 +133,7 @@ function Manager() {
   Manager.prototype.set = function(path, value) {
     var self = this;
 
-   return utilities.set(self, 'properties.' + path, value);
+    return utilities.set(self, 'properties.' + path, value);
   }
 
   Manager.prototype.setEventListeners = function() {
@@ -141,23 +141,27 @@ function Manager() {
 
     // Setup click handler
     document.addEventListener('click', function (event) {
+      var target = event.target;
+
       // auth events
-      if (event.target.matches('.auth-signin-email-btn')) {
+      if (target.matches('.auth-signin-email-btn')) {
         self.auth().signIn('email');
-      } else if (event.target.matches('.auth-signup-email-btn')) {
+      } else if (target.matches('.auth-signup-email-btn')) {
         self.auth().signUp('email');
-      } else if (event.target.matches('.auth-signin-provider-btn')) {
-        self.auth().signIn(event.target.getAttribute('data-provider'));
-      } else if (event.target.matches('.auth-signup-provider-btn')) {
-        self.auth().signUp(event.target.getAttribute('data-provider'));
-      } else if (event.target.matches('.auth-signout-all-btn')) {
+      } else if (target.matches('.auth-signin-provider-btn')) {
+        self.auth().signIn(target.getAttribute('data-provider'));
+      } else if (target.matches('.auth-signup-provider-btn')) {
+        self.auth().signUp(target.getAttribute('data-provider'));
+      } else if (target.matches('.auth-signout-all-btn')) {
         self.auth().signOut();
-      } else if (event.target.matches('.auth-forgot-email-btn')) {
+      } else if (target.matches('.auth-forgot-email-btn')) {
         self.auth().forgot();
-      } else if (event.target.matches('#prechat-btn')) {
+      } else if (target.matches('#prechat-btn')) {
         load_chatsy(self, self.properties.options);
-      } else if (event.target.matches('.auth-subscribe-notifications-btn')) {
+      } else if (target.matches('.auth-subscribe-notifications-btn')) {
         self.notifications().subscribe()
+      } else if (target.matches('.master-alert-close')) {
+        target.parentElement.setAttribute('hidden', true);
       }
 
       // Autorequest
@@ -604,10 +608,11 @@ function Manager() {
             try {
               if (!self.properties.page.isSupportedBrowser) {
                 var box = document.getElementsByClassName('master-alert-outdated')[0];
-                box.style.display = 'block';
-                document.body.insertBefore(box, document.body.firstChild);
+                box.removeAttribute('hidden');
               }
-            } catch (e) {}
+            } catch (e) {
+              console.error(e);
+            }
 
             // run the init callback
             self.properties.page.status.ready = true;
