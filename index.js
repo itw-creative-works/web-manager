@@ -707,14 +707,14 @@ function Manager() {
   Manager.prototype.auth = function() {
     var self = this;
     var firebaseActive = typeof firebase !== 'undefined';
-    var erel = '.auth-error-message-element';
+    var $error = select('.auth-error-message-element');
 
     function _displayError(msg) {
       console.error(msg);
-      select(erel).show().setInnerHTML(msg);
+      $error.show().setInnerHTML(msg);
     }
     function _preDisplayError() {
-      select(erel).hide().setInnerHTML('');
+      $error.hide().setInnerHTML('');
     }
 
     function setAuthButtonDisabled(button, status) {
@@ -727,13 +727,31 @@ function Manager() {
       }
     }
 
-    function resolveAuthInput(existing, mode, input) {
-      var authSelector = '.auth-';
-      var inputSelector = authSelector + input + '-input';
-      var formSelector = authSelector + mode + '-form ';
-      var result = existing || select(formSelector + inputSelector).getValue() || select(inputSelector).getValue();
+    function selectAuthInput(mode, input) {
+      var prefix = '.auth-';
+      var inputSelector = prefix + input + '-input';
+      var formSelector = prefix + mode + '-form ';
+      var formInput = select(formSelector + inputSelector);
+      var input = select(inputSelector);
+
+      return formInput.exists() ? formInput : input;
+    }
+
+    function resolveAuthInputValue(existing, mode, input) {
+      var result = existing || selectAuthInput(mode, input).getValue();
 
       return input === 'email' ? result.trim().toLowerCase() : result;
+    }
+
+    function uxHandler(email, password, passwordConfirm, mode) {
+      if (!email) {
+        selectAuthInput(mode, 'email').get(0).focus();
+      } else {
+        selectAuthInput(mode, 'password').get(0).focus();
+        if (mode === 'signup') {
+          selectAuthInput(mode, 'password-confirm').get(0).focus();
+        }
+      }
     }
 
     return {
@@ -778,10 +796,13 @@ function Manager() {
         // self.log('Signin attempt: ', method, email, password);
         if (method === 'email') {
           // email = (email || select('.auth-email-input').getValue()).trim().toLowerCase();
-          email = resolveAuthInput(email, mode, 'email');
+          email = resolveAuthInputValue(email, mode, 'email');
           // password = password || select('.auth-password-input').getValue();
-          password = resolveAuthInput(password, mode, 'password');
+          password = resolveAuthInputValue(password, mode, 'password');
           // console.log('Signin attempt: ', method, email, password);
+
+          // Handler
+          uxHandler(email, password, undefined, mode);
 
           // signinButtonDisabled(true);
           setAuthButtonDisabled(mode, true);
@@ -832,12 +853,15 @@ function Manager() {
 
         if (method === 'email') {
           // email = (email || select('.auth-email-input').getValue()).trim().toLowerCase();
-          email = resolveAuthInput(email, mode, 'email');
+          email = resolveAuthInputValue(email, mode, 'email');
           // password = password || select('.auth-password-input').getValue();
-          password = resolveAuthInput(password, mode, 'password');
+          password = resolveAuthInputValue(password, mode, 'password');
           // passwordConfirm = passwordConfirm || select('.auth-password-confirm-input').getValue();
-          passwordConfirm = resolveAuthInput(passwordConfirm, mode, 'password-confirm');
+          passwordConfirm = resolveAuthInputValue(passwordConfirm, mode, 'password-confirm');
           // console.log('Signup attempt: ', method, email, password, passwordConfirm);
+
+          // Handler
+          uxHandler(email, password, passwordConfirm, mode);
 
           if (password === passwordConfirm) {
             // signupButtonDisabled(true);
@@ -883,7 +907,7 @@ function Manager() {
         // self.log('forgot()');
         var mode = 'forgot';
         // email = email || select('.auth-email-input').getValue();
-        email = resolveAuthInput(email, mode, 'email')
+        email = resolveAuthInputValue(email, mode, 'email')
 
         // forgotButtonDisabled(true);
         setAuthButtonDisabled(mode, true);
