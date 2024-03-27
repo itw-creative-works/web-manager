@@ -1204,8 +1204,11 @@ function Manager() {
       }
     })
     .then(function (data) {
-      var buildTimeCurrent = self.properties.global.buildTime || new Date(0);
+      var buildTimeCurrent = self.properties.global.buildTime;
       var buildTimeLive = new Date(data['npm-build'].timestamp);
+
+      // Set buildTimeCurrent to 1 hour ahead to account for the npm-build time which will ALWAYS be set to later since it happens later
+      buildTimeCurrent.setHours(buildTimeCurrent.getHours() + 1);
 
       // Log
       console.log('refreshNewVersion()', data, buildTimeCurrent, buildTimeLive);
