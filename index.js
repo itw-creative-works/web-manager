@@ -87,6 +87,7 @@ function Manager() {
     global: {
       version: '',
       url: '',
+      buildTime: 0,
       cacheBreaker: '',
       brand: {
         name: 'default'
@@ -555,6 +556,7 @@ function Manager() {
           self.properties.global.app = configuration.global.app;
           self.properties.global.version = configuration.global.version;
           self.properties.global.url = configuration.global.url;
+          self.properties.global.buildTime = new Date((+configuration.global.buildTime * 1000) || new Date())
           self.properties.global.cacheBreaker = configuration.global.cacheBreaker;
 
           self.properties.global.brand = configuration.global.brand;
@@ -1192,7 +1194,8 @@ function Manager() {
   function refreshNewVersion(self) {
     console.log('refreshNewVersion()');
 
-    fetch('/@output/build/build.json' + '?cb=' + new Date().getTime())
+    // Make request to get the build time (live)
+    fetch('/@output/build/build.json?cb=' + new Date().getTime())
     .then(function (res) {
       if (res.ok) {
         return res.json();
@@ -1201,15 +1204,26 @@ function Manager() {
       }
     })
     .then(function (data) {
-      var buildTime = new Date(data['npm-build'].timestamp_utc);
-      var startTime = self.properties.page.startTime;
+      var buildTimeCurrent = self.properties.global.buildTime || new Date(0);
+      var buildTimeLive = new Date(data['npm-build'].timestamp);
 
-      if (buildTime > startTime) {
-        // console.log('refreshNewVersion(): Refreshing...');
+      // Log
+      console.log('refreshNewVersion()', data, buildTimeCurrent, buildTimeLive);
 
+      // If the live time is newer, refresh
+      if (buildTimeCurrent < buildTimeLive) {
+        console.log('refreshNewVersion(): Refreshing...');
+
+        if (self.isDevelopment()) {
+          return;
+        }
+
+        // Force page reload
         window.onbeforeunload = function () {
           return undefined;
         }
+
+        // Refresh
         window.location.reload(true);
       }
     })
