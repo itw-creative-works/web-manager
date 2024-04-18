@@ -1,11 +1,10 @@
 {
   "name": "web-manager",
-  "version": "3.2.47",
+  "version": "3.2.48",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
-
     "test_": "npm run prepare && ./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
     "prepare_": "node -e 'require(`prepare-package`)()'"
   },
@@ -34,7 +33,7 @@
     }
   },
   "dependencies": {
-    "@sentry/browser": "^7.108.0",
+    "@sentry/browser": "^7.110.1",
     "cookieconsent": "^3.1.1",
     "firebase": "^9.23.0",
     "lazysizes": "^5.3.2"
