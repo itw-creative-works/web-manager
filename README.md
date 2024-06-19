@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://cdn.itwcreativeworks.com/assets/itw-creative-works/images/logo/itw-creative-works-brandmark-black-x.svg">
+  <a href="https://itwcreativeworks.com">
     <img src="https://cdn.itwcreativeworks.com/assets/itw-creative-works/images/logo/itw-creative-works-brandmark-black-x.svg" width="100px">
   </a>
 </p>
@@ -28,26 +28,26 @@
   This module is best used when bundled with <a href="https://www.npmjs.com/package/webpack">webpack</a>.
 </p>
 
-## Install
+## 📦 Install Web Manager
 Install with npm:
 ```shell
 npm install web-manager
 ```
 
-## Features
+## 🦄 Features
 * Polyfill detection and implementation for Promises, Array methods, window.fetch, and more!
 * Dom API that acts as a super lightweight and optimized version of jQuery
 * Improved Localstorage API
 * Utility API with the most useful Lodash methods `get` and `set`
 
-## Libraries
+## 📚 Libraries
 * Firebase (Firebase app, Firestore, Auth, & Messaging)
 * Lazysizes to lazyload images
 * Sentry to report errors
 * [Chatsy.ai](https://chatsy.ai) AI chatbot integration
 * Cookieconsent to comply with GDPR
 
-## Example Setup
+## 📘 Example Setup
 After installing via npm, simply paste this script before the closing `</body>` tag to initialize Web Manager.
 ```html
 <script type="text/javascript">
@@ -61,7 +61,7 @@ After installing via npm, simply paste this script before the closing `</body>` 
 </script>
 ```
 
-## Example Usage
+## 📘 Example Usage
 Lets go over some example usage of the library.
 
 ### Kitchen Sink Config example
@@ -75,7 +75,7 @@ By default, all of the libraries are enabled. But you can simply set `enabled` t
       },
       serviceWorker: {
         path: 'firebase-messaging-sw.js' // Path to your service worker
-      },    
+      },
       libraries: {
         firebase_app: { // Config is required if enabled
           enabled: true,
@@ -88,7 +88,7 @@ By default, all of the libraries are enabled. But you can simply set `enabled` t
             messagingSenderId: '123456',
             appId: '1:xxx'
           }
-        },     
+        },
         tawk: { // Config is required if enabled
           enabled: true,
           config: {
@@ -128,7 +128,7 @@ By default, all of the libraries are enabled. But you can simply set `enabled` t
         },
         lazysizes: { // No config required
           enabled: true
-        }      
+        }
       }
     }
   var Manager = new (require('web-manager'));
@@ -212,7 +212,7 @@ The Web Manager .utilities() API wraps some useful functions such as getting and
 ```html
 <script type="text/javascript">
   console.log('--- Exploring the .utilities() API ---');
-  
+
   // .get() and .set()
   Manager.ready(function() {
     var object = {
@@ -241,7 +241,7 @@ The Web Manager .utilities() API wraps some useful functions such as getting and
   Manager.utilities().clipboardCopy('I am copied to the clipboard!')
 
   // .escapeHTML()
-  Manager.utilities().escapeHTML('<strong>This will will NOT render as bold!</strong>')  
+  Manager.utilities().escapeHTML('<strong>This will will NOT render as bold!</strong>')
 </script>
 ```
 
@@ -390,11 +390,11 @@ To preserve file size and enforce optimization, the `.account()` library must be
 
 
 
-## Final Words
+## 🗨️ Final Words
 If you are still having difficulty, we would love for you to post
 a question to [the Web Manager issues page](https://github.com/itw-creative-works/web-manager/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)
 
-## Projects Using this Library
+## 📚 Projects Using this Library
 [Somiibo](https://somiibo.com/): A Social Media Bot with an open-source module library. <br>
 [JekyllUp](https://jekyllup.com/): A website devoted to sharing the best Jekyll themes. <br>
 [Slapform](https://slapform.com/): A backend processor for your HTML forms on static sites. <br>
