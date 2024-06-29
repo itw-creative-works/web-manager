@@ -486,6 +486,8 @@ function Manager() {
                 config: {
                   dsn: '',
                   release: '',
+                  replaysSessionSampleRate: 0.1,
+                  replaysOnErrorSampleRate: 1.0,
                 },
               },
               chatsy: {
@@ -1476,50 +1478,65 @@ function Manager() {
       if (options.libraries.sentry.enabled === true) {
         import('@sentry/browser')
         .then(function(mod) {
+          // Set global
           window.Sentry = mod;
+
+          // Set config
           var config = options.libraries.sentry.config;
           config.release = config.release + '@' + self.properties.global.version;
           config.environment = self.properties.meta.environment;
+          config.integrations = config.integrations || [];
 
           // if (self.isDevelopment()) {
           //   config.dsn = 'https://901db748bbb9469f860dc36fb07a4374@o1120154.ingest.sentry.io/6155285';
           // }
 
+          // Add integration: browser tracing
+          config.integrations.push(Sentry.browserTracingIntegration());
+
+          // Add integration: replay
           if (config.replaysSessionSampleRate > 0 || config.replaysOnErrorSampleRate > 0) {
-            config.integrations = [
-              new Sentry.Replay({
-                // Additional SDK configuration goes in here, for example:
-                // maskAllText: true,
-                // blockAllMedia: true,
-              }),
-            ]
+            config.integrations.push(Sentry.replayIntegration({
+              maskAllText: false,
+              blockAllMedia: false,
+            }));
           }
 
+          // Setup before send
           config.beforeSend = function (event, hint) {
             var startTime = self.properties.page.startTime;
             var hoursSinceStart = (new Date() - startTime) / (1000 * 3600);
 
+            // Setup tags
             event.tags = event.tags || {};
             event.tags['process.type'] = event.tags['process.type'] || 'browser';
-
             // event.tags['usage.total.opens'] = parseInt(usage.total.opens);
             // event.tags['usage.total.hours'] = usage.total.hours;
             event.tags['usage.session.hours'] = hoursSinceStart.toFixed(2);
             // event.tags['store'] = self.properties().isStore();
+
+            // Setup user
             event.user = event.user || {};
             event.user.email = storage.get('user.auth.email', '')
             event.user.uid = storage.get('user.auth.uid', '');
             // event.user.ip = storage.get('user.ip', '');
 
+            // Log to console
             console.error('[SENTRY] Caught error', event, hint);
 
+            // Skip processing the event
             if (self.isDevelopment()) {
               return null;
             }
 
+            // Process the event
             return event;
           }
+
+          // Initialize
           Sentry.init(config);
+
+          // Resolve
           resolve();
         })
         .catch(reject);
@@ -1565,7 +1582,7 @@ function Manager() {
     if (featuresDefault && featuresCustom) {
       cb();
     } else {
-      loadScript({src: 'https://polyfill.io/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'})
+      loadScript({src: 'https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'})
         .then(function() {
           cb();
         })
