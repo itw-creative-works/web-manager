@@ -521,7 +521,7 @@ function Manager() {
                   type: '',
                   showLink: false,
                   content: {
-                    message: 'We use cookies to ensure you get the best experience on our website. By continuing to use the site, you agree to our<a href="/terms/" class="cc-link" style="padding-right: 0">terms of service</a>.',
+                    message: 'We use cookies to ensure you get the best experience on our website. By continuing to use the site, you agree to our<a href="/terms" class="cc-link" style="padding-right: 0">terms of service</a>.',
                     // dismiss: 'Got it!',
                     dismiss: 'I understand',
                   },
