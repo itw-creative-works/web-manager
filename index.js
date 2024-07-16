@@ -549,8 +549,8 @@ Manager.prototype.init = function(configuration, callback) {
               config: {
                 dsn: '',
                 release: '',
-                replaysSessionSampleRate: 0.1,
-                replaysOnErrorSampleRate: 1.0,
+                replaysSessionSampleRate: 0.01,
+                replaysOnErrorSampleRate: 0.01,
               },
             },
             chatsy: {
@@ -655,10 +655,12 @@ Manager.prototype.init = function(configuration, callback) {
           }
         })
 
+        // Redirect if we have a redirect query
         if (redirect && self.isValidRedirectUrl(redirect)) {
           return window.location.href = redirect;
         }
 
+        // Detect if we are on a page that requires authentication
         if (pagePathname.match(/\/(authentication-required|authentication-success|authentication-token|forgot|oauth2|signin|signout|signup)/)) {
           import('./helpers/auth-pages.js')
           .then(function(mod) {
@@ -1305,40 +1307,43 @@ EXTERNAL LIBS
 */
 var load_firebase = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof window.firebase !== 'undefined') {
-    //   return resolve();
-    // }
+    // Set shortcuts
     var setting = options.libraries.firebase_app
-    if (setting.enabled === true) {
-      function _post() {
-        // self.log('Loaded Firebase.');
-        // console.log('_post.');
-        window.app = firebase.initializeApp(setting.config);
 
-        Promise.all([
-          load_firebase_auth(self, options),
-          load_firebase_firestore(self, options),
-          load_firebase_messaging(self, options),
-          load_firebase_appCheck(self, options),
-        ])
-        .then(resolve)
-        .catch(reject);
-      }
-      if (setting.load) {
-        setting.load(self)
-        .then(_post)
-        .catch(reject);
-      } else {
-        // import('firebase/app')
-        import('firebase/compat/app')
-        .then(function(mod) {
-          window.firebase = mod.default;
-          _post()
-          })
-          .catch(reject);
-      }
+    // Skip if not enabled
+    if (!setting.enabled) {
+      return resolve();
+    }
+
+    // Setup Firebase
+    function _post() {
+      // Initialize Firebase
+      window.app = firebase.initializeApp(setting.config);
+
+      // Load Firebase libraries
+      Promise.all([
+        load_firebase_auth(self, options),
+        load_firebase_firestore(self, options),
+        load_firebase_messaging(self, options),
+        load_firebase_appCheck(self, options),
+      ])
+      .then(resolve)
+      .catch(reject);
+    }
+
+    // Load Firebase
+    if (setting.load) {
+      setting.load(self)
+      .then(_post)
+      .catch(reject);
     } else {
-      resolve();
+      // import('firebase/app')
+      import('firebase/compat/app')
+      .then(function(mod) {
+        window.firebase = mod.default;
+        _post()
+        })
+        .catch(reject);
     }
   });
 }
@@ -1346,266 +1351,268 @@ var load_firebase = function(self, options) {
 
 var load_firebase_auth = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof utilities.get(window, 'firebase.auth', undefined) !== 'undefined') {
-    //   return resolve();
-    // }
+    // Set shortcuts
     var setting = options.libraries.firebase_auth;
-    if (setting.enabled === true) {
-      if (setting.load) {
-        setting.load(self)
-        .then(resolve)
-        .catch(reject);
-      } else {
-        // import('firebase/auth')
-        import('firebase/compat/auth')
-        .then(resolve)
-        .catch(reject);
-      }
-    } else {
-      resolve();
+
+    // Skip if not enabled
+    if (!setting.enabled) {
+      return resolve();
     }
 
+    // Load Firebase Auth
+    if (setting.load) {
+      setting.load(self)
+      .then(resolve)
+      .catch(reject);
+    } else {
+      // import('firebase/auth')
+      import('firebase/compat/auth')
+      .then(resolve)
+      .catch(reject);
+    }
   });
 }
 
 
 var load_firebase_firestore = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof utilities.get(window, 'firebase.firestore', undefined) !== 'undefined') {
-    //   return resolve();
-    // }
+    // Set shortcuts
     var setting = options.libraries.firebase_firestore;
-    if (setting.enabled === true) {
-      if (setting.load) {
-        setting.load(self)
-        .then(resolve)
-        .catch(reject);
-      } else {
-        // import('firebase/firestore')
-        import('firebase/compat/firestore')
-        .then(resolve)
-        .catch(reject);
-      }
+
+    // Skip if not enabled
+    if (!setting.enabled) {
+      return resolve();
+    }
+
+    // Load Firebase Firestore
+    if (setting.load) {
+      setting.load(self)
+      .then(resolve)
+      .catch(reject);
     } else {
-      resolve();
+      // import('firebase/firestore')
+      import('firebase/compat/firestore')
+      .then(resolve)
+      .catch(reject);
     }
   });
 }
 
 var load_firebase_messaging = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof utilities.get(window, 'firebase.messaging', undefined) !== 'undefined') {
-    //   return resolve();
-    // }
+    // Set shortcuts
     var setting = options.libraries.firebase_messaging;
-    if (setting.enabled === true) {
-      if (setting.load) {
-        setting.load(self)
-        .then(resolve)
-        .catch(reject);
-      } else {
-        // import('firebase/messaging')
-        import('firebase/compat/messaging')
-        .then(resolve)
-        .catch(reject);
-      }
+
+    // Skip if not enabled
+    if (!setting.enabled) {
+      return resolve();
+    }
+
+    // Load Firebase Messaging
+    if (setting.load) {
+      setting.load(self)
+      .then(resolve)
+      .catch(reject);
     } else {
-      resolve();
+      // import('firebase/messaging')
+      import('firebase/compat/messaging')
+      .then(resolve)
+      .catch(reject);
     }
   });
 }
 
 var load_firebase_appCheck = function(self, options) {
   return new Promise(function(resolve, reject) {
+    // Set shortcuts
     var setting = options.libraries.firebase_appCheck;
-    if (setting.enabled === true) {
-      if (setting.load) {
-        setting.load(self)
-        .then(resolve)
-        .catch(reject);
-      } else {
-        // import('firebase/app-check')
-        import('firebase/compat/app-check')
-        .then(function (mod) {
-          var appCheck = firebase.appCheck;
-          var siteKey = setting.config.siteKey;
 
-          if (!siteKey) {
-            return resolve();
-          }
+    // Skip if not enabled
+    if (!setting.enabled) {
+      return resolve();
+    }
 
-          appCheck().activate(
-            new appCheck.ReCaptchaEnterpriseProvider(siteKey),
-            true,
-          );
-
-          resolve();
-        })
-        .catch(reject);
-      }
+    // Load Firebase AppCheck
+    if (setting.load) {
+      setting.load(self)
+      .then(resolve)
+      .catch(reject);
     } else {
-      resolve();
+      // import('firebase/app-check')
+      import('firebase/compat/app-check')
+      .then(function (mod) {
+        var appCheck = firebase.appCheck;
+        var siteKey = setting.config.siteKey;
+
+        if (!siteKey) {
+          return resolve();
+        }
+
+        appCheck().activate(
+          new appCheck.ReCaptchaEnterpriseProvider(siteKey),
+          true,
+        );
+
+        resolve();
+      })
+      .catch(reject);
     }
   });
 }
 
 var load_lazysizes = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof window.lazysizes !== 'undefined') {
-    //   return resolve();
-    // }
-    if (options.libraries.lazysizes.enabled === true) {
-      import('lazysizes')
-      .then(function (mod) {
-        window.lazysizes = mod.default;
-
-        // configs come from official lazysizes demo
-        var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
-        window.lazySizesConfig = {
-          loadMode: 1,
-          expand: expand,
-          expFactor: expand < 380 ? 3 : 2,
-        };
-        // self.log('Loaded Lazysizes.');
-      })
-      .catch(reject);
-    } else {
-      resolve();
+    // Skip if not enabled
+    if (!options.libraries.lazysizes.enabled) {
+      return resolve();
     }
+
+    // Load Lazysizes
+    import('lazysizes')
+    .then(function (mod) {
+      window.lazysizes = mod.default;
+
+      // configs come from official lazysizes demo
+      var expand = Math.max(Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight, 1222) - 1, 359);
+      window.lazySizesConfig = {
+        loadMode: 1,
+        expand: expand,
+        expFactor: expand < 380 ? 3 : 2,
+      };
+      // self.log('Loaded Lazysizes.');
+    })
+    .catch(reject);
   });
 }
 
 var load_cookieconsent = function(self, options) {
   return new Promise(function(resolve, reject) {
-    // if (typeof window.cookieconsent !== 'undefined') {
-    //   return resolve();
-    // }
-    if (options.libraries.cookieconsent.enabled === true) {
-      import('cookieconsent')
-      .then(function(mod) {
-        window.cookieconsent.initialise(options.libraries.cookieconsent.config);
-        // self.log('Loaded Cookieconsent.');
-        resolve();
-      })
-      .catch(reject);
-    } else {
-      resolve();
+    // Skip if not enabled
+    if (!options.libraries.cookieconsent.enabled) {
+      return resolve();
     }
 
+    // Load Cookieconsent
+    import('cookieconsent')
+    .then(function(mod) {
+      window.cookieconsent.initialise(options.libraries.cookieconsent.config);
+      // self.log('Loaded Cookieconsent.');
+      resolve();
+    })
+    .catch(reject);
   });
 }
 
 var load_chatsy = function(self, options) {
   return new Promise(function(resolve, reject) {
-
-    if (
-      options.libraries.chatsy.enabled === true
-      && !self.properties.page._chatsyRequested
-    ) {
-      var chatsyPath = 'libraries.chatsy.config';
-
-      // Immediately hide the fake button
-      select('#prechat-btn').hide();
-
-      // Load the script
-      loadScript({
-        src: 'https://app.chatsy.ai/resources/script.js',
-        // src: 'http://localhost:4001/resources/script.js',
-        attributes: [
-          {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
-          {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
-          {name: 'data-settings', value: JSON.stringify(utilities.get(options, chatsyPath + '.settings', ''))},
-        ],
-        crossorigin: true,
-      })
-      .then(function () {
-        // Listen for Chatsy status
-        chatsy.on('status', function(event, status) {
-          if (status === 'loaded') {
-            chatsy.open();
-          }
-        })
-
-        resolve();
-      })
-
-      self.properties.page._chatsyRequested = true;
-    } else {
-      resolve();
+    // Skip if not enabled or already requested
+    if (!options.libraries.chatsy.enabled || self.properties.page._chatsyRequested) {
+      return resolve();
     }
+
+    var chatsyPath = 'libraries.chatsy.config';
+
+    // Immediately hide the fake button
+    select('#prechat-btn').hide();
+
+    // Load the script
+    loadScript({
+      src: 'https://app.chatsy.ai/resources/script.js',
+      // src: 'http://localhost:4001/resources/script.js',
+      attributes: [
+        {name: 'data-account-id', value: utilities.get(options, chatsyPath + '.accountId', '')},
+        {name: 'data-chat-id', value: utilities.get(options, chatsyPath + '.chatId', '')},
+        {name: 'data-settings', value: JSON.stringify(utilities.get(options, chatsyPath + '.settings', ''))},
+      ],
+      crossorigin: true,
+    })
+    .then(function () {
+      // Listen for Chatsy status
+      chatsy.on('status', function(event, status) {
+        if (status === 'loaded') {
+          chatsy.open();
+        }
+      })
+
+      resolve();
+    })
+
+    self.properties.page._chatsyRequested = true;
   });
 }
 
 var load_sentry = function(self, options) {
   return new Promise(function(resolve, reject) {
-    if (options.libraries.sentry.enabled === true) {
-      import('@sentry/browser')
-      .then(function(mod) {
-        // Set global
-        window.Sentry = mod;
-
-        // Set config
-        var config = options.libraries.sentry.config;
-        config.release = config.release + '@' + self.properties.global.version;
-        config.environment = self.properties.meta.environment;
-        config.integrations = config.integrations || [];
-
-        // if (self.isDevelopment()) {
-        //   config.dsn = 'https://901db748bbb9469f860dc36fb07a4374@o1120154.ingest.sentry.io/6155285';
-        // }
-
-        // Add integration: browser tracing
-        config.integrations.push(Sentry.browserTracingIntegration());
-
-        // Add integration: replay
-        if (config.replaysSessionSampleRate > 0 || config.replaysOnErrorSampleRate > 0) {
-          config.integrations.push(Sentry.replayIntegration({
-            maskAllText: false,
-            blockAllMedia: false,
-          }));
-        }
-
-        // Setup before send
-        config.beforeSend = function (event, hint) {
-          var startTime = self.properties.page.startTime;
-          var hoursSinceStart = (new Date() - startTime) / (1000 * 3600);
-
-          // Setup tags
-          event.tags = event.tags || {};
-          event.tags['process.type'] = event.tags['process.type'] || 'browser';
-          // event.tags['usage.total.opens'] = parseInt(usage.total.opens);
-          // event.tags['usage.total.hours'] = usage.total.hours;
-          event.tags['usage.session.hours'] = hoursSinceStart.toFixed(2);
-          // event.tags['store'] = self.properties().isStore();
-
-          // Setup user
-          event.user = event.user || {};
-          event.user.email = storage.get('user.auth.email', '')
-          event.user.uid = storage.get('user.auth.uid', '');
-          // event.user.ip = storage.get('user.ip', '');
-
-          // Log to console
-          console.error('[SENTRY] Caught error', event, hint);
-
-          // Skip processing the event
-          if (self.isDevelopment()) {
-            return null;
-          }
-
-          // Process the event
-          return event;
-        }
-
-        // Initialize
-        Sentry.init(config);
-
-        // Resolve
-        resolve();
-      })
-      .catch(reject);
-    } else {
-      resolve();
+    // Skip if not enabled
+    if (!options.libraries.sentry.enabled) {
+      return resolve();
     }
+
+    // Import Sentry
+    import('@sentry/browser')
+    .then(function(mod) {
+      // Set global
+      window.Sentry = mod;
+
+      // Set config
+      var config = options.libraries.sentry.config;
+      config.release = config.release + '@' + self.properties.global.version;
+      config.environment = self.properties.meta.environment;
+      config.integrations = config.integrations || [];
+
+      // if (self.isDevelopment()) {
+      //   config.dsn = 'https://901db748bbb9469f860dc36fb07a4374@o1120154.ingest.sentry.io/6155285';
+      // }
+
+      // Add integration: browser tracing
+      config.integrations.push(Sentry.browserTracingIntegration());
+
+      // Add integration: replay
+      if (config.replaysSessionSampleRate > 0 || config.replaysOnErrorSampleRate > 0) {
+        config.integrations.push(Sentry.replayIntegration({
+          maskAllText: false,
+          blockAllMedia: false,
+        }));
+      }
+
+      // Setup before send
+      config.beforeSend = function (event, hint) {
+        var startTime = self.properties.page.startTime;
+        var hoursSinceStart = (new Date() - startTime) / (1000 * 3600);
+
+        // Setup tags
+        event.tags = event.tags || {};
+        event.tags['process.type'] = event.tags['process.type'] || 'browser';
+        // event.tags['usage.total.opens'] = parseInt(usage.total.opens);
+        // event.tags['usage.total.hours'] = usage.total.hours;
+        event.tags['usage.session.hours'] = hoursSinceStart.toFixed(2);
+        // event.tags['store'] = self.properties().isStore();
+
+        // Setup user
+        event.user = event.user || {};
+        event.user.email = storage.get('user.auth.email', '')
+        event.user.uid = storage.get('user.auth.uid', '');
+        // event.user.ip = storage.get('user.ip', '');
+
+        // Log to console
+        console.error('[SENTRY] Caught error', event, hint);
+
+        // Skip processing the event
+        if (self.isDevelopment()) {
+          return null;
+        }
+
+        // Process the event
+        return event;
+      }
+
+      // Initialize
+      Sentry.init(config);
+
+      // Resolve
+      resolve();
+    })
+    .catch(reject);
   });
 }
 
