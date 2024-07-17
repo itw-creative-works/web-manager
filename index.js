@@ -470,7 +470,8 @@ Manager.prototype.init = function(configuration, callback) {
     // Load polyfills
     init_loadPolyfills(self, configuration, function() {
         self.properties.page.status.initializing = false;
-        // self.properties.genericPromise = new Promise(resolve => { resolve() });
+
+        // set options
         var options_defaults = {
           // debug: {
           //   environment: self.properties.meta.environment,
