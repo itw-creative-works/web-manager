@@ -487,6 +487,9 @@ Manager.prototype.init = function(configuration, callback) {
           initChecks: {
             features: [], // an array of javascript and dom features to check for (NIY)
           },
+          refreshNewVersion: {
+            enabled: true,
+          },
           auth: {
             state: 'default', // required, prohibited, default
             sends: {
@@ -1259,7 +1262,12 @@ function showBootstrapModal(exitPopupSettings) {
 }
 
 function refreshNewVersion(self) {
-  console.log('refreshNewVersion()');
+  // console.log('refreshNewVersion()');
+
+  // Skip if not enabled
+  if (!self.properties.options.refreshNewVersion.enabled) {
+    return;
+  }
 
   // Make request to get the build time (live)
   fetch('/@output/build/build.json?cb=' + new Date().getTime())
@@ -1278,7 +1286,7 @@ function refreshNewVersion(self) {
     buildTimeCurrent.setHours(buildTimeCurrent.getHours() + 1);
 
     // Log
-    console.log('refreshNewVersion()', data, buildTimeCurrent, buildTimeLive);
+    // console.log('refreshNewVersion()', data, buildTimeCurrent, buildTimeLive);
 
     // If the live time is newer, refresh
     if (buildTimeCurrent < buildTimeLive) {
@@ -1348,7 +1356,6 @@ var load_firebase = function(self, options) {
   });
 }
 
-
 var load_firebase_auth = function(self, options) {
   return new Promise(function(resolve, reject) {
     // Set shortcuts
@@ -1372,7 +1379,6 @@ var load_firebase_auth = function(self, options) {
     }
   });
 }
-
 
 var load_firebase_firestore = function(self, options) {
   return new Promise(function(resolve, reject) {
