@@ -488,15 +488,15 @@ Manager.prototype.init = function(configuration, callback) {
           initChecks: {
             features: [], // an array of javascript and dom features to check for (NIY)
           },
-          refreshNewVersion: {
-            enabled: true,
-          },
           auth: {
             state: 'default', // required, prohibited, default
             sends: {
               required: '/signup',
               prohibited: '/',
             },
+          },
+          refreshNewVersion: {
+            enabled: true,
           },
           exitPopup: {
             enabled: true,
