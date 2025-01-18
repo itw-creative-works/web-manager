@@ -87,6 +87,8 @@ function Manager() {
     global: {
       version: '',
       url: '',
+      functionsUrl: '',
+      apiUrl: '',
       buildTime: 0,
       cacheBreaker: '',
       brand: {
@@ -625,7 +627,7 @@ Manager.prototype.init = function(configuration, callback) {
         self.properties.global.app = configuration.global.app;
         self.properties.global.version = configuration.global.version;
         self.properties.global.url = configuration.global.url;
-        self.properties.global.buildTime = new Date((+configuration.global.buildTime * 1000) || new Date())
+        self.properties.global.buildTime = new Date((+configuration.global.buildTime * 1000) || new Date());
         self.properties.global.cacheBreaker = configuration.global.cacheBreaker;
 
         self.properties.global.brand = configuration.global.brand;
@@ -637,6 +639,11 @@ Manager.prototype.init = function(configuration, callback) {
         self.properties.meta.environment = utilities.get(configuration, 'global.settings.debug.environment', self.properties.meta.environment);
         self.properties.page.queryString = new URLSearchParams(window.location.search);
 
+        // set global properties
+        self.properties.global.apiUrl = getApiUrl(self.properties.global.url);
+        self.properties.global.functionsUrl = 'https://us-central1-' + self.properties.options.libraries.firebase_app.config.projectId + '.cloudfunctions.net';
+
+        // set page properties
         var pagePathname = window.location.pathname;
         var redirect = false;
 
@@ -1803,6 +1810,25 @@ Manager.prototype.isDevelopment = function () {
 //
 //   }
 // }
+
+function getApiUrl(url) {
+  // Set API url
+  var globalUrl = new URL(url);
+  var hostnameParts = globalUrl.hostname.split('.');
+
+  // Check if subdomain exists
+  if (hostnameParts.length > 2) {
+    hostnameParts[0] = 'api';
+  } else {
+    hostnameParts.unshift('api');
+  }
+
+  // Set hostname
+  globalUrl.hostname = hostnameParts.join('.');
+
+  // Return new URL
+  return globalUrl.toString();
+}
 
 
 /**
