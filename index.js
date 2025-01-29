@@ -1018,20 +1018,27 @@ Manager.prototype.notifications = function(options) {
 
   return {
     isSubscribed: function () {
-      // self.log('isSubscribed()');
       return new Promise(function(resolve, reject) {
-        if (!supported || Notification.permission !== 'granted') {return resolve(false)};
-        return resolve(true);
+        // Log
+        // self.log('isSubscribed()');
+
+        // Check if subscribed
+        return resolve(supported && Notification.permission === 'granted');
       })
     },
     subscribe: function () {
-      // self.log('subscribe()');
       return new Promise(function(resolve, reject) {
-        // var subscribed = !self.notifications().isSubscribed();
+        // Log
+        // self.log('subscribe()');
+
+        // Check if supported
         if (!supported) {
           return resolve(false)
         }
-        firebase.messaging().getToken({
+
+        // Ask for permission
+        firebase.messaging()
+        .getToken({
           serviceWorkerRegistration: self.properties.references.serviceWorker,
         })
         .then(function (token) {
@@ -1051,7 +1058,7 @@ Manager.prototype.notifications = function(options) {
           if (localHash !== userHash || dateDifference > 1) {
             var timestamp = currentDate.toISOString();
             var timestampUNIX = Math.floor((+new Date(timestamp)) / 1000);
-            var subscriptionRef = firebase.firestore().doc('notifications/subscriptions/all/' + token);
+            var subscriptionRef = firebase.firestore().doc('notifications/' + token);
 
             function saveLocal() {
               // console.log('---------saveLocal');
@@ -1060,38 +1067,25 @@ Manager.prototype.notifications = function(options) {
             }
 
             function saveServer(doc) {
-              // console.log('-------saveServer', !doc.exists, !self.utilities().get(doc.data(), 'link.user.data.uid', ''), user.uid);
               // Run if it (DOES NOT EXIST on server) OR (it does AND the uid field is null AND the current user is not null)
-              if (!doc.exists || (doc.exists && !self.utilities().get(doc.data(), 'link.user.data.uid', '') && user.uid)) {
+              if (!doc.exists || (doc.exists && !self.utilities().get(doc.data(), 'owner.uid', '') && user.uid)) {
                 subscriptionRef
                 .set(
                   {
-                    meta: {
-                      dateSubscribed: {
-                        timestamp: timestamp,
-                        timestampUNIX: timestampUNIX
-                      },
-                      url: window.location.href,
+                    created: {
+                      timestamp: timestamp,
+                      timestampUNIX: timestampUNIX,
+                    },
+                    owner: {
+                      uid: user.uid,
                     },
                     token: token,
-                    link: {
-                      user: {
-                        lastLinked: {
-                          timestamp: timestamp,
-                          timestampUNIX: timestampUNIX
-                        },
-                        pk: user.uid,
-                        data: {
-                          uid: user.uid,
-                          email: user.email
-                        }
-                      }
-                    },
-                    tags: ['general']
+                    url: window.location.href,
+                    tags: ['general'],
                   },
                   {
-                    merge: true
-                  }
+                    merge: true,
+                  },
                 )
                 .then(function(data) {
                   // self.log('Updated token: ', token);
