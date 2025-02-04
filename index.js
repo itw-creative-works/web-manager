@@ -1209,6 +1209,9 @@ function subscriptionManager(self, options_user) {
         // Display notification
         new Notification(notification.title, notification)
         .onclick = function(event) {
+          // Log
+          console.log('Notification clicked', clickAction);
+
           // Quit if there is no click action
           if (!clickAction) {
             return;
