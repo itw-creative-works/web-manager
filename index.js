@@ -1198,15 +1198,19 @@ function subscriptionManager(self, options_user) {
       firebase.messaging().onMessage(function (payload) {
         // Get the notification data
         var notification = payload.notification;
+        var data = payload.data;
+
+        // Get the click action
+        var clickAction = notification.click_action || data.click_action;
 
         // Log
-        console.log('Message received', payload);
+        console.log('Message received', payload, clickAction);
 
         // Display notification
         new Notification(notification.title, notification)
         .onclick = function(event) {
           // Quit if there is no click action
-          if (!notification.click_action) {
+          if (!clickAction) {
             return;
           }
 
@@ -1214,7 +1218,7 @@ function subscriptionManager(self, options_user) {
           event.preventDefault();
 
           // Open the click action
-          window.open(notification.click_action, '_blank');
+          window.open(clickAction, '_blank');
         }
       })
     } catch (e) {
