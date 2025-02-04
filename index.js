@@ -1147,7 +1147,10 @@ function subscriptionManager(self, options_user) {
     }))
   )
   .then(function (registration) {
+    // Force Firebase to use the service worker
     // firebase.messaging().useServiceWorker(registration);
+
+    // Set the registration to the properties
     self.properties.references.serviceWorker = registration;
 
     // TODO: https://googlechrome.github.io/samples/service-worker/post-message/
@@ -1187,8 +1190,11 @@ function subscriptionManager(self, options_user) {
     //@@@NOTIFICATIONS
     // _setupTokenRefreshHandler(self);
 
+    // Force update the service worker
+    registration.update();
+
+    // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
     try {
-      // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
       firebase.messaging().onMessage(function (payload) {
         new Notification(payload.notification.title, payload.notification)
         .onclick = function(event) {
@@ -1199,7 +1205,6 @@ function subscriptionManager(self, options_user) {
     } catch (e) {
       console.error(e);
     }
-
   })
   .catch(function (e) {
     // console.log('***2');
