@@ -1088,13 +1088,13 @@ Manager.prototype.notifications = function(options) {
                   },
                 )
                 .then(function(data) {
-                  // self.log('Updated token: ', token);
+                  // self.log('Updated token:', token);
                   saveLocal();
                   resolve(true);
                 })
               } else {
                 saveLocal();
-                // self.log('Skip sync, server data exists.');
+                // self.log('Skip sync because server data exists');
                 resolve(false);
               }
             }
@@ -1109,7 +1109,7 @@ Manager.prototype.notifications = function(options) {
               saveServer({exists: false})
             })
           } else {
-            // self.log('Skip sync, recently done.');
+            // self.log('Skip sync because recently done');
             resolve(false);
           }
 
@@ -1196,10 +1196,25 @@ function subscriptionManager(self, options_user) {
     // Normally, notifications are not displayed when user is ON PAGE but we will display it here anyway
     try {
       firebase.messaging().onMessage(function (payload) {
-        new Notification(payload.notification.title, payload.notification)
+        // Get the notification data
+        var notification = payload.notification;
+
+        // Log
+        console.log('Message received', payload);
+
+        // Display notification
+        new Notification(notification.title, notification)
         .onclick = function(event) {
-          event.preventDefault(); // prevent the browser from focusing the Notification's tab
-          window.open(payload.notification.click_action, '_blank');
+          // Quit if there is no click action
+          if (!notification.click_action) {
+            return;
+          }
+
+          // prevent the browser from focusing the Notification's tab
+          event.preventDefault();
+
+          // Open the click action
+          window.open(notification.click_action, '_blank');
         }
       })
     } catch (e) {
