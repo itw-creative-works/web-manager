@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [3.2.74] - 2025-07-17
+### Added
+- Now looks for `build.json` in the `/@output/build/` directory to ensure it works with Vite's output structure.
+
 ## [1.0.0] - 2024-06-19
 ### Added
 - Initial release of the project 🚀

@@ -95,8 +95,7 @@ function Manager() {
         name: 'default'
       },
       contact: {
-        emailSupport: '',
-        emailBusiness: '',
+        email: '',
       },
       download: {
         windows: '',
@@ -457,7 +456,6 @@ Manager.prototype.init = function(configuration, callback) {
     !status.ready
     && !status.initilizing
   ) {
-
     // Performance
     self.performance().mark('manager_init');
 
@@ -487,9 +485,7 @@ Manager.prototype.init = function(configuration, callback) {
           serviceWorker: {
             path: '',
           },
-          initChecks: {
-            features: [], // an array of javascript and dom features to check for (NIY)
-          },
+          // polyFill: false,
           auth: {
             state: 'default', // required, prohibited, default
             sends: {
@@ -1299,7 +1295,7 @@ function refreshNewVersion(self) {
   }
 
   // Make request to get the build time (live)
-  fetch('/@output/build/build.json?cb=' + new Date().getTime())
+  fetch('/build.json?cb=' + new Date().getTime())
   .then(function (res) {
     if (res.ok) {
       return res.json();
@@ -1309,7 +1305,7 @@ function refreshNewVersion(self) {
   })
   .then(function (data) {
     var buildTimeCurrent = self.properties.global.buildTime;
-    var buildTimeLive = new Date(data['npm-build'].timestamp);
+    var buildTimeLive = new Date(data.timestamp);
 
     // Set buildTimeCurrent to 1 hour ahead to account for the npm-build time which will ALWAYS be set to later since it happens later
     buildTimeCurrent.setHours(buildTimeCurrent.getHours() + 1);
@@ -1679,12 +1675,12 @@ Manager.prototype.log = function() {
 
 function init_loadPolyfills(self, configuration, cb) {
   // https://github.com/jquintozamora/polyfill-io-feature-detection/blob/master/index.js
-  var featuresDefault = (
+  var featuresPass = (
     typeof Symbol !== 'undefined'
-  )
-  var featuresCustom = true;
+  );
 
-  if (featuresDefault && featuresCustom) {
+  // Process
+  if (featuresPass) {
     cb();
   } else {
     loadScript({src: 'https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?flags=always%2Cgated&features=default%2Ces5%2Ces6%2Ces7%2CPromise.prototype.finally%2C%7Ehtml5-elements%2ClocalStorage%2Cfetch%2CURLSearchParams'})
@@ -1692,7 +1688,6 @@ function init_loadPolyfills(self, configuration, cb) {
         cb();
       })
   }
-
 }
 
 /**
