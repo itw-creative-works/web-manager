@@ -264,8 +264,71 @@ The Web Manager .storage() API is a wrapper for the localStorage API that automa
 </script>
 ```
 
+### Utilizing the Data Binding System
+Web Manager includes a powerful data binding system that automatically updates your DOM elements based on data changes. Simply add the `data-wm-bind` attribute to any element.
+
+#### Basic Text Binding
+```html
+<!-- Display user email -->
+<span data-wm-bind="user.email"></span>
+
+<!-- Display nested properties -->
+<div data-wm-bind="account.subscription.plan"></div>
+
+<!-- Works with inputs too -->
+<input data-wm-bind="settings.theme" />
+```
+
+#### Conditional Visibility
+```html
+<!-- Show element when condition is true -->
+<div data-wm-bind="@show user">Welcome!</div>
+<div data-wm-bind="@show user.emailVerified">Email is verified</div>
+
+<!-- Hide element when condition is true -->
+<div data-wm-bind="@hide user">Please log in</div>
+
+<!-- Comparisons -->
+<div data-wm-bind="@show subscription.plan === 'premium'">Premium features</div>
+<div data-wm-bind="@hide settings.notifications === false">Notifications enabled</div>
+```
+
+#### Usage in JavaScript
+```javascript
+// Auth data is automatically bound when using auth().listen()
+Manager.auth().listen({ account: true }, (result) => {
+  // user and account data are automatically bound to the DOM
+});
+
+// Update bindings with custom data
+Manager.bindings().update({
+  settings: { theme: 'dark', language: 'en' },
+  subscription: { plan: 'premium', expiresAt: '2024-12-31' }
+});
+
+// Set individual properties
+Manager.bindings().set('currentPage', 'dashboard');
+
+// Get current binding context
+const context = Manager.bindings().getContext();
+
+// Clear all bindings
+Manager.bindings().clear();
+```
+
+#### Supported Actions
+- **`@text`** (default): Sets the text content of the element
+- **`@show`**: Shows the element when condition is true
+- **`@hide`**: Hides the element when condition is true
+- **`@attr`**: Sets an attribute value (format: `@attr attributeName expression`)
+
+Future actions like `@class` and `@style` can be easily added.
+
 ### Utilizing the Firebase Auth System
 The Firebase login system works like charm out of the box without you having to write a single line of code. All you have to do is add a few classes to your HTML elements and everything will work.
+
+#### Authentication Action Classes
+* `.auth-signout-btn`: Add to a button to sign out the current user (shows confirmation dialog)
 * `.auth-email-input`: Add to an input for the user's email
 * `.auth-password-input`: Add to an input for the user's password
 * `.auth-signin-email-btn`: Add to a button to handle the signin process
