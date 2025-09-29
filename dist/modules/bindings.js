@@ -81,14 +81,14 @@ class Bindings {
           const attrName = attrParts[0];
           const attrExpression = attrParts.slice(1).join(' ');
           const attrValue = this._resolvePath(context, attrExpression) || '';
-          
+
           if (attrValue) {
             element.setAttribute(attrName, attrValue);
           } else {
             element.removeAttribute(attrName);
           }
           break;
-          
+
         case '@text':
         default:
           // Set text content (default behavior)

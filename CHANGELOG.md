@@ -15,6 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.0] - 2025-09-11
+### BREAKING
+- Updated to ITW 3.0 standard.
+
 ## [3.2.74] - 2025-07-17
 ### Added
 - Now looks for `build.json` in the `/@output/build/` directory to ensure it works with Vite's output structure.

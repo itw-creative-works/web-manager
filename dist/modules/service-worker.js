@@ -11,6 +11,22 @@ class ServiceWorker {
     return 'serviceWorker' in navigator;
   }
 
+  // Return promise that resolves when service worker is ready
+  async ready() {
+    if (!this.isSupported()) {
+      throw new Error('Service Workers not supported');
+    }
+
+    // If already registered and active
+    if (this._registration?.active) {
+      return this._registration;
+    }
+
+    // Wait for service worker to be ready
+    const registration = await navigator.serviceWorker.ready;
+    return registration;
+  }
+
   // Register service worker
   async register(options = {}) {
     try {
@@ -30,30 +46,11 @@ class ServiceWorker {
         firebase: this.manager.config.firebase?.app?.config || null
       };
 
-      // Get service worker URL with config
-      const swUrl = `${swPath}?config=${encodeURIComponent(JSON.stringify(config))}`;
-
-      // Get existing registrations
-      const registrations = await navigator.serviceWorker.getRegistrations();
-
-      // Check if service worker is already registered for this scope
-      let registration = registrations.find(reg =>
-        reg.scope === new URL(scope, window.location.href).href
-      );
-
-      // This helps the .register() method NOT HANG FOREVER
-      if (registration) {
-        console.log('Using existing service worker registration');
-        // Check for updates on existing registration
-        registration.update();
-      } else {
-        console.log('Registering new service worker');
-        // Register with config in URL
-        registration = await navigator.serviceWorker.register(swUrl, {
-          scope,
-          updateViaCache: options.updateViaCache || 'imports'
-        });
-      }
+      // Register and handle everything
+      const registration = await navigator.serviceWorker.register(swPath, {
+        scope,
+        updateViaCache: 'none' // Always check server for updates
+      });
 
       this._registration = registration;
       this.manager.state.serviceWorker = registration;
@@ -61,14 +58,25 @@ class ServiceWorker {
       // Set up update handlers
       this._setupUpdateHandlers(registration);
 
-      // Check for updates
-      if (options.checkForUpdate !== false) {
-        registration.update();
+      // Wait for service worker to be ready and send config
+      await navigator.serviceWorker.ready;
+      
+      if (registration.active) {
+        try {
+          this.postMessage({
+            command: 'update-config',
+            payload: config
+          });
+        } catch (error) {
+          console.warn('Could not send config to service worker:', error);
+        }
+        
+        this._setupMessageChannel();
       }
 
-      // Set up message channel
-      if (registration.active) {
-        this._setupMessageChannel();
+      // Check for updates (this will detect if service worker file changed)
+      if (options.checkForUpdate !== false) {
+        registration.update();
       }
 
       return registration;
@@ -260,7 +268,7 @@ class ServiceWorker {
             type: 'update-available',
             worker: newWorker
           });
-          
+
           // Automatically skip waiting and activate new worker
           if (this.manager.config.serviceWorker?.autoUpdate !== false) {
             this.skipWaiting();

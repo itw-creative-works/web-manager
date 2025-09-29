@@ -12,19 +12,14 @@ export function loadScript(options) {
       defer = false,
       crossorigin = false,
       integrity = null,
-      attributes = [],
+      attributes = {},
       timeout = 60000,
-      retries = 0
+      retries = 0,
+      parent = null
     } = options;
 
     if (!src) {
       return reject(new Error('Script source is required'));
-    }
-
-    // Check if script already exists
-    const existingScript = document.querySelector(`script[src="${src}"]`);
-    if (existingScript) {
-      return resolve({ script: existingScript, cached: true });
     }
 
     let timeoutId;
@@ -45,10 +40,8 @@ export function loadScript(options) {
       }
 
       // Add custom attributes
-      attributes.forEach(attr => {
-        if (attr.name && attr.value !== undefined) {
-          script.setAttribute(attr.name, attr.value);
-        }
+      Object.keys(attributes).forEach(name => {
+        script.setAttribute(name, attributes[name]);
       });
 
       // Set up timeout
@@ -68,11 +61,12 @@ export function loadScript(options) {
       script.onerror = (error) => {
         clearTimeout(timeoutId);
         script.remove();
-        handleError(new Error(`Failed to load script: ${src}`));
+        handleError(new Error(`Failed to load script ${src}`, { cause: error }));
       };
 
       // Append to document
-      (document.head || document.documentElement).appendChild(script);
+      const $targetParent = parent || document.head || document.documentElement;
+      $targetParent.appendChild(script);
     }
 
     function handleError(error) {

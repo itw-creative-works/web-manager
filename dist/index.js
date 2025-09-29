@@ -86,7 +86,7 @@ class Manager {
 
       // Initialize service worker if enabled
       if (this.config.serviceWorker?.enabled) {
-        await this._serviceWorker.register({
+        this._serviceWorker.register({
           path: this.config.serviceWorker?.config?.path
         });
       }

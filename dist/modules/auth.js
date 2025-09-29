@@ -1,8 +1,11 @@
+import resolveAccount from 'resolve-account';
+
 class Auth {
   constructor(manager) {
     this.manager = manager;
     this._authStateCallbacks = [];
     this._readyCallbacks = [];
+    this._hasUpdatedBindings = false;
   }
 
   // Check if user is authenticated
@@ -67,8 +70,14 @@ class Auth {
 
     // If Firebase is not enabled, call callback immediately with null
     if (!this.manager.config.firebase?.app?.enabled) {
-      callback({ user: null, account: null });
-      return () => {}; // Return empty unsubscribe function
+      // Call callback with null user and empty account
+      callback({
+        user: null,
+        account: resolveAccount({}, {})
+      });
+
+      // Return empty unsubscribe function
+      return () => {};
     }
 
     // Function to get current state and call callback
@@ -77,18 +86,34 @@ class Auth {
       const state = { user: this.getUser() };
 
       // Then, add account data if requested and user exists
-      if (options.account && user && this.manager.firebaseFirestore) {
+      // if (options.account && user && this.manager.firebaseFirestore) {
+      // Fetch account if the user is logged in AND Firestore is available
+      if (user && this.manager.firebaseFirestore) {
         try {
           state.account = await this._getAccountData(user.uid);
         } catch (error) {
-          state.account = null;
+          // Pass error to Sentry
+          this.manager.sentry().captureException(new Error('Failed to get account data', { cause: error }));
         }
-      } else {
-        state.account = null;
       }
 
-      // Update bindings with auth data
-      this.manager.bindings().update(state);
+      // Always ensure account is at least a default resolved object
+      state.account = state.account || resolveAccount({}, { uid: user?.uid });
+
+      // Update bindings with auth data (only once across all callbacks)
+      // Now ONLY the first listener will update bindings until the next auth state change
+      if (!this._hasUpdatedBindings) {
+        // Run update
+        this.manager.bindings().update(state);
+
+        // Save to storage
+        const storage = this.manager.storage();
+        storage.set('user.auth', state.user || null);
+        storage.set('user.account', state.account || {});
+
+        // Mark that we've updated bindings
+        this._hasUpdatedBindings = true;
+      }
 
       // Call the provided callback with the state
       callback(state);
@@ -97,15 +122,27 @@ class Auth {
     let hasCalledback = false;
 
     // Set up listener for auth state changes
-    return this.onAuthStateChanged((user) => {
+    const unsubscribe = this.onAuthStateChanged((user) => {
+      // If once option is set, unsubscribe
+      // We have to do this here because unsubscribe is only available after this call
+      if (options.once && unsubscribe) {
+        unsubscribe();
+        return;
+      }
+
       // Wait for settled state before first callback
       if (!hasCalledback && !this.manager._firebaseAuthInitialized) {
         return; // Auth state not yet determined
       }
 
+      // Mark that we've called back at least once
       hasCalledback = true;
+
+      // Get current state and call the callback
       getStateAndCallback(user);
     });
+
+    return unsubscribe;
   }
 
   // Listen for auth state changes
@@ -128,11 +165,8 @@ class Auth {
 
   // Internal method to handle auth state changes
   _handleAuthStateChange(user) {
-    // Always update bindings when auth state changes (basic update without account)
-    this.manager.bindings().update({
-      user: this.getUser(),
-      account: null
-    });
+    // Reset bindings flag for new auth state
+    this._hasUpdatedBindings = false;
 
     // Call all registered callbacks
     this._authStateCallbacks.forEach(callback => {
@@ -173,6 +207,22 @@ class Auth {
     }
   }
 
+  // Sign in with email and password
+  async signInWithEmailAndPassword(email, password) {
+    try {
+      if (!this.manager.firebaseAuth) {
+        throw new Error('Firebase Auth is not initialized');
+      }
+
+      const { signInWithEmailAndPassword } = await import('firebase/auth');
+      const userCredential = await signInWithEmailAndPassword(this.manager.firebaseAuth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      console.error('Sign in with email and password error:', error);
+      throw error;
+    }
+  }
+
   // Sign out the current user
   async signOut() {
     try {
@@ -193,7 +243,6 @@ class Auth {
       }
 
       const { doc, getDoc } = await import('firebase/firestore');
-      const resolveAccount = (await import('resolve-account')).default;
 
       const accountDoc = doc(this.manager.firebaseFirestore, 'users', uid);
       const snapshot = await getDoc(accountDoc);
