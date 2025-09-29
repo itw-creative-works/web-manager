@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "4.0.2",
+  "version": "4.0.9",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -27,21 +27,16 @@
     "url": "https://github.com/itw-creative-works/web-manager/issues"
   },
   "homepage": "https://itwcreativeworks.com",
-  "backup": {
-    "dependencies": {
-      "@sentry/browser": "^6.19.7",
-      "cookieconsent": "^3.1.1",
-      "firebase": "^8.10.1",
-      "lazysizes": "^5.3.2"
-    }
-  },
   "preparePackage": {
     "input": "./src",
     "output": "./dist",
     "replace": {}
   },
+  "notes": {
+    "@sentry/browser": "10.12.0+ BREAKS ULTIMATE-JEKYLL. Version 10.12.0 introduced createConsolaReporter - This was a NEW export added to @sentry/browser that didn't exist in 10.8.0. The problem is:"
+  },
   "dependencies": {
-    "@sentry/browser": "^10.15.0",
+    "@sentry/browser": "10.11.0",
     "firebase": "^12.3.0",
     "itwcw-package-analytics": "^1.0.6",
     "lodash": "^4.17.21",
