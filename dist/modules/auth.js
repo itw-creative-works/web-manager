@@ -5,7 +5,7 @@ class Auth {
     this.manager = manager;
     this._authStateCallbacks = [];
     this._readyCallbacks = [];
-    this._hasUpdatedBindings = false;
+    this._hasProcessedStateChange = false;
   }
 
   // Check if user is authenticated
@@ -100,19 +100,18 @@ class Auth {
       // Always ensure account is at least a default resolved object
       state.account = state.account || resolveAccount({}, { uid: user?.uid });
 
-      // Update bindings with auth data (only once across all callbacks)
-      // Now ONLY the first listener will update bindings until the next auth state change
-      if (!this._hasUpdatedBindings) {
-        // Run update
-        this.manager.bindings().update(state);
+      // Process state change (update bindings and storage) only once across all callbacks
+      // Now ONLY the first listener will process the state change until the next auth state change
+      if (!this._hasProcessedStateChange) {
+        // Run update - nest state under 'auth' key for consistent access
+        this.manager.bindings().update({ auth: state });
 
         // Save to storage
         const storage = this.manager.storage();
-        storage.set('user.auth', state.user || null);
-        storage.set('user.account', state.account || {});
+        storage.set('auth', state);
 
-        // Mark that we've updated bindings
-        this._hasUpdatedBindings = true;
+        // Mark that we've processed this state change
+        this._hasProcessedStateChange = true;
       }
 
       // Call the provided callback with the state
@@ -165,8 +164,8 @@ class Auth {
 
   // Internal method to handle auth state changes
   _handleAuthStateChange(user) {
-    // Reset bindings flag for new auth state
-    this._hasUpdatedBindings = false;
+    // Reset state processing flag for new auth state
+    this._hasProcessedStateChange = false;
 
     // Call all registered callbacks
     this._authStateCallbacks.forEach(callback => {

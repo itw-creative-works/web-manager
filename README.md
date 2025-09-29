@@ -270,10 +270,10 @@ Web Manager includes a powerful data binding system that automatically updates y
 #### Basic Text Binding
 ```html
 <!-- Display user email -->
-<span data-wm-bind="user.email"></span>
+<span data-wm-bind="auth.user.email"></span>
 
 <!-- Display nested properties -->
-<div data-wm-bind="account.subscription.plan"></div>
+<div data-wm-bind="auth.account.subscription.plan"></div>
 
 <!-- Works with inputs too -->
 <input data-wm-bind="settings.theme" />
@@ -282,14 +282,14 @@ Web Manager includes a powerful data binding system that automatically updates y
 #### Conditional Visibility
 ```html
 <!-- Show element when condition is true -->
-<div data-wm-bind="@show user">Welcome!</div>
-<div data-wm-bind="@show user.emailVerified">Email is verified</div>
+<div data-wm-bind="@show auth.user">Welcome!</div>
+<div data-wm-bind="@show auth.user.emailVerified">Email is verified</div>
 
 <!-- Hide element when condition is true -->
-<div data-wm-bind="@hide user">Please log in</div>
+<div data-wm-bind="@hide auth.user">Please log in</div>
 
 <!-- Comparisons -->
-<div data-wm-bind="@show subscription.plan === 'premium'">Premium features</div>
+<div data-wm-bind="@show auth.account.subscription.plan === 'premium'">Premium features</div>
 <div data-wm-bind="@hide settings.notifications === false">Notifications enabled</div>
 ```
 
@@ -297,7 +297,7 @@ Web Manager includes a powerful data binding system that automatically updates y
 ```javascript
 // Auth data is automatically bound when using auth().listen()
 Manager.auth().listen({ account: true }, (result) => {
-  // user and account data are automatically bound to the DOM
+  // auth.user and auth.account data are automatically bound to the DOM
 });
 
 // Update bindings with custom data

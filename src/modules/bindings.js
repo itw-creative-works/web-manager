@@ -121,7 +121,7 @@ class Bindings {
   _evaluateCondition(condition, context) {
     try {
       // Replace context references with actual values
-      // Support: user.field, account.field, simple comparisons
+      // Support: auth.user.field, auth.account.field, simple comparisons
 
       // Check for negation operator at the start
       if (condition.trim().startsWith('!')) {
@@ -169,7 +169,7 @@ class Bindings {
           default: return false;
         }
       } else {
-        // Simple truthy check (e.g., "user.emailVerified" or "account")
+        // Simple truthy check (e.g., "auth.user.emailVerified" or "auth.account")
         const value = this._resolvePath(context, condition.trim());
         return !!value;
       }
