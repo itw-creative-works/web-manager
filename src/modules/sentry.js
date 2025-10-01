@@ -1,3 +1,20 @@
+// Helper functions
+function isLighthouse() {
+  try {
+    return typeof navigator !== 'undefined' && navigator.userAgent?.includes('Lighthouse');
+  } catch (e) {
+    return false;
+  }
+}
+
+function isAutomatedBrowser() {
+  try {
+    return typeof navigator !== 'undefined' && navigator.webdriver === true;
+  } catch (e) {
+    return false;
+  }
+}
+
 class SentryModule {
   constructor(manager) {
     this.manager = manager;
@@ -97,6 +114,18 @@ class SentryModule {
       // Block sending in development mode
       if (this.manager.isDevelopment()) {
         console.log('[Sentry] Development mode - not sending to Sentry');
+        return null;
+      }
+
+      // Block sending if Lighthouse is running
+      if (isLighthouse()) {
+        console.log('[Sentry] Lighthouse detected - not sending to Sentry');
+        return null;
+      }
+
+      // Block sending if automated browser (Selenium, Puppeteer, etc.)
+      if (isAutomatedBrowser()) {
+        console.log('[Sentry] Automated browser detected - not sending to Sentry');
         return null;
       }
 

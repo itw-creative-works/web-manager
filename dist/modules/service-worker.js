@@ -2,7 +2,6 @@ class ServiceWorker {
   constructor(manager) {
     this.manager = manager;
     this._registration = null;
-    this._updateCallbacks = [];
     this._messageHandlers = new Map();
   }
 
@@ -46,65 +45,37 @@ class ServiceWorker {
         firebase: this.manager.config.firebase?.app?.config || null
       };
 
-      // Register and handle everything
+      // Register service worker
       const registration = await navigator.serviceWorker.register(swPath, {
         scope,
-        updateViaCache: 'none' // Always check server for updates
+        updateViaCache: 'none'
       });
 
+      // Store registration
       this._registration = registration;
       this.manager.state.serviceWorker = registration;
 
-      // Set up update handlers
-      this._setupUpdateHandlers(registration);
-
       // Wait for service worker to be ready and send config
       await navigator.serviceWorker.ready;
-      
-      if (registration.active) {
-        try {
-          this.postMessage({
-            command: 'update-config',
-            payload: config
-          });
-        } catch (error) {
-          console.warn('Could not send config to service worker:', error);
-        }
-        
-        this._setupMessageChannel();
-      }
 
-      // Check for updates (this will detect if service worker file changed)
-      if (options.checkForUpdate !== false) {
-        registration.update();
-      }
+      // Send config to active service worker
+      // Removed due to issues init'ing firebase asynchronously in SW (now config is fetched directly in SW)
+      // if (registration.active) {
+      //   try {
+      //     this.postMessage({
+      //       command: 'update-config',
+      //       payload: config
+      //     });
+      //   } catch (error) {
+      //     console.warn('Could not send config to service worker:', error);
+      //   }
+      // }
 
+      // Resolve with registration
       return registration;
     } catch (error) {
       console.error('Service Worker registration failed:', error);
       throw error;
-    }
-  }
-
-  // Unregister service worker
-  async unregister() {
-    try {
-      if (!this._registration) {
-        const registrations = await navigator.serviceWorker.getRegistrations();
-        for (const registration of registrations) {
-          await registration.unregister();
-        }
-      } else {
-        await this._registration.unregister();
-      }
-
-      this._registration = null;
-      this.manager.state.serviceWorker = null;
-
-      return true;
-    } catch (error) {
-      console.error('Service Worker unregistration failed:', error);
-      return false;
     }
   }
 
@@ -113,39 +84,27 @@ class ServiceWorker {
     return this._registration;
   }
 
-  // Check for updates
-  async update() {
-    try {
-      if (!this._registration) {
-        throw new Error('No service worker registered');
-      }
-
-      await this._registration.update();
-      return true;
-    } catch (error) {
-      console.error('Service Worker update failed:', error);
-      return false;
-    }
-  }
-
   // Post message to service worker
   postMessage(message, options = {}) {
     return new Promise((resolve, reject) => {
+      // Check support
       if (!this.isSupported()) {
         return reject(new Error('Service Workers not supported'));
       }
 
+      // Get active service worker
       const controller = this._registration?.active || navigator.serviceWorker.controller;
 
       if (!controller) {
         return reject(new Error('No active service worker'));
       }
 
+      // Create message channel for two-way communication
       const messageChannel = new MessageChannel();
       const timeout = options.timeout || 5000;
       let timeoutId;
 
-      // Set up timeout
+      // Set up timeout to prevent hanging
       if (timeout > 0) {
         timeoutId = setTimeout(() => {
           messageChannel.port1.close();
@@ -153,7 +112,7 @@ class ServiceWorker {
         }, timeout);
       }
 
-      // Listen for response
+      // Listen for response from service worker
       messageChannel.port1.onmessage = (event) => {
         clearTimeout(timeoutId);
 
@@ -164,7 +123,7 @@ class ServiceWorker {
         }
       };
 
-      // Send message
+      // Send message with port for reply
       controller.postMessage(message, [messageChannel.port2]);
     });
   }
@@ -198,44 +157,6 @@ class ServiceWorker {
     };
   }
 
-  // Skip waiting and activate new service worker
-  async skipWaiting() {
-    try {
-      if (!this._registration?.waiting) {
-        throw new Error('No service worker waiting');
-      }
-
-      // Post message to skip waiting
-      await this.postMessage({ action: 'skipWaiting' });
-
-      // Reload page after activation
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          refreshing = true;
-          window.location.reload();
-        }
-      });
-
-      return true;
-    } catch (error) {
-      console.error('Skip waiting failed:', error);
-      return false;
-    }
-  }
-
-  // Listen for update events
-  onUpdateFound(callback) {
-    this._updateCallbacks.push(callback);
-
-    return () => {
-      const index = this._updateCallbacks.indexOf(callback);
-      if (index > -1) {
-        this._updateCallbacks.splice(index, 1);
-      }
-    };
-  }
-
   // Get service worker state
   getState() {
     if (!this._registration) {
@@ -251,52 +172,6 @@ class ServiceWorker {
     }
 
     return 'unknown';
-  }
-
-  // Private: Set up update handlers
-  _setupUpdateHandlers(registration) {
-    // Listen for updates
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-
-      if (!newWorker) return;
-
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // New service worker available
-          this._notifyUpdateCallbacks({
-            type: 'update-available',
-            worker: newWorker
-          });
-
-          // Automatically skip waiting and activate new worker
-          if (this.manager.config.serviceWorker?.autoUpdate !== false) {
-            this.skipWaiting();
-          }
-        }
-      });
-    });
-
-    // Listen for controller changes
-    let refreshing = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (!refreshing) {
-        this._notifyUpdateCallbacks({
-          type: 'controller-change'
-        });
-      }
-    });
-  }
-
-  // Private: Notify update callbacks
-  _notifyUpdateCallbacks(event) {
-    this._updateCallbacks.forEach(callback => {
-      try {
-        callback(event);
-      } catch (error) {
-        console.error('Update callback error:', error);
-      }
-    });
   }
 
   // Private: Handle incoming messages
@@ -315,14 +190,6 @@ class ServiceWorker {
         }
       });
     }
-  }
-
-  // Private: Set up message channel
-  _setupMessageChannel() {
-    // This ensures we can communicate with the service worker
-    navigator.serviceWorker.ready.then(() => {
-      console.log('Service Worker ready for messaging');
-    });
   }
 }
 
