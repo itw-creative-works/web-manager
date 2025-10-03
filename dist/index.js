@@ -382,7 +382,8 @@ class Manager {
       return 'http://localhost:5002';
     }
 
-    const baseUrl = url || this.config.firebase.app.config.authDomain || window.location.origin;
+    const authDomain = this.config.firebase.app.config.authDomain;
+    const baseUrl = url || (authDomain ? `https://${authDomain}` : window.location.origin);
     const urlObj = new URL(baseUrl);
     const hostnameParts = urlObj.hostname.split('.');
 
