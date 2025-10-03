@@ -99,6 +99,11 @@ class Manager {
       // Set up auth event listeners (uses event delegation, no need to wait for DOM)
       this._auth.setupEventListeners();
 
+      // Set up push notification auto-request if enabled
+      if (this.config.pushNotifications?.enabled && this.config.pushNotifications?.config?.autoRequest > 0) {
+        this._setupNotificationAutoRequest();
+      }
+
       // Old IE force polyfill
       // await this._loadPolyfillsIfNeeded();
 
@@ -421,6 +426,23 @@ class Manager {
     }, this.config.refreshNewVersion.config.interval);
   }
 
+  _setupNotificationAutoRequest() {
+    const handleClick = () => {
+      // Remove listener after first click
+      document.removeEventListener('click', handleClick);
+
+      // Set timeout to request notifications
+      setTimeout(() => {
+        console.log('Auto-requesting notification permissions...');
+        this._notifications.subscribe().catch(err => {
+          console.error('Notification subscription failed:', err.message);
+        });
+      }, this.config.pushNotifications.config.autoRequest);
+    };
+
+    // Wait for user click
+    document.addEventListener('click', handleClick);
+  }
 
   // async _loadPolyfillsIfNeeded() {
   //   // Check if polyfills are needed by testing for ES6 features
