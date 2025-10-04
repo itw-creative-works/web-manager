@@ -395,7 +395,8 @@ class Manager {
 
     urlObj.hostname = hostnameParts.join('.');
 
-    return urlObj.toString();
+    // Strip trailing slash
+    return urlObj.toString().replace(/\/$/, '');
   }
 
   isValidRedirectUrl(url) {
