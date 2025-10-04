@@ -6,8 +6,8 @@ class Notifications {
 
   // Check if notifications are supported
   isSupported() {
-    return 'Notification' in window && 
-           'serviceWorker' in navigator && 
+    return 'Notification' in window &&
+           'serviceWorker' in navigator &&
            this.manager.firebaseMessaging !== undefined;
   }
 
@@ -79,7 +79,7 @@ class Notifications {
       storage.set('notifications', {
         subscribed: true,
         token: token,
-        subscribedAt: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
         uid: this.manager.auth().getUser()?.uid || null
       });
 
@@ -102,7 +102,7 @@ class Notifications {
 
       const { deleteToken } = await import('firebase/messaging');
       const messaging = this.manager.firebaseMessaging;
-      
+
       if (messaging) {
         await deleteToken(messaging);
       }
@@ -147,7 +147,7 @@ class Notifications {
 
       const { getToken } = await import('firebase/messaging');
       const swRegistration = this.manager.state.serviceWorker;
-      
+
       return await getToken(messaging, {
         serviceWorkerRegistration: swRegistration
       });
@@ -166,7 +166,7 @@ class Notifications {
 
       const { onMessage } = await import('firebase/messaging');
       const messaging = this.manager.firebaseMessaging;
-      
+
       if (!messaging) {
         return () => {};
       }
@@ -191,19 +191,19 @@ class Notifications {
 
       const { onMessage } = await import('firebase/messaging');
       const messaging = this.manager.firebaseMessaging;
-      
+
       if (!messaging) {
         return () => {};
       }
 
       return onMessage(messaging, (payload) => {
         console.log('Foreground message received:', payload);
-        
+
         // Show notification if app is in foreground
         if (payload.notification) {
           const { title, body, icon, badge, image } = payload.notification;
           const clickAction = payload.data?.click_action || payload.notification.click_action;
-          
+
           const notification = new Notification(title, {
             body,
             icon,
@@ -235,13 +235,13 @@ class Notifications {
     try {
       const firestore = this.manager.firebaseFirestore;
       const user = this.manager.auth().getUser();
-      
+
       if (!firestore || !token) {
         return;
       }
 
       const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
-      
+
       const subscriptionData = {
         token,
         platform: 'web',
