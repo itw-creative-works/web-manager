@@ -60,22 +60,22 @@ export function showNotification(message, options = {}) {
   // Handle different input types
   let text = message;
   let type = options.type || 'info';
-  
+
   // If message is an Error object, extract message and default to danger
   if (message instanceof Error) {
     text = message.message;
     type = options.type || 'danger';
   }
-  
+
   // Handle string as second parameter for backwards compatibility
   if (typeof options === 'string') {
     options = { type: options };
     type = options.type;
   }
-  
+
   // Extract options
   const timeout = options.timeout !== undefined ? options.timeout : 5000;
-  
+
   const $notification = document.createElement('div');
   $notification.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5`;
   $notification.style.zIndex = '9999';
@@ -116,28 +116,50 @@ export function getContext() {
     }
   }
 
+  // Get platform
+  function getPlatform() {
+    const platform = (navigator.userAgentData?.platform || navigator.platform || 'unknown').toLowerCase();
+
+    if (/iphone|ipad|ipod/.test(platform)) {
+      return 'ios';
+    } else if (/android/.test(platform)) {
+      return 'android';
+    } else if (/win/.test(platform)) {
+      return 'windows';
+    } else if (/mac/.test(platform)) {
+      return 'macos';
+    } else if (/linux/.test(platform)) {
+      return 'linux';
+    } else if (/cros/.test(platform)) {
+      return 'chromeos';
+    } else {
+      return 'unknown';
+    }
+  }
+
   // Return context information
   return {
     client: {
+      language: navigator.language,
       mobile: isMobile(),
+      platform: getPlatform(),
+      userAgent: navigator.userAgent,
+      url: window.location.href,
     },
     browser: {
-      userAgent: navigator.userAgent,
-      language: navigator.language,
-      platform: navigator.platform,
       vendor: navigator.vendor,
     },
-    screen: {
-      width: window.screen?.width,
-      height: window.screen?.height,
-      availWidth: window.screen?.availWidth,
-      availHeight: window.screen?.availHeight,
-      colorDepth: window.screen?.colorDepth,
-      pixelRatio: window.devicePixelRatio || 1,
-    },
-    viewport: {
-      width: window.innerWidth,
-      height: window.innerHeight,
-    }
+    // screen: {
+    //   width: window.screen?.width,
+    //   height: window.screen?.height,
+    //   availWidth: window.screen?.availWidth,
+    //   availHeight: window.screen?.availHeight,
+    //   colorDepth: window.screen?.colorDepth,
+    //   pixelRatio: window.devicePixelRatio || 1,
+    // },
+    // viewport: {
+    //   width: window.innerWidth,
+    //   height: window.innerHeight,
+    // }
   };
 }

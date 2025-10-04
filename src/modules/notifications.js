@@ -121,7 +121,7 @@ class Notifications {
   // Request permission (without subscribing)
   async requestPermission() {
     try {
-      if (!('Notification' in window)) {
+      if (!this.isSupported()) {
         throw new Error('Notifications not supported');
       }
 
@@ -199,34 +199,80 @@ class Notifications {
       return onMessage(messaging, (payload) => {
         console.log('Foreground message received:', payload);
 
-        // Show notification if app is in foreground
-        if (payload.notification) {
-          const { title, body, icon, badge, image } = payload.notification;
-          const clickAction = payload.data?.click_action || payload.notification.click_action;
+        // Extract notification data - handle both payload.notification and payload.data formats
+        const notificationData = payload.notification || payload.data || {};
+        const { title, body, icon, badge, image, click_action, url, tag } = notificationData;
 
+        // Determine the click URL (prioritize click_action, then url, then data.url)
+        const clickUrl = click_action || url || payload.data?.click_action || payload.data?.url;
+
+        // Show notification if we have at least a title
+        if (title) {
           const notification = new Notification(title, {
-            body,
-            icon,
-            badge,
-            image,
-            data: payload.data,
-            requireInteraction: false,
+            body: body || '',
+            icon: icon || '/favicon.ico',
+            badge: badge,
+            image: image,
+            tag: tag || 'default',
+            data: { ...payload.data, clickUrl },
+            requireInteraction: true,
+            renotify: true
           });
 
           notification.onclick = (event) => {
             event.preventDefault();
-            if (clickAction) {
-              window.open(clickAction, '_blank');
+
+            // Focus or open the target window
+            if (clickUrl) {
+              // Try to find an existing window/tab with this URL
+              window.focus();
+              window.open(clickUrl, '_blank');
+            } else {
+              // Just focus the current window if no URL
+              window.focus();
             }
+
             notification.close();
           };
         }
 
-        callback(payload);
+        // Call the user's callback with the full payload
+        if (callback) {
+          callback(payload);
+        }
       });
     } catch (error) {
       console.error('Message listener error:', error);
       return () => {};
+    }
+  }
+
+  // Sync subscription when auth state changes
+  async syncSubscription() {
+    try {
+      // Check if we have a stored notification token
+      const storage = this.manager.storage();
+      const storedNotification = storage.get('notifications');
+
+      if (!storedNotification?.token) {
+        return false;
+      }
+
+      // Update the subscription in Firestore with current auth state
+      await this._saveSubscription(storedNotification.token);
+
+      // Update local storage with current user ID
+      const user = this.manager.auth().getUser();
+      storage.set('notifications', {
+        ...storedNotification,
+        uid: user?.uid || null,
+        timestamp: new Date().toISOString()
+      });
+
+      return true;
+    } catch (error) {
+      console.error('Sync subscription error:', error);
+      return false;
     }
   }
 
@@ -240,41 +286,97 @@ class Notifications {
         return;
       }
 
-      const { doc, setDoc, serverTimestamp } = await import('firebase/firestore');
+      const { doc, getDoc, setDoc, updateDoc, deleteDoc } = await import('firebase/firestore');
+      const { getContext } = await import('./utilities.js');
 
-      const subscriptionData = {
-        token,
-        platform: 'web',
-        userAgent: navigator.userAgent,
-        tags: ['general'],
-        created: serverTimestamp(),
-        updated: serverTimestamp(),
-      };
+      const now = new Date();
+      const timestamp = now.toISOString();
+      const timestampUNIX = Math.floor(now.getTime() / 1000);
 
-      if (user) {
-        subscriptionData.userId = user.uid;
-        subscriptionData.userEmail = user.email;
+      // Get context for client information
+      const context = getContext();
+      const clientData = context.client;
+
+      // Reference to the notification document (ID is the token)
+      const notificationRef = doc(firestore, 'notifications', token);
+
+      // Check if document already exists
+      const existingDoc = await getDoc(notificationRef);
+      const existingData = existingDoc.exists() ? existingDoc.data() : null;
+
+      // Determine if we need to update
+      const currentUid = user?.uid || null;
+      const existingUid = existingData?.uid || null;
+      const needsUpdate = existingUid !== currentUid;
+
+      if (!existingData) {
+        // New subscription - create the document
+        const subscriptionData = {
+          token,
+          context: {
+            client: clientData
+          },
+          tags: ['general'],
+          created: {
+            timestamp,
+            timestampUNIX
+          },
+          updated: {
+            timestamp,
+            timestampUNIX
+          },
+          uid: currentUid
+        };
+
+        await setDoc(notificationRef, subscriptionData);
+
+      } else if (needsUpdate) {
+        // Existing subscription needs update (userId changed)
+        const updateData = {
+          context: {
+            client: clientData
+          },
+          updated: {
+            timestamp,
+            timestampUNIX
+          },
+          uid: currentUid
+        };
+
+        await updateDoc(notificationRef, updateData);
       }
+      // If no update needed, do nothing
 
-      // Save to notifications collection
-      await setDoc(
-        doc(firestore, 'notifications', token),
-        subscriptionData,
-        { merge: true }
-      );
-
-      // If user is authenticated, also save reference in user document
-      if (user) {
+      // Update user's notification reference if authenticated
+      if (user && (!existingData || needsUpdate)) {
         await setDoc(
           doc(firestore, 'users', user.uid, 'notifications', token),
           {
             token,
-            created: serverTimestamp(),
+            created: existingData?.created || {
+              timestamp,
+              timestampUNIX
+            },
+            updated: {
+              timestamp,
+              timestampUNIX
+            },
             active: true
           },
           { merge: true }
         );
       }
+
+      // Remove old user reference if user changed
+      if (existingUid && existingUid !== currentUid && existingUid !== null) {
+        try {
+          await deleteDoc(doc(firestore, 'users', existingUid, 'notifications', token));
+        } catch (err) {
+          // Ignore errors when cleaning up old references
+          console.log('Could not clean up old user notification reference:', err.message);
+        }
+      }
+
     } catch (error) {
       console.error('Save subscription error:', error);
       // Don't throw - this is not critical for the subscription process
