@@ -311,6 +311,11 @@ class Manager {
     const { getFirestore } = await import('firebase/firestore');
     const { getMessaging } = await import('firebase/messaging');
 
+    // If we're in devmode, set the firebase config authDomain to the current host
+    // if (this.isDevelopment() && firebaseConfig) {
+    //   firebaseConfig.authDomain = window.location.hostname;
+    // }
+
     // Initialize Firebase
     const app = initializeApp(firebaseConfig);
 

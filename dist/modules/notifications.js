@@ -157,31 +157,6 @@ class Notifications {
     }
   }
 
-  // Listen for token refresh
-  async onTokenRefresh(callback) {
-    try {
-      if (!this.isSupported()) {
-        return () => {};
-      }
-
-      const { onMessage } = await import('firebase/messaging');
-      const messaging = this.manager.firebaseMessaging;
-
-      if (!messaging) {
-        return () => {};
-      }
-
-      return onMessage(messaging, (payload) => {
-        if (payload.data?.refreshToken) {
-          callback(payload.data.token);
-        }
-      });
-    } catch (error) {
-      console.error('Token refresh listener error:', error);
-      return () => {};
-    }
-  }
-
   // Listen for foreground messages
   async onMessage(callback) {
     try {
