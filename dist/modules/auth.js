@@ -119,9 +119,10 @@ class Auth {
     };
 
     let hasCalledback = false;
+    let unsubscribe = null;
 
     // Set up listener for auth state changes
-    const unsubscribe = this.onAuthStateChanged((user) => {
+    unsubscribe = this.onAuthStateChanged((user) => {
       // If once option is set, unsubscribe
       // We have to do this here because unsubscribe is only available after this call
       if (options.once && unsubscribe) {
