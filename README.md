@@ -379,13 +379,37 @@ When an element is bound, Web Manager automatically adds the `wm-bound` class to
 }
 ```
 
+#### Style Bindings
+Set CSS custom properties (CSS variables) or inline styles dynamically:
+
+```html
+<!-- Set CSS custom property -->
+<div data-wm-bind="@style --rating-percent site.ratings.starWidth"></div>
+
+<!-- Set regular style property -->
+<div data-wm-bind="@style width user.profile.width"></div>
+
+<!-- Multiple styles -->
+<div data-wm-bind="@style --primary-color theme.primaryColor, @style --secondary-color theme.secondaryColor"></div>
+```
+
+Then use the custom property in your CSS:
+
+```css
+.rating-stars::before {
+  width: var(--rating-percent, 0%);
+  background: var(--primary-color, #007bff);
+}
+```
+
 #### Supported Actions
 - **`@text`** (default): Sets the text content of the element
 - **`@show`**: Shows the element when condition is true
 - **`@hide`**: Hides the element when condition is true
 - **`@attr`**: Sets an attribute value (format: `@attr attributeName expression`)
+- **`@style`**: Sets a CSS custom property or inline style (format: `@style propertyName expression`)
 
-Future actions like `@class` and `@style` can be easily added.
+Future actions like `@class` can be easily added.
 
 ### Firebase Authentication
 

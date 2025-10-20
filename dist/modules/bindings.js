@@ -13,7 +13,10 @@ class Bindings {
       ...data
     };
 
-    this._updateBindings(this._context);
+    // Get the top-level keys that were updated
+    const updatedKeys = Object.keys(data);
+
+    this._updateBindings(this._context, updatedKeys);
   }
 
   // Get current context
@@ -24,11 +27,11 @@ class Bindings {
   // Clear all context
   clear() {
     this._context = {};
-    this._updateBindings(this._context);
+    this._updateBindings(this._context, null); // null = update all bindings
   }
 
   // Main binding update system
-  _updateBindings(context) {
+  _updateBindings(context, updatedKeys = null) {
     // Find all elements with data-wm-bind attribute
     const bindElements = document.querySelectorAll('[data-wm-bind]');
 
@@ -40,16 +43,16 @@ class Bindings {
 
       // Execute each action
       bindings.forEach(({ action, expression }) => {
-        this._executeAction(element, action, expression, context);
+        this._executeAction(element, action, expression, context, updatedKeys);
       });
 
-      // Remove skeleton loader class first to trigger transition
-      element.classList.remove('wm-binding-skeleton');
+      // Add bound class to trigger fade out
+      element.classList.add('wm-bound');
 
-      // Add bound class after a brief delay to allow for smooth animation (0.25s)
+      // Remove skeleton class after fade completes
       setTimeout(() => {
-        element.classList.add('wm-bound');
-      }, 250);
+        element.classList.remove('wm-binding-skeleton');
+      }, 300);
     });
   }
 
@@ -85,10 +88,16 @@ class Bindings {
   }
 
   // Execute a single action on an element
-  _executeAction(element, action, expression, context) {
+  _executeAction(element, action, expression, context, updatedKeys = null) {
     switch (action) {
       case '@show':
         // Show element if condition is true (or always if no condition)
+
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(expression, updatedKeys)) {
+          return;
+        }
+
         const shouldShow = expression ? this._evaluateCondition(expression, context) : true;
         if (shouldShow) {
           element.removeAttribute('hidden');
@@ -99,6 +108,12 @@ class Bindings {
 
       case '@hide':
         // Hide element if condition is true (or always if no condition)
+
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(expression, updatedKeys)) {
+          return;
+        }
+
         const shouldHide = expression ? this._evaluateCondition(expression, context) : true;
         if (shouldHide) {
           element.setAttribute('hidden', '');
@@ -113,6 +128,12 @@ class Bindings {
         const attrParts = expression.split(' ');
         const attrName = attrParts[0];
         const attrExpression = attrParts.slice(1).join(' ');
+
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(attrExpression, updatedKeys)) {
+          return;
+        }
+
         const attrValue = this._resolvePath(context, attrExpression) || '';
 
         if (attrValue) {
@@ -122,9 +143,47 @@ class Bindings {
         }
         break;
 
+      case '@style':
+        // Set CSS custom property or style
+        // Format: @style propertyName expression
+        const styleParts = expression.split(' ');
+        const styleName = styleParts[0];
+        const styleExpression = styleParts.slice(1).join(' ');
+
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(styleExpression, updatedKeys)) {
+          return;
+        }
+
+        const styleValue = this._resolvePath(context, styleExpression);
+
+        if (styleValue !== null && styleValue !== undefined && styleValue !== '') {
+          // If it starts with --, it's a CSS custom property
+          if (styleName.startsWith('--')) {
+            element.style.setProperty(styleName, styleValue);
+          } else {
+            // Regular style property
+            element.style[styleName] = styleValue;
+          }
+        } else {
+          // Remove the style if value is empty
+          if (styleName.startsWith('--')) {
+            element.style.removeProperty(styleName);
+          } else {
+            element.style[styleName] = '';
+          }
+        }
+        break;
+
       case '@text':
       default:
         // Set text content (default behavior)
+
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(expression, updatedKeys)) {
+          return;
+        }
+
         const value = this._resolvePath(context, expression) || '';
 
         if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
@@ -133,11 +192,21 @@ class Bindings {
           element.textContent = value;
         }
         break;
-
-      // Future actions can be added here:
-      // case '@class':
-      // case '@style':
     }
+  }
+
+  // Check if a path should be updated based on updatedKeys
+  _shouldUpdatePath(path, updatedKeys) {
+    // If no updatedKeys filter, always update
+    if (updatedKeys === null || !path) {
+      return true;
+    }
+
+    // Extract the root key from the path
+    const rootKey = path.trim().split('.')[0];
+
+    // Only update if the root key is in updatedKeys
+    return updatedKeys.includes(rootKey);
   }
 
   // Resolve nested object path
