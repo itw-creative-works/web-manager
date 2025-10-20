@@ -35,82 +35,106 @@ class Bindings {
     bindElements.forEach(element => {
       const bindValue = element.getAttribute('data-wm-bind');
 
-      // Parse action and expression
-      let action = '@text'; // Default action
-      let expression = bindValue;
+      // Split by comma to support multiple actions
+      const bindings = this._parseBindings(bindValue);
 
-      // Check if it starts with an action keyword
-      if (bindValue.startsWith('@')) {
-        const spaceIndex = bindValue.indexOf(' ');
-        if (spaceIndex > -1) {
-          action = bindValue.slice(0, spaceIndex);
-          expression = bindValue.slice(spaceIndex + 1);
-        } else {
-          // No space means it's just an action with no expression (like @hide)
-          action = bindValue;
-          expression = '';
-        }
-      }
-
-      // Execute the action
-      switch (action) {
-        case '@show':
-          // Show element if condition is true (or always if no condition)
-          const shouldShow = expression ? this._evaluateCondition(expression, context) : true;
-          if (shouldShow) {
-            element.removeAttribute('hidden');
-          } else {
-            element.setAttribute('hidden', '');
-          }
-          break;
-
-        case '@hide':
-          // Hide element if condition is true (or always if no condition)
-          const shouldHide = expression ? this._evaluateCondition(expression, context) : true;
-          if (shouldHide) {
-            element.setAttribute('hidden', '');
-          } else {
-            element.removeAttribute('hidden');
-          }
-          break;
-
-        case '@attr':
-          // Set attribute value
-          // Format: @attr attributeName expression
-          const attrParts = expression.split(' ');
-          const attrName = attrParts[0];
-          const attrExpression = attrParts.slice(1).join(' ');
-          const attrValue = this._resolvePath(context, attrExpression) || '';
-
-          if (attrValue) {
-            element.setAttribute(attrName, attrValue);
-          } else {
-            element.removeAttribute(attrName);
-          }
-          break;
-
-        case '@text':
-        default:
-          // Set text content (default behavior)
-          const value = this._resolvePath(context, expression) || '';
-
-          if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-            element.value = value;
-          } else {
-            element.textContent = value;
-          }
-          break;
-
-        // Future actions can be added here:
-        // case '@class':
-        // case '@style':
-      }
+      // Execute each action
+      bindings.forEach(({ action, expression }) => {
+        this._executeAction(element, action, expression, context);
+      });
 
       // Add bound class to indicate element has been processed
       if (!element.classList.contains('wm-bound')) {
         element.classList.add('wm-bound');
       }
     });
+  }
+
+  // Parse binding string into separate actions
+  _parseBindings(bindValue) {
+    const bindings = [];
+
+    // Split by comma, but be smart about it
+    // We need to handle cases where commas might be inside expressions
+    const parts = bindValue.split(',').map(p => p.trim());
+
+    parts.forEach(part => {
+      let action = '@text'; // Default action
+      let expression = part;
+
+      // Check if it starts with an action keyword
+      if (part.startsWith('@')) {
+        const spaceIndex = part.indexOf(' ');
+        if (spaceIndex > -1) {
+          action = part.slice(0, spaceIndex);
+          expression = part.slice(spaceIndex + 1).trim();
+        } else {
+          // No space means it's just an action with no expression (like @hide)
+          action = part;
+          expression = '';
+        }
+      }
+
+      bindings.push({ action, expression });
+    });
+
+    return bindings;
+  }
+
+  // Execute a single action on an element
+  _executeAction(element, action, expression, context) {
+    switch (action) {
+      case '@show':
+        // Show element if condition is true (or always if no condition)
+        const shouldShow = expression ? this._evaluateCondition(expression, context) : true;
+        if (shouldShow) {
+          element.removeAttribute('hidden');
+        } else {
+          element.setAttribute('hidden', '');
+        }
+        break;
+
+      case '@hide':
+        // Hide element if condition is true (or always if no condition)
+        const shouldHide = expression ? this._evaluateCondition(expression, context) : true;
+        if (shouldHide) {
+          element.setAttribute('hidden', '');
+        } else {
+          element.removeAttribute('hidden');
+        }
+        break;
+
+      case '@attr':
+        // Set attribute value
+        // Format: @attr attributeName expression
+        const attrParts = expression.split(' ');
+        const attrName = attrParts[0];
+        const attrExpression = attrParts.slice(1).join(' ');
+        const attrValue = this._resolvePath(context, attrExpression) || '';
+
+        if (attrValue) {
+          element.setAttribute(attrName, attrValue);
+        } else {
+          element.removeAttribute(attrName);
+        }
+        break;
+
+      case '@text':
+      default:
+        // Set text content (default behavior)
+        const value = this._resolvePath(context, expression) || '';
+
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+          element.value = value;
+        } else {
+          element.textContent = value;
+        }
+        break;
+
+      // Future actions can be added here:
+      // case '@class':
+      // case '@style':
+    }
   }
 
   // Resolve nested object path
