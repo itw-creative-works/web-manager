@@ -314,6 +314,71 @@ const context = Manager.bindings().getContext();
 Manager.bindings().clear();
 ```
 
+#### Attribute Actions
+```html
+<!-- Set an attribute value -->
+<img data-wm-bind="@attr src auth.user.photoURL" />
+<a data-wm-bind="@attr href settings.profileUrl">Profile</a>
+
+<!-- Multiple attributes on same element -->
+<img data-wm-bind="@attr src auth.user.photoURL, @attr alt auth.user.displayName" />
+```
+
+#### Multiple Actions
+You can combine multiple actions on a single element by separating them with commas:
+
+```html
+<!-- Set text AND show/hide -->
+<div data-wm-bind="@show auth.user, @text auth.user.displayName"></div>
+
+<!-- Set text AND multiple attributes -->
+<img data-wm-bind="@text auth.user.displayName, @attr src auth.user.photoURL, @attr title auth.user.email" />
+
+<!-- Multiple attributes -->
+<a data-wm-bind="@attr href settings.url, @attr target settings.target, @text settings.linkText"></a>
+```
+
+#### Skeleton Loaders
+Add the `wm-binding-skeleton` class to show a loading skeleton while data is being bound:
+
+```html
+<!-- Shows a shimmer loading effect until data is bound -->
+<span data-wm-bind="auth.user.displayName" class="wm-binding-skeleton"></span>
+
+<!-- Profile card with multiple skeleton loaders -->
+<div class="profile-card">
+  <img data-wm-bind="@attr src auth.user.photoURL" class="wm-binding-skeleton">
+  <h3 data-wm-bind="auth.user.displayName" class="wm-binding-skeleton"></h3>
+  <p data-wm-bind="auth.user.email" class="wm-binding-skeleton"></p>
+</div>
+
+<!-- Elements without the class won't show skeleton loaders -->
+<span data-wm-bind="settings.theme"></span>
+```
+
+The skeleton loader automatically:
+- Displays a shimmer animation while the element is unbound
+- Hides the text content during loading
+- Prevents interaction until data is loaded
+- Fades in smoothly when data arrives
+- Adapts to dark themes
+- Respects `prefers-reduced-motion` accessibility settings
+
+#### Visual Feedback
+When an element is bound, Web Manager automatically adds the `wm-bound` class to it. You can use this class for styling or debugging:
+
+```css
+/* Add a subtle indicator for bound elements in development */
+.wm-bound {
+  outline: 1px dashed rgba(0, 123, 255, 0.3);
+}
+
+/* Custom styling after binding */
+.wm-bound {
+  /* Element has been successfully bound */
+}
+```
+
 #### Supported Actions
 - **`@text`** (default): Sets the text content of the element
 - **`@show`**: Shows the element when condition is true
