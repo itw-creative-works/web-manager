@@ -43,10 +43,13 @@ class Bindings {
         this._executeAction(element, action, expression, context);
       });
 
-      // Add bound class to indicate element has been processed
-      if (!element.classList.contains('wm-bound')) {
+      // Remove skeleton loader class first to trigger transition
+      element.classList.remove('wm-binding-skeleton');
+
+      // Add bound class after a brief delay to allow for smooth animation (0.25s)
+      setTimeout(() => {
         element.classList.add('wm-bound');
-      }
+      }, 250);
     });
   }
 
