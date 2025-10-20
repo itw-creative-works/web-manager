@@ -35,234 +35,232 @@ npm install web-manager
 ```
 
 ## 🦄 Features
-* Polyfill detection and implementation for Promises, Array methods, window.fetch, and more!
-* Dom API that acts as a super lightweight and optimized version of jQuery
-* Improved Localstorage API
-* Utility API with the most useful Lodash methods `get` and `set`
+* **Firebase v12 Integration**: Modern Firebase Auth, Firestore, and Cloud Messaging
+* **Data Binding System**: Reactive DOM updates with `data-wm-bind` attributes
+* **Storage API**: Enhanced localStorage/sessionStorage with automatic JSON serialization
+* **Utilities**: Essential functions like `clipboardCopy()`, `escapeHTML()`, `getContext()`, and `showNotification()`
+* **DOM Utilities**: Lightweight helpers for dynamic script loading and DOM ready detection
+* **Service Worker Management**: Easy registration and messaging with service workers
+* **Push Notifications**: Simplified Firebase Cloud Messaging subscription system
 
-## 📚 Libraries
-* Firebase (Firebase app, Firestore, Auth, & Messaging)
-* Lazysizes to lazyload images
-* Sentry to report errors
-* [Chatsy.ai](https://chatsy.ai) AI chatbot integration
-* Cookieconsent to comply with GDPR
+## 📚 Integrated Libraries
+* **Firebase v12**: Firebase App, Firestore, Auth, and Cloud Messaging
+* **Sentry**: Comprehensive error tracking and session replay
+* **Firebase App Check**: Optional reCAPTCHA Enterprise protection
 
-## 📘 Example Setup
-After installing via npm, simply paste this script before the closing `</body>` tag to initialize Web Manager.
-```html
-<script type="text/javascript">
-  var Manager = new (require('web-manager'));
-  var config = {
-    // ... your config here
-  }
-  Manager.init(config, function() {
-    Manager.log('Initialized main.js');
-  });
-</script>
+## 📘 Quick Start
+
+### Installation
+```bash
+npm install web-manager
 ```
 
-## 📘 Example Usage
-Lets go over some example usage of the library.
+### Basic Setup
+```javascript
+import Manager from 'web-manager';
 
-### Kitchen Sink Config example
-By default, all of the libraries are enabled. But you can simply set `enabled` to `false` to disable any of them. Most of these libraries work without configuration but for some, such as Firebase, Tawk, and Sentry, you must supply the relevant IDs and API keys.
-
-```html
-<script type="text/javascript">
-  var config = {
-      pushNotifications: {
-        autoRequest: 60 // How long to wait before auto ask to subscribe. 0 to disable.
-      },
-      serviceWorker: {
-        path: 'firebase-messaging-sw.js' // Path to your service worker
-      },
-      libraries: {
-        firebase_app: { // Config is required if enabled
-          enabled: true,
-          config: {
-            apiKey: '123456',
-            authDomain: 'xxx.firebaseapp.com',
-            databaseURL: 'https://xxx.firebaseio.com',
-            projectId: 'xxx',
-            storageBucket: 'xxx.appspot.com',
-            messagingSenderId: '123456',
-            appId: '1:xxx'
-          }
-        },
-        tawk: { // Config is required if enabled
-          enabled: true,
-          config: {
-            chatId: 'xxx'
-          }
-        },
-        sentry: { // Config is required if enabled
-          enabled: true,
-          config: {
-            dsn: 'xxx',
-            release: 'xxx'
-          }
-        },
-        cookieconsent: { // No config required
-          enabled: true,
-          config: {
-            palette: {
-              popup: {
-                background: '#237afc',
-                text: '#ffffff'
-              },
-              button: {
-                background: '#fff',
-                text: '#237afc'
-              }
-            },
-            theme: 'classic',
-            position: 'bottom-left',
-            type: '',
-            content: {
-              message: 'This website uses cookies to ensure you get the best experience on our website.',
-              dismiss: 'Got it!',
-              link: 'Learn more',
-              href: (window.location.href + '/cookies/')
-            }
-          }
-        },
-        lazysizes: { // No config required
-          enabled: true
-        }
+// Initialize with your configuration
+await Manager.initialize({
+  environment: 'production',
+  buildTime: Date.now(),
+  brand: {
+    id: 'my-app',
+    name: 'My Application'
+  },
+  firebase: {
+    app: {
+      enabled: true,
+      config: {
+        apiKey: 'your-api-key',
+        authDomain: 'your-app.firebaseapp.com',
+        projectId: 'your-project-id',
+        storageBucket: 'your-app.appspot.com',
+        messagingSenderId: '123456789',
+        appId: '1:123456789:web:abcdef'
       }
     }
-  var Manager = new (require('web-manager'));
+  }
+});
 
-  Manager.init(config, function() {
-    Manager.log('Initialized main.js');
-  });
-</script>
+console.log('Web Manager initialized!');
 ```
 
-### Utilizing the .dom() API
-The Web Manager .dom() API is like a super lightweight and efficient version of jQuery, just better!
-```html
-<div class="el" id="el1">.el 1</div>
-<div class="el" id="el2">.el 1</div>
-<div class="el" id="el3">.el 1</div>
+## 📘 API Reference
 
-<div class="hide-me">.hide-me</div>
-<div class="show-me">.show-me</div>
+### Configuration
 
-<div id="attributes" data-foo="bar">#attributes</div>
+Here's a comprehensive configuration example with all available options:
 
-<input class="input" type="text" name="" value="Hello World!">
+```javascript
+await Manager.initialize({
+  // Environment and build info
+  environment: 'production', // 'development' or 'production'
+  buildTime: Date.now(),
 
-<div class="click-me">Click counter: 0</div>
+  // Brand information
+  brand: {
+    id: 'my-app',
+    name: 'My Application',
+    description: 'App description',
+    type: 'Organization',
+    images: {
+      brandmark: 'https://example.com/logo.png',
+      wordmark: 'https://example.com/wordmark.png',
+      combomark: 'https://example.com/combomark.png'
+    },
+    contact: {
+      email: 'support@example.com',
+      phone: '+1-555-0123'
+    }
+  },
 
-<script type="text/javascript">
-  Manager.ready(function() {
-    console.log('--- Exploring the .dom() API ---');
-    const el = Manager.dom().select('.el'); // Select using a standard querySelectorAll argument
-    el.addClass('new-class'); // Add a class
-    el.removeClass('old-class'); // Remove a class
-    el.each(function(element, index) { // Iterate through the elements
-      console.log('Loop number: ', index, element);
-      Manager.dom().select(element).setInnerHTML('Element number: ' + index); // Set setInnerHTML
-    });
-    console.log('Get ', el.get(0));
-    console.log('Get ', el.get(1));
-    console.log('Exists ', el.exists());
-    console.log('Exists (false)', Manager.dom().select('.this-doesnt-exist').exists());
-
-    const el2 = Manager.dom().select('.hide-me');
-    el2.hide(); // Hide an element
-
-    const el3 = Manager.dom().select('.show-me');
-    el2.show(); // Show an element
-
-    const el4 = Manager.dom().select('#attributes');
-    console.log('Attribute 1: ', el4.getAttribute('data-foo')); // Get an attribute
-    el4.setAttribute('data-foo', 'baz'); // Set an attribute
-    console.log('Attribute 2: ', el4.getAttribute('data-foo'));
-
-    const el5 = Manager.dom().select('.input');
-    console.log('Value 1: ', el5.getValue()); // Get value of an input
-    el5.setValue('Hello again World!'); // Set a value
-    console.log('Value 2: ', el5.getValue());
-
-    var clicks = 0;
-    const el6 = Manager.dom().select('.click-me');
-    Manager.dom().select('body').on('click', function(event) {
-      if (event.target.matches('.click-me')) {
-        clicks++;
-        el6.setInnerHTML('Click counter: ' + clicks)
+  // Firebase configuration
+  firebase: {
+    app: {
+      enabled: true,
+      config: {
+        apiKey: 'your-api-key',
+        authDomain: 'your-app.firebaseapp.com',
+        projectId: 'your-project-id',
+        storageBucket: 'your-app.appspot.com',
+        messagingSenderId: '123456789',
+        appId: '1:123456789:web:abcdef'
       }
-    });
-
-    // Loading a script
-    Manager.dom()
-    .loadScript({src: 'https://platform.twitter.com/widgets.js', crossorigin: true}, function() {
-      Manager.log('Loaded Twitter script.');
-    });
-
-
-
-  });
-</script>
-```
-
-### Utilizing the .utilities() API
-The Web Manager .utilities() API wraps some useful functions such as getting and setting values of objects.
-```html
-<script type="text/javascript">
-  console.log('--- Exploring the .utilities() API ---');
-
-  // .get() and .set()
-  Manager.ready(function() {
-    var object = {
-      key1: 'val1',
-      key2: 'val2',
-      nested: {
-        key4: 'val4'
+    },
+    appCheck: {
+      enabled: false,
+      config: {
+        siteKey: 'your-recaptcha-site-key'
       }
-    };
-    console.log('Root object ', Manager.utilities().get(object)); // Get whole object
-    console.log('Get key1 ', Manager.utilities().get(object, 'key1')); // Get a key's value
-    console.log('Get key3 ', Manager.utilities().get(object, 'key3')); // key3 doesn't exist
-    console.log('Get key3 ', Manager.utilities().get(object, 'key3', 'key3default')); // key3 still doesn't exist, but well request a default instead
+    }
+  },
 
-    console.log('Set key2 ', Manager.utilities().set(object, 'key2', 'new val2')); // Setting a value
-    console.log('Set key3 ', Manager.utilities().set(object, 'key3', 'val3')); // Setting a value that doesn't exist won't overwrite
+  // Sentry error tracking
+  sentry: {
+    enabled: true,
+    config: {
+      dsn: 'https://your-sentry-dsn',
+      replaysSessionSampleRate: 0.01,
+      replaysOnErrorSampleRate: 0.01
+    }
+  },
 
-    console.log('Get nested key4 ', Manager.utilities().get(object, 'nested.key4')); // Getting a nested value
-    console.log('Set nested key5 ', Manager.utilities().set(object, 'nested.key5', 'val5')); // Setting a nested value
+  // Push notifications
+  pushNotifications: {
+    enabled: true,
+    config: {
+      autoRequest: 60000 // Auto-request after 60s of first user interaction
+    }
+  },
 
-    console.log('Root object (final)', Manager.utilities().get(object)); // Get whole object a final time
+  // Service worker
+  serviceWorker: {
+    enabled: true,
+    config: {
+      path: '/service-worker.js'
+    }
+  },
 
-  });
-
-  // .clipboardCopy()
-  Manager.utilities().clipboardCopy('I am copied to the clipboard!')
-
-  // .escapeHTML()
-  Manager.utilities().escapeHTML('<strong>This will will NOT render as bold!</strong>')
-</script>
+  // Valid redirect hosts for auth
+  validRedirectHosts: ['example.com', 'app.example.com']
+});
 ```
 
-### Utilizing the .storage() API
-The Web Manager .storage() API is a wrapper for the localStorage API that automatically checks if localStorage is supported, automatically serializing (`JSON.stringify()`) and parsing (`JSON.parse()`) the inputs and outputs allowing you to natively work with storing objects in localStorage without any extra work!
-```html
-<script type="text/javascript">
-  Manager.ready(function() {
-    console.log('--- Exploring the .storage() API ---');
+### DOM Utilities
 
-    // By default, all methods only affect the the assigned node '_manager'
-    Manager.storage().clear(); // Clear _manager node
-    console.log(Manager.storage().get('key1', '1')); // Get a key with a default of 1 if key doesnt exist
-    console.log(Manager.storage().set('key1', '2')); // Set a key
-    console.log(Manager.storage().get('key1', '1'));
-    console.log(Manager.storage().get('', '1'));
-    console.log(Manager.storage().set('key1.key2.key3.key4', 'inner4')); // Set a nested key
-    console.log(Manager.storage().get('', '1'));
-  });
-</script>
+The DOM utilities provide essential functions for working with the DOM:
+
+```javascript
+import { loadScript, ready } from 'web-manager';
+
+// Wait for DOM to be ready
+await ready();
+console.log('DOM is ready!');
+
+// Load an external script dynamically
+await loadScript({
+  src: 'https://example.com/script.js',
+  async: true,
+  crossorigin: 'anonymous',
+  timeout: 30000,
+  retries: 2
+});
+
+// Or simply pass a URL string
+await loadScript('https://example.com/script.js');
 ```
+
+You can also access these via the Manager instance:
+
+```javascript
+const domUtils = Manager.dom();
+await domUtils.loadScript('https://example.com/script.js');
+await domUtils.ready();
+```
+
+### Utilities
+
+The utilities module provides essential helper functions:
+
+```javascript
+import { clipboardCopy, escapeHTML, getContext, showNotification } from 'web-manager';
+
+// Copy text to clipboard
+await clipboardCopy('Text to copy');
+
+// Escape HTML to prevent XSS attacks
+const safe = escapeHTML('<script>alert("xss")</script>');
+// Returns: &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;
+
+// Get client context information
+const context = getContext();
+// Returns: {
+//   client: { language, mobile, platform, userAgent, url },
+//   browser: { vendor }
+// }
+
+// Show Bootstrap-styled notification
+showNotification('Success!', { type: 'success', timeout: 5000 });
+showNotification('Error occurred', 'danger'); // Shorthand
+showNotification(new Error('Something went wrong')); // Auto-detects error
+```
+
+Access via Manager instance:
+
+```javascript
+const utils = Manager.utilities();
+utils.clipboardCopy('Hello!');
+utils.escapeHTML('<div>Test</div>');
+utils.getContext();
+utils.showNotification('Message', 'info');
+```
+
+### Storage API
+
+Enhanced localStorage and sessionStorage with automatic JSON serialization and nested path support:
+
+```javascript
+const storage = Manager.storage();
+
+// LocalStorage operations (persists across sessions)
+storage.set('user.name', 'John');
+storage.set('user.preferences', { theme: 'dark', lang: 'en' });
+
+const name = storage.get('user.name'); // 'John'
+const theme = storage.get('user.preferences.theme'); // 'dark'
+const all = storage.get(); // Get entire storage object
+
+storage.remove('user.name');
+storage.clear(); // Clear all data
+
+// SessionStorage operations (cleared when browser closes)
+storage.session.set('temp.data', 'value');
+const tempData = storage.session.get('temp.data');
+storage.session.remove('temp.data');
+storage.session.clear();
+```
+
+All data is automatically serialized to JSON, so you can store objects, arrays, and primitives without manual conversion.
 
 ### Utilizing the Data Binding System
 Web Manager includes a powerful data binding system that automatically updates your DOM elements based on data changes. Simply add the `data-wm-bind` attribute to any element.
@@ -324,134 +322,246 @@ Manager.bindings().clear();
 
 Future actions like `@class` and `@style` can be easily added.
 
-### Utilizing the Firebase Auth System
-The Firebase login system works like charm out of the box without you having to write a single line of code. All you have to do is add a few classes to your HTML elements and everything will work.
+### Firebase Authentication
 
-#### Authentication Action Classes
-* `.auth-signout-btn`: Add to a button to sign out the current user (shows confirmation dialog)
-* `.auth-email-input`: Add to an input for the user's email
-* `.auth-password-input`: Add to an input for the user's password
-* `.auth-signin-email-btn`: Add to a button to handle the signin process
-* `.auth-signup-email-btn`: Add to a button to handle the signup process
-* `.auth-signout-all-btn`: Add to a button to handle the signout process
-* `.auth-email-element`: Add to any element to display the user's email
-* `.auth-terms-input`: Add to a checkbox to require a TOS agreement before signup occurs
-* `.auth-newsletter-input`: Add to a checkbox to opt-in the user to newsletters upon signup
-* `.auth-uid-element`: Add to any element to display the user's uid
-* `.auth-signedin-true-element`: Add to any element and it will be hidden if the user *is* signed in
-* `.auth-signedin-false-element`: Add to any element and it will be hidden if the user *is not* signed in
+The auth module provides Firebase Authentication integration with automatic account data fetching:
 
-For these, you must first call `.account().resolve()`
-* `.auth-apikey-element`: Add to any element and it will display the user's API key
-* `.auth-delete-account-btn`: Add to a button to handle the account deletion process
-* `.auth-delete-account-confirmation-input`: Add to a checkbox to require confirmation before deleting
-* `.auth-delete-account-error-message-element`: Add to any element to show any error about account deletion
+```javascript
+const auth = Manager.auth();
 
-* `.auth-billing-subscribe-btn`: Add to any button to turn it into a subscribe button
-* `.auth-billing-update-btn`: Add to any button to turn it into a button to update an existing subscription
-* `.auth-billing-plan-id-element`: Add to any element and it will display the user's plan ID
-* `.auth-billing-frequency-element`: Add to any element and it will display the user's plan frequency
-* `.auth-billing-start-date-element`: Add to any element and it will display the user's plan start date
-* `.auth-billing-expiration-date-element`: Add to any element and it will display the user's plan expiration date
+// Listen for auth state changes (waits for settled state)
+const unsubscribe = auth.listen({ account: true }, (result) => {
+  console.log('User:', result.user);
+  console.log('Account:', result.account);
 
-* `.auth-created-element`: Add to any element to show the local string for account creation date
-* `.auth-phone-element`: Add to any element to display the user's phone
+  // result.user contains: uid, email, displayName, photoURL, emailVerified
+  // result.account contains resolved account data from Firestore
+});
 
-* `.auth-referral-count-element`: Update this element with the user's referral count
-* `.auth-referral-code-element`: Update this element with the user's referral code
-* `.auth-referral-link-element`: Update this element with the user's referral link
-* `.auth-referral-social-link`: Update this element with the user's referral link for socials where `data-provider` is the social network
+// Listen only once
+auth.listen({ once: true }, (result) => {
+  console.log('Initial auth state:', result);
+});
 
-*  Future additions (not added yet)
-  * `auth-link-provider-btn`: Initiate a link to the `data-provider` in this element
-  * `auth-unlink-provider-btn`: Initiate an unlink to the `data-provider` in this element
-  * `auth-signout-all-sessions-btn`: Call the server to sign out of all sessions and then log out of the current one.
+// Check if user is authenticated
+if (auth.isAuthenticated()) {
+  const user = auth.getUser();
+  console.log('Current user:', user);
+}
 
+// Sign in with email and password
+try {
+  const user = await auth.signInWithEmailAndPassword('user@example.com', 'password');
+  console.log('Signed in:', user);
+} catch (error) {
+  console.error('Sign in failed:', error);
+}
 
-```html
-<div class="auth-signedin-false-element">
-  <form onsubmit="return false;">
-    <fieldset>
-      <legend>Login</legend>
-      <label for="email">Email</label>
-      <input id="email" class="auth-email-input" type="email" name="email" placeholder="name@example.com" required autocomplete="email">
-      <label for="password">Password</label>
-      <input id="password" class="auth-password-input" type="password" name="password" placeholder="******" required autocomplete="current-password">
-    </fieldset>
+// Sign in with custom token
+await auth.signInWithCustomToken('custom-token');
 
-    <button id="submit" class="auth-signin-email-btn" type="submit">Sign in</button>
-  </form>
+// Sign out
+await auth.signOut();
 
-  <form onsubmit="return false;">
-    <fieldset>
-      <legend>Signup</legend>
-      <label for="email">Email</label>
-      <input id="email" class="auth-email-input" type="email" name="email" placeholder="name@example.com" required autocomplete="email">
-      <label for="password">Password</label>
-      <input id="password" class="auth-password-input" type="password" name="password" placeholder="******" required autocomplete="new-password">
-      <label for="passwordConfirm">Confirm password</label>
-      <input id="passwordConfirm" class="auth-password-input" type="password" name="passwordConfirm" placeholder="******" required autocomplete="new-password">
-    </fieldset>
-
-    <button id="submit" class="auth-signup-email-btn" type="submit">Sign up</button>
-  </form>
-
-</div>
-<div class="auth-signedin-true-element" hidden>
-  <fieldset>
-    <legend>My Account</legend>
-    <label for="email">Email</label>
-    <input id="email" class="auth-email-element" type="email" name="email" placeholder="name@example.com" disabled>
-    <label for="uid">User ID</label>
-    <input id="uid" class="auth-uid-element" type="text" name="uid" placeholder="1234567890" disabled>
-    <label for="password">Password</label>
-    <input id="password" class="" type="password" name="password" placeholder="******" disabled>
-  </fieldset>
-
-  <a href="#" onclick="return false;" class="auth-signout-all-btn">Sign out</a>
-</div>
+// Get ID token for API calls
+const idToken = await auth.getIdToken(forceRefresh = false);
 ```
 
-### Utilizing the Firebase Push Notification Subscription System
-The Firebase push notification system also works with minimal implementation on your part. Just call `Manager.This.notifications().subscribe()` and the rest is handled for you!
+#### Built-in Auth UI Classes
 
-```html
-<script type="text/javascript">
-  Manager.This.notifications().subscribe()
-  .then(function() {
-    Manager.log('Subscribed to push notifications!')
-  })
-  .catch(function(e) {
-    Manager.log('error', 'Failed to subscribe to push notifications: ', e)
-  })
-</script>
-```
+Add these CSS classes to HTML elements for automatic auth functionality:
 
-### Utilizing the ServiceWorker API
-Also included is an API wrapper for some ServiceWorker functions to make development easier. You don't have to waste lines of code checking if the service worker is supported, as this is implemented by default.
+* `.auth-signout-btn` - Sign out button (shows confirmation)
 
-```html
-<script type="text/javascript">
-  Manager.serviceWorker().postMessage({command: 'debug', args: {key: 'value'}}, function (response) {
-    Manager.log('Callback...', response);
+The auth system automatically updates DOM elements with `data-wm-bind` attributes (see Data Binding section).
+
+### Push Notifications
+
+Simplified Firebase Cloud Messaging integration:
+
+```javascript
+const notifications = Manager.notifications();
+
+// Check if notifications are supported
+if (notifications.isSupported()) {
+  console.log('Push notifications are supported!');
+}
+
+// Check subscription status
+const isSubscribed = await notifications.isSubscribed();
+
+// Subscribe to push notifications
+try {
+  const result = await notifications.subscribe({
+    vapidKey: 'your-vapid-key' // Optional
   });
-</script>
+  console.log('Subscribed!', result.token);
+} catch (error) {
+  console.error('Subscription failed:', error);
+}
+
+// Unsubscribe
+await notifications.unsubscribe();
+
+// Get current FCM token
+const token = await notifications.getToken();
+
+// Listen for foreground messages
+const unsubscribe = await notifications.onMessage((payload) => {
+  console.log('Message received:', payload);
+});
+
+// Sync subscription with current auth state
+await notifications.syncSubscription();
 ```
 
-### Utilizing the .account() API
-To preserve file size and enforce optimization, the `.account()` library must be explicitly loaded.
+The notification system automatically:
+- Requests permission after user interaction (configurable via `pushNotifications.config.autoRequest`)
+- Stores subscription info in Firestore
+- Syncs with user authentication state
+- Shows notifications when app is in foreground
 
-```html
-<script type="text/javascript">
-  Manager.account().import()
-  .then(function (Account) {
-    var account = new Account();
-    account.resolve()
-  })
-</script>
+### Service Worker
+
+Manage service workers with automatic support detection:
+
+```javascript
+const sw = Manager.serviceWorker();
+
+// Check if service workers are supported
+if (sw.isSupported()) {
+  console.log('Service workers are supported!');
+}
+
+// Register service worker (done automatically during initialization)
+const registration = await sw.register({
+  path: '/service-worker.js',
+  scope: '/'
+});
+
+// Wait for service worker to be ready
+await sw.ready();
+
+// Get current registration
+const reg = sw.getRegistration();
+
+// Post message to service worker
+try {
+  const response = await sw.postMessage({
+    command: 'cache-clear',
+    payload: { pattern: '*.js' }
+  }, { timeout: 5000 });
+  console.log('Response:', response);
+} catch (error) {
+  console.error('Message failed:', error);
+}
+
+// Listen for messages from service worker
+const unsubscribe = sw.onMessage('notification-click', (data, event) => {
+  console.log('Notification clicked:', data);
+});
+
+// Get service worker state
+const state = sw.getState(); // 'none', 'installing', 'waiting', 'active'
 ```
 
+### Firestore
 
+Simplified Firestore wrapper with chainable queries:
+
+```javascript
+const db = Manager.firestore();
+
+// Document operations
+await db.doc('users/user123').set({ name: 'John', age: 30 });
+await db.doc('users', 'user123').update({ age: 31 });
+
+const docSnap = await db.doc('users/user123').get();
+if (docSnap.exists()) {
+  console.log('User data:', docSnap.data());
+}
+
+await db.doc('users/user123').delete();
+
+// Collection queries
+const snapshot = await db.collection('users').get();
+snapshot.docs.forEach(doc => {
+  console.log(doc.id, doc.data());
+});
+
+// Query with filters
+const result = await db.collection('users')
+  .where('age', '>=', 18)
+  .orderBy('age', 'desc')
+  .limit(10)
+  .get();
+
+// Chainable queries
+const adults = await db.collection('users')
+  .where('age', '>=', 18)
+  .where('active', '==', true)
+  .orderBy('createdAt', 'desc')
+  .limit(20)
+  .startAt(lastDoc)
+  .get();
+```
+
+### Sentry Integration
+
+Error tracking with automatic configuration:
+
+```javascript
+const sentry = Manager.sentry();
+
+// Capture an exception
+try {
+  throw new Error('Something went wrong');
+} catch (error) {
+  sentry.captureException(error, {
+    tags: { feature: 'checkout' },
+    extra: { orderId: '12345' }
+  });
+}
+```
+
+Sentry is automatically configured with:
+- Environment and release tracking
+- User context from auth state
+- Session replay (if configured)
+- Filtering for development/automated browsers
+
+### Manager Helper Methods
+
+The Manager instance provides several utility methods:
+
+```javascript
+// Check if running in development mode
+if (Manager.isDevelopment()) {
+  console.log('Running in development');
+}
+
+// Get Firebase Functions URL
+const functionsUrl = Manager.getFunctionsUrl(); // Uses config environment
+const devUrl = Manager.getFunctionsUrl('development'); // http://localhost:5001/...
+const prodUrl = Manager.getFunctionsUrl('production'); // https://us-central1-...
+
+// Get API URL (derives from Firebase config)
+const apiUrl = Manager.getApiUrl(); // https://api.your-domain.com
+
+// Validate redirect URLs (for auth flows)
+const isValid = Manager.isValidRedirectUrl('https://example.com/callback');
+
+// Access Firebase instances directly
+const app = Manager.firebaseApp;
+const auth = Manager.firebaseAuth;
+const firestore = Manager.firebaseFirestore;
+const messaging = Manager.firebaseMessaging;
+
+// Access configuration
+const config = Manager.config;
+console.log('Brand:', config.brand);
+console.log('Environment:', config.environment);
+```
 
 ## 🗨️ Final Words
 If you are still having difficulty, we would love for you to post

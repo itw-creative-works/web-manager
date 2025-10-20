@@ -105,6 +105,11 @@ class Bindings {
         // case '@class':
         // case '@style':
       }
+
+      // Add bound class to indicate element has been processed
+      if (!element.classList.contains('wm-bound')) {
+        element.classList.add('wm-bound');
+      }
     });
   }
 
