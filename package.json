@@ -5,6 +5,7 @@
   "main": "dist/index.js",
   "module": "src/index.js",
   "scripts": {
+    "start": "npm run prepare:watch",
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
     "test_": "npm run prepare && ./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
     "prepare_": "node -e 'require(`prepare-package`)()'",
