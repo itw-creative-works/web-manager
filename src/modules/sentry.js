@@ -15,7 +15,7 @@ function isAutomatedBrowser() {
   }
 }
 
-class SentryModule {
+class mod {
   constructor(manager) {
     this.manager = manager;
     this.initialized = false;
@@ -32,10 +32,14 @@ class SentryModule {
     return new Promise((resolve, reject) => {
       // Dynamically import Sentry to reduce initial bundle size
       import('@sentry/browser')
-        .then((SentryModule) => {
+        .then((mod) => {
           // Store reference and expose globally
-          this.Sentry = SentryModule;
-          window.Sentry = SentryModule;
+          this.Sentry = mod;
+
+          // Add to window if window is defined
+          if (typeof window !== 'undefined') {
+            window.Sentry = mod;
+          }
 
           // Build configuration with our defaults
           this.config = this._buildConfig(config);
@@ -192,4 +196,4 @@ class SentryModule {
   // }
 }
 
-export default SentryModule;
+export default mod;

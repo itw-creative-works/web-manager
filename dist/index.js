@@ -7,6 +7,7 @@ import Firestore from './modules/firestore.js';
 import Notifications from './modules/notifications.js';
 import ServiceWorker from './modules/service-worker.js';
 import Sentry from './modules/sentry.js';
+
 class Manager {
   constructor() {
     // Configuration from init()
