@@ -382,7 +382,12 @@ class Manager {
   }
 
   getApiUrl(environment, url) {
-    const env = environment || this.config.environment;
+    // Precedence: passed environment > query string > config.environment
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryEnv = searchParams.get('_dev_apiEnvironment');
+    const env = environment
+      || queryEnv
+      || this.config.environment;
 
     if (env === 'development') {
       return 'http://localhost:5002';
