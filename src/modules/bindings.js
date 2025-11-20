@@ -13,7 +13,7 @@ class Bindings {
       ...data
     };
 
-    // Get the top-level keys that were updated
+    // Get the top-level keys that were updating
     const updatedKeys = Object.keys(data);
 
     this._updateBindings(this._context, updatedKeys);
@@ -38,7 +38,6 @@ class Bindings {
     /* @dev-only:start */
     {
       console.log('[Bindings] Updating bindings', context, updatedKeys);
-
     }
     /* @dev-only:end */
 

@@ -286,9 +286,12 @@ Web Manager includes a powerful data binding system that automatically updates y
 <!-- Hide element when condition is true -->
 <div data-wm-bind="@hide auth.user">Please log in</div>
 
+<!-- Or, show element when condition is false -->
+<div data-wm-bind="@show !auth.user">Please log in</div>
+
 <!-- Comparisons -->
 <div data-wm-bind="@show auth.account.subscription.plan === 'premium'">Premium features</div>
-<div data-wm-bind="@hide settings.notifications === false">Notifications enabled</div>
+<div data-wm-bind="@hide settings.custom === 'value">Notifications enabled</div>
 ```
 
 #### Usage in JavaScript
@@ -300,12 +303,8 @@ Manager.auth().listen({ account: true }, (result) => {
 
 // Update bindings with custom data
 Manager.bindings().update({
-  settings: { theme: 'dark', language: 'en' },
-  subscription: { plan: 'premium', expiresAt: '2024-12-31' }
+  settings: { custom: 'value' },
 });
-
-// Set individual properties
-Manager.bindings().set('currentPage', 'dashboard');
 
 // Get current binding context
 const context = Manager.bindings().getContext();

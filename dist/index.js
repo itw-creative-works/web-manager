@@ -108,6 +108,9 @@ class Manager {
       // Old IE force polyfill
       // await this._loadPolyfillsIfNeeded();
 
+      // Update bindings with config
+      this.bindings().update({ config: this.config });
+
       return this;
     } catch (error) {
       console.error('Manager initialization error:', error);
