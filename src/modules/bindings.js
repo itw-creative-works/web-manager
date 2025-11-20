@@ -35,6 +35,13 @@ class Bindings {
     // Find all elements with data-wm-bind attribute
     const bindElements = document.querySelectorAll('[data-wm-bind]');
 
+    /* @dev-only:start */
+    {
+      console.log('[Bindings] Updating bindings', context, updatedKeys);
+
+    }
+    /* @dev-only:end */
+
     bindElements.forEach(element => {
       const bindValue = element.getAttribute('data-wm-bind');
 
@@ -202,8 +209,11 @@ class Bindings {
       return true;
     }
 
+    // Strip negation operator if present before extracting root key
+    const cleanPath = path.trim().replace(/^!/, '');
+
     // Extract the root key from the path
-    const rootKey = path.trim().split('.')[0];
+    const rootKey = cleanPath.split('.')[0];
 
     // Only update if the root key is in updatedKeys
     return updatedKeys.includes(rootKey);

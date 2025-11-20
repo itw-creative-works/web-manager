@@ -40,3 +40,12 @@ this.Sentry = {
 
 // Expose limited API globally (only what's needed)
 window.Sentry = this.Sentry;
+
+
+what if in web-manager we put a special thing like
+
+    // Precedence: passed environment > query string > config.environment
+    const searchParams = new URLSearchParams(window.location.search);
+    const queryEnv = searchParams.get('_dev_loudLogs');
+
+and this will set a property of webManager to true that enables copious logs
