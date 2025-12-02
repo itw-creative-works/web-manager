@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "4.0.29",
+  "version": "4.0.30",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -39,7 +39,6 @@
     "replace": {}
   },
   "notes": {
-    "@sentry/browser": "10.12.0+ BREAKS ULTIMATE-JEKYLL. Version 10.12.0 introduced createConsolaReporter - This was a NEW export added to @sentry/browser that didn't exist in 10.8.0. The problem is:",
     "@sentry/browser": "Resolved by using OVERRIDES in web-manager (lighthouse is the issue"
   },
   "dependencies": {

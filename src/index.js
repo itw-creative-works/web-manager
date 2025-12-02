@@ -486,6 +486,11 @@ class Manager {
 
   async _checkVersion() {
     if (this.isDevelopment()) {
+      /* @dev-only:start */
+      {
+        console.log('[Version] Skipping version check in development mode');
+      }
+      /* @dev-only:end */
       return;
     }
 
@@ -526,12 +531,15 @@ class Manager {
       // Add 1 hour to current build time to account for npm build process
       buildTimeCurrent.setHours(buildTimeCurrent.getHours() + 1);
 
+      // Log version info
+      console.log(`[Version] Current build time: ${buildTimeCurrent.toISOString()}, Live build time: ${buildTimeLive.toISOString()}`);
+
       // If live version is newer, reload the page
       if (buildTimeCurrent >= buildTimeLive) {
         return; // No update needed
       }
 
-      console.log('New version detected, reloading page...');
+      console.log('[Version] New version detected, reloading page...');
 
       // Force page reload
       window.onbeforeunload = function () {
@@ -540,7 +548,7 @@ class Manager {
 
       window.location.reload(true);
     } catch (error) {
-      console.warn('Version check failed:', error);
+      console.warn('[Version] Failed version check:', error);
     }
   }
 }
