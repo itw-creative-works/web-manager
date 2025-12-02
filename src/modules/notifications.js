@@ -254,14 +254,13 @@ class Notifications {
   // Save subscription to Firestore
   async _saveSubscription(token) {
     try {
-      const firestore = this.manager.firebaseFirestore;
+      const firestore = this.manager.firestore();
       const user = this.manager.auth().getUser();
 
-      if (!firestore || !token) {
+      if (!token) {
         return;
       }
 
-      const { doc, getDoc, setDoc, updateDoc, deleteDoc } = await import('firebase/firestore');
       const { getContext } = await import('./utilities.js');
 
       const now = new Date();
@@ -273,10 +272,10 @@ class Notifications {
       const clientData = context.client;
 
       // Reference to the notification document (ID is the token)
-      const notificationRef = doc(firestore, 'notifications', token);
+      const notificationDoc = firestore.doc(`notifications/${token}`);
 
       // Check if document already exists
-      const existingDoc = await getDoc(notificationRef);
+      const existingDoc = await notificationDoc.get();
       const existingData = existingDoc.exists() ? existingDoc.data() : null;
 
       // Determine if we need to update
@@ -303,7 +302,7 @@ class Notifications {
           uid: currentUid
         };
 
-        await setDoc(notificationRef, subscriptionData);
+        await notificationDoc.set(subscriptionData);
 
       } else if (needsUpdate) {
         // Existing subscription needs update (userId changed)
@@ -318,39 +317,9 @@ class Notifications {
           uid: currentUid
         };
 
-        await updateDoc(notificationRef, updateData);
+        await notificationDoc.update(updateData);
       }
       // If no update needed, do nothing
-
-      // Update user's notification reference if authenticated
-      if (user && (!existingData || needsUpdate)) {
-        await setDoc(
-          doc(firestore, 'users', user.uid, 'notifications', token),
-          {
-            token,
-            created: existingData?.created || {
-              timestamp,
-              timestampUNIX
-            },
-            updated: {
-              timestamp,
-              timestampUNIX
-            },
-            active: true
-          },
-          { merge: true }
-        );
-      }
-
-      // Remove old user reference if user changed
-      if (existingUid && existingUid !== currentUid && existingUid !== null) {
-        try {
-          await deleteDoc(doc(firestore, 'users', existingUid, 'notifications', token));
-        } catch (err) {
-          // Ignore errors when cleaning up old references
-          console.log('Could not clean up old user notification reference:', err.message);
-        }
-      }
 
     } catch (error) {
       console.error('Save subscription error:', error);

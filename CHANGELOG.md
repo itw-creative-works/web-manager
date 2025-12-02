@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.29] - 2025-12-02
+### Fixed
+- Fixed notification subscription storing to incorrect Firestore path (`users/{uid}/notifications/{token}` → `notifications/{token}`).
+
+### Changed
+- Refactored `_saveSubscription` to use internal Firestore wrapper instead of direct Firebase imports.
+
 ## [4.0.28] - 2025-12-01
 ### Added
 - Added `exports` field to package.json for explicit module resolution support.
