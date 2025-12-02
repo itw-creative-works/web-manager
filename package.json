@@ -1,9 +1,14 @@
 {
   "name": "web-manager",
-  "version": "4.0.27",
+  "version": "4.0.28",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./modules/*": "./dist/modules/*",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "start": "npm run prepare:watch",
     "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
@@ -37,14 +42,14 @@
     "@sentry/browser": "10.12.0+ BREAKS ULTIMATE-JEKYLL. Version 10.12.0 introduced createConsolaReporter - This was a NEW export added to @sentry/browser that didn't exist in 10.8.0. The problem is:"
   },
   "dependencies": {
-    "@sentry/browser": "10.11.0",
-    "firebase": "^12.3.0",
+    "@sentry/browser": "^10.27.0",
+    "firebase": "^12.6.0",
     "itwcw-package-analytics": "^1.0.6",
     "lodash": "^4.17.21",
     "resolve-account": "^2.0.1"
   },
   "devDependencies": {
     "mocha": "^8.4.0",
-    "prepare-package": "^1.2.2"
+    "prepare-package": "^1.2.5"
   }
 }

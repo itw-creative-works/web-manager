@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.28] - 2025-12-01
+### Added
+- Added `exports` field to package.json for explicit module resolution support.
+
+### Changed
+- Updated `@sentry/browser` from pinned `10.11.0` to `^10.27.0`.
+- Updated `firebase` from `^12.3.0` to `^12.6.0`.
+- Updated `prepare-package` dev dependency from `^1.2.2` to `^1.2.5`.
+
 ## [4.0.0] - 2025-09-11
 ### ⚠️ BREAKING
 - Updated to ITW 3.0 standard.
