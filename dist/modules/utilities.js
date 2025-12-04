@@ -94,55 +94,105 @@ export function showNotification(message, options = {}) {
   }
 }
 
+// Get platform (OS)
+export function getPlatform() {
+  const ua = navigator.userAgent.toLowerCase();
+  const platform = (navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
+
+  // Check userAgent for mobile platforms (more reliable than platform string)
+  if (/iphone|ipad|ipod/.test(ua)) {
+    return 'ios';
+  }
+  if (/android/.test(ua)) {
+    return 'android';
+  }
+
+  // Check platform string for desktop OS
+  if (/win/.test(platform)) {
+    return 'windows';
+  }
+  if (/mac/.test(platform)) {
+    return 'mac';
+  }
+  if (/cros/.test(ua)) {
+    return 'chromeos';
+  }
+  if (/linux/.test(platform)) {
+    return 'linux';
+  }
+
+  return 'unknown';
+}
+
+// Get runtime environment
+export function getRuntime() {
+  // Browser extension
+  if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
+    return 'extension';
+  }
+
+  // Electron
+  if (typeof process !== 'undefined' && process.versions?.electron) {
+    return 'electron';
+  }
+
+  // Node.js (no window)
+  if (typeof window === 'undefined') {
+    return 'node';
+  }
+
+  // Default: web browser
+  return 'web';
+}
+
+// Check if mobile device
+export function isMobile() {
+  try {
+    // Try modern API first
+    const m = navigator.userAgentData?.mobile;
+    if (typeof m !== 'undefined') {
+      return m === true;
+    }
+  } catch (e) {
+    // Silent fail
+  }
+
+  // Fallback to media query
+  try {
+    return window.matchMedia('(max-width: 767px)').matches;
+  } catch (e) {
+    return false;
+  }
+}
+
+// Get device type based on screen width
+export function getDeviceType() {
+  const width = window.innerWidth;
+
+  // Mobile: < 768px (Bootstrap's md breakpoint)
+  if (width < 768) {
+    return 'mobile';
+  }
+
+  // Tablet: 768px - 1199px (between md and xl)
+  if (width < 1200) {
+    return 'tablet';
+  }
+
+  // Desktop: >= 1200px
+  return 'desktop';
+}
+
 // Get context information
 export function getContext() {
-  // Check if mobile
-  function isMobile() {
-    try {
-      // Try modern API first
-      const m = navigator.userAgentData?.mobile;
-      if (typeof m !== 'undefined') {
-        return m === true;
-      }
-    } catch (e) {
-      // Silent fail
-    }
-
-    // Fallback to media query
-    try {
-      return window.matchMedia('(max-width: 767px)').matches;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  // Get platform
-  function getPlatform() {
-    const platform = (navigator.userAgentData?.platform || navigator.platform || 'unknown').toLowerCase();
-
-    if (/iphone|ipad|ipod/.test(platform)) {
-      return 'ios';
-    } else if (/android/.test(platform)) {
-      return 'android';
-    } else if (/win/.test(platform)) {
-      return 'windows';
-    } else if (/mac/.test(platform)) {
-      return 'macos';
-    } else if (/linux/.test(platform)) {
-      return 'linux';
-    } else if (/cros/.test(platform)) {
-      return 'chromeos';
-    } else {
-      return 'unknown';
-    }
-  }
-
   // Return context information
   return {
     client: {
       language: navigator.language,
       mobile: isMobile(),
+      deviceType: getDeviceType(),
       platform: getPlatform(),
+      runtime: getRuntime(),
       userAgent: navigator.userAgent,
       url: window.location.href,
     },
@@ -160,6 +210,6 @@ export function getContext() {
     // viewport: {
     //   width: window.innerWidth,
     //   height: window.innerHeight,
-    // }
+    // },
   };
 }

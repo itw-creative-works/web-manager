@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.31] - 2025-12-03
+### Added
+- Added HTML data attributes (`data-platform`, `data-runtime`, `data-device`) on initialization for CSS targeting.
+- Added `getPlatform()`, `getRuntime()`, `isMobile()`, and `getDeviceType()` as standalone exported utility functions.
+
+### Changed
+- Refactored `getContext()` to use the new standalone functions and include `deviceType` and `runtime` in client info.
+
 ## [4.0.29] - 2025-12-02
 ### Fixed
 - Fixed notification subscription storing to incorrect Firestore path (`users/{uid}/notifications/{token}` → `notifications/{token}`).

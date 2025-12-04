@@ -75,6 +75,9 @@ class Manager {
       // Store configuration as-is
       this.config = this._processConfiguration(configuration);
 
+      // Set platform and runtime on HTML element
+      this._setHtmlDataAttributes();
+
       // Initialize Firebase if enabled
       if (this.config.firebase?.app?.enabled) {
         await this._initializeFirebase();
@@ -306,6 +309,24 @@ class Manager {
     }
   }
 
+  _setHtmlDataAttributes() {
+    // Skip if not in browser environment
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const $html = document.documentElement;
+
+    // Set platform (OS) - windows, mac, linux, ios, android, chromeos, unknown
+    $html.dataset.platform = utilities.getPlatform();
+
+    // Set runtime - web, extension, electron, node
+    $html.dataset.runtime = utilities.getRuntime();
+
+    // Set device type - mobile, tablet, desktop
+    $html.dataset.device = utilities.getDeviceType();
+  }
+
   async _initializeFirebase() {
     const firebaseConfig = this.config.firebase.app.config;
 
@@ -427,14 +448,17 @@ class Manager {
   }
 
   _startVersionCheck() {
-    // Re-focus events
-    window.addEventListener('focus', () => {
-      this._checkVersion();
-    });
+    // Quit if window is not available
+    if (typeof window !== 'undefined') {
+      // Re-focus events
+      window.addEventListener('focus', () => {
+        this._checkVersion();
+      });
 
-    window.addEventListener('online', () => {
-      this._checkVersion();
-    });
+      window.addEventListener('online', () => {
+        this._checkVersion();
+      });
+    }
 
     // Set up interval
     this._versionCheckInterval = setInterval(() => {
@@ -443,6 +467,12 @@ class Manager {
   }
 
   _setupNotificationAutoRequest() {
+    // Quit if document is not available
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    // Set up click listener to request notification permissions
     const handleClick = () => {
       // Remove listener after first click
       document.removeEventListener('click', handleClick);
@@ -539,7 +569,14 @@ class Manager {
         return; // No update needed
       }
 
+      // New version detected
       console.log('[Version] New version detected, reloading page...');
+
+      // If running in a non-browser environment, warn and return
+      if (typeof window === 'undefined') {
+        console.warn('[Version] Cannot reload in non-browser environment');
+        return;
+      }
 
       // Force page reload
       window.onbeforeunload = function () {
