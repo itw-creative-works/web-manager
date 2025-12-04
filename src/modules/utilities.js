@@ -126,20 +126,27 @@ export function getPlatform() {
 
 // Get runtime environment
 export function getRuntime() {
-  // Browser extension
-  if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
-    return 'extension';
+  // Browser extension (Chrome, Edge, Opera, Brave, Firefox, Safari, etc.)
+  if (
+    (typeof chrome !== 'undefined' && chrome.runtime?.id)
+    || (typeof browser !== 'undefined' && browser.runtime?.id)
+    || (typeof safari !== 'undefined' && safari.extension)
+  ) {
+    return 'browser-extension';
   }
 
-  // Electron
-  if (typeof process !== 'undefined' && process.versions?.electron) {
-    return 'electron';
-  }
+  // // Electron (main process, or renderer with nodeIntegration, or via userAgent)
+  // if (
+  //   (typeof process !== 'undefined' && process.versions?.electron) ||
+  //   (typeof navigator !== 'undefined' && /electron/i.test(navigator.userAgent))
+  // ) {
+  //   return 'electron';
+  // }
 
-  // Node.js (no window)
-  if (typeof window === 'undefined') {
-    return 'node';
-  }
+  // // Node.js (no window)
+  // if (typeof window === 'undefined') {
+  //   return 'node';
+  // }
 
   // Default: web browser
   return 'web';
