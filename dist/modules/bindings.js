@@ -181,6 +181,17 @@ class Bindings {
         }
         break;
 
+      case '@value':
+        // Set input/textarea value explicitly
+        // Check if this path should be updated
+        if (!this._shouldUpdatePath(expression, updatedKeys)) {
+          return;
+        }
+
+        const inputValue = this._resolvePath(context, expression) ?? '';
+        element.value = inputValue;
+        break;
+
       case '@text':
       default:
         // Set text content (default behavior)
@@ -190,13 +201,8 @@ class Bindings {
           return;
         }
 
-        const value = this._resolvePath(context, expression) || '';
-
-        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-          element.value = value;
-        } else {
-          element.textContent = value;
-        }
+        const textValue = this._resolvePath(context, expression) ?? '';
+        element.textContent = textValue;
         break;
     }
   }

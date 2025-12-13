@@ -272,9 +272,18 @@ Web Manager includes a powerful data binding system that automatically updates y
 
 <!-- Display nested properties -->
 <div data-wm-bind="auth.account.subscription.plan"></div>
+```
 
-<!-- Works with inputs too -->
-<input data-wm-bind="settings.theme" />
+#### Input/Textarea Value Binding
+```html
+<!-- Set input value -->
+<input data-wm-bind="@value settings.theme" />
+
+<!-- Set textarea value -->
+<textarea data-wm-bind="@value user.bio"></textarea>
+
+<!-- Combine with other actions -->
+<input data-wm-bind="@value auth.user.email, @attr disabled auth.user.emailVerified" />
 ```
 
 #### Conditional Visibility
@@ -403,6 +412,7 @@ Then use the custom property in your CSS:
 
 #### Supported Actions
 - **`@text`** (default): Sets the text content of the element
+- **`@value`**: Sets the value of an input or textarea element
 - **`@show`**: Shows the element when condition is true
 - **`@hide`**: Hides the element when condition is true
 - **`@attr`**: Sets an attribute value (format: `@attr attributeName expression`)
