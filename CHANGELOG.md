@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.33] - 2025-12-12
+### BREAKING
+- `@text` binding action no longer auto-detects input/textarea elements. Use `@value` for inputs instead.
+
+### Added
+- Added `@value` binding action for explicitly setting input/textarea values.
+
 ## [4.0.31] - 2025-12-03
 ### Added
 - Added HTML data attributes (`data-platform`, `data-runtime`, `data-device`) on initialization for CSS targeting.
