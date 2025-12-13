@@ -7,8 +7,6 @@
 <p align="center">
   <img src="https://img.shields.io/github/package-json/v/itw-creative-works/web-manager.svg">
   <br>
-  <img src="https://img.shields.io/david/itw-creative-works/web-manager.svg">
-  <img src="https://img.shields.io/david/dev/itw-creative-works/web-manager.svg">
   <img src="https://img.shields.io/bundlephobia/min/web-manager.svg">
   <img src="https://img.shields.io/codeclimate/maintainability-percentage/itw-creative-works/web-manager.svg">
   <img src="https://img.shields.io/npm/dm/web-manager.svg">
@@ -22,40 +20,49 @@
   <a href="https://itwcreativeworks.com">Site</a> | <a href="https://www.npmjs.com/package/web-manager">NPM Module</a> | <a href="https://github.com/itw-creative-works/web-manager">GitHub Repo</a>
   <br>
   <br>
-  <strong>Web Manager</strong> is an NPM module for web developers using node to build beautiful websites. This module instantly implements a few common libraries and functions that every developer should be using on their websites to enhance the user experience.
+  <strong>Web Manager</strong> is a modern JavaScript utility library for building web applications with Firebase integration. It provides authentication, data binding, storage management, push notifications, error tracking, and more.
   <br>
   <br>
-  This module is best used when bundled with <a href="https://www.npmjs.com/package/webpack">webpack</a>.
+  Optimized for use with <a href="https://www.npmjs.com/package/webpack">webpack</a> but works standalone too.
 </p>
 
-## 📦 Install Web Manager
-Install with npm:
+## Table of Contents
+- [Installation](#-installation)
+- [Requirements](#-requirements)
+- [Quick Start](#-quick-start)
+- [Supported Environments](#-supported-environments)
+- [Features](#-features)
+- [Configuration](#-configuration)
+- [API Reference](#-api-reference)
+  - [Manager Instance](#manager-instance)
+  - [Storage API](#storage-api)
+  - [Authentication](#authentication)
+  - [Data Binding System](#data-binding-system)
+  - [Firestore](#firestore)
+  - [Push Notifications](#push-notifications)
+  - [Service Worker](#service-worker)
+  - [Sentry Error Tracking](#sentry-error-tracking)
+  - [DOM Utilities](#dom-utilities)
+  - [Utility Functions](#utility-functions)
+- [HTML Data Attributes](#-html-data-attributes)
+- [Direct Module Imports](#-direct-module-imports)
+- [Browser Support](#-browser-support)
+- [Projects Using This Library](#-projects-using-this-library)
+- [Support](#-support)
+
+## Installation
 ```shell
 npm install web-manager
 ```
 
-## 🦄 Features
-* **Firebase v12 Integration**: Modern Firebase Auth, Firestore, and Cloud Messaging
-* **Data Binding System**: Reactive DOM updates with `data-wm-bind` attributes
-* **Storage API**: Enhanced localStorage/sessionStorage with automatic JSON serialization
-* **Utilities**: Essential functions like `clipboardCopy()`, `escapeHTML()`, `getContext()`, and `showNotification()`
-* **DOM Utilities**: Lightweight helpers for dynamic script loading and DOM ready detection
-* **Service Worker Management**: Easy registration and messaging with service workers
-* **Push Notifications**: Simplified Firebase Cloud Messaging subscription system
+## Requirements
+- **Node.js**: >= 12
+- **Browser**: Modern browsers (ES6+ support, transpiled to ES5 for older browsers)
 
-## 📚 Integrated Libraries
-* **Firebase v12**: Firebase App, Firestore, Auth, and Cloud Messaging
-* **Sentry**: Comprehensive error tracking and session replay
-* **Firebase App Check**: Optional reCAPTCHA Enterprise protection
+**Note**: This library does not include TypeScript definitions.
 
-## 📘 Quick Start
+## Quick Start
 
-### Installation
-```bash
-npm install web-manager
-```
-
-### Basic Setup
 ```javascript
 import Manager from 'web-manager';
 
@@ -85,21 +92,46 @@ await Manager.initialize({
 console.log('Web Manager initialized!');
 ```
 
-## 📘 API Reference
+## Supported Environments
 
-### Configuration
+Web Manager is designed to work in multiple environments:
 
-Here's a comprehensive configuration example with all available options:
+| Environment | Support | Notes |
+|-------------|---------|-------|
+| **Web** | Full | Primary target, works with webpack bundlers |
+| **Electron** | Full | Works in renderer process |
+| **Chrome Extension** | Full | Content scripts and popup pages |
+| **Firefox Extension** | Full | Content scripts and popup pages |
+| **Safari Extension** | Partial | Basic functionality supported |
+
+## Features
+- **Firebase v12 Integration**: Modern Firebase Auth, Firestore, and Cloud Messaging
+- **Data Binding System**: Reactive DOM updates with `data-wm-bind` attributes
+- **Storage API**: Enhanced localStorage/sessionStorage with path-based access and JSON serialization
+- **Utilities**: `clipboardCopy()`, `escapeHTML()`, `getContext()`, `showNotification()`, `getPlatform()`, `getRuntime()`, `isMobile()`, `getDeviceType()`
+- **DOM Utilities**: Dynamic script loading with retry/timeout support
+- **Service Worker Management**: Registration, messaging, and state tracking
+- **Push Notifications**: Firebase Cloud Messaging with auto-subscription
+- **Error Tracking**: Sentry integration with session replay
+- **App Check**: Optional reCAPTCHA Enterprise protection
+- **Version Checking**: Auto-reload when new version is deployed
+- **HTML Data Attributes**: Automatic `data-platform`, `data-runtime`, `data-device` on `<html>`
+
+## Configuration
+
+### Full Configuration Reference
 
 ```javascript
 await Manager.initialize({
-  // Environment and build info
-  environment: 'production', // 'development' or 'production'
+  // Environment: 'development' or 'production'
+  environment: 'production',
+
+  // Build timestamp for version checking
   buildTime: Date.now(),
 
   // Brand information
   brand: {
-    id: 'my-app',
+    id: 'my-app',                    // Used for custom protocol URLs
     name: 'My Application',
     description: 'App description',
     type: 'Organization',
@@ -130,7 +162,18 @@ await Manager.initialize({
     appCheck: {
       enabled: false,
       config: {
-        siteKey: 'your-recaptcha-site-key'
+        siteKey: 'your-recaptcha-enterprise-site-key'
+      }
+    }
+  },
+
+  // Authentication settings
+  auth: {
+    enabled: true,
+    config: {
+      redirects: {
+        authenticated: '/account',     // Redirect after login
+        unauthenticated: '/signup'     // Redirect when not logged in
       }
     }
   },
@@ -140,8 +183,9 @@ await Manager.initialize({
     enabled: true,
     config: {
       dsn: 'https://your-sentry-dsn',
-      replaysSessionSampleRate: 0.01,
-      replaysOnErrorSampleRate: 0.01
+      release: '1.0.0',
+      replaysSessionSampleRate: 0.01,  // 1% of sessions
+      replaysOnErrorSampleRate: 0.01   // 1% of error sessions
     }
   },
 
@@ -149,7 +193,8 @@ await Manager.initialize({
   pushNotifications: {
     enabled: true,
     config: {
-      autoRequest: 60000 // Auto-request after 60s of first user interaction
+      autoRequest: 60000,              // Auto-request after 60s of first click
+      vapidKey: 'your-vapid-key'       // Optional VAPID key
     }
   },
 
@@ -161,407 +206,248 @@ await Manager.initialize({
     }
   },
 
-  // Valid redirect hosts for auth
+  // Version checking (auto-reload on new version)
+  refreshNewVersion: {
+    enabled: true,
+    config: {
+      interval: 3600000                // Check every hour (1000 * 60 * 60)
+    }
+  },
+
+  // Valid hosts for auth redirects (security)
   validRedirectHosts: ['example.com', 'app.example.com']
 });
 ```
 
-### DOM Utilities
+### Configuration Notes
 
-The DOM utilities provide essential functions for working with the DOM:
+- **Timeout values** can be specified as strings with math expressions: `'1000 * 60 * 60'` (evaluated safely)
+- **Deep merge**: Your config is deep-merged with defaults, so you only need to specify what you want to change
+- **Firebase required**: Most features require Firebase to be configured and enabled
 
-```javascript
-import { loadScript, ready } from 'web-manager';
+## API Reference
 
-// Wait for DOM to be ready
-await ready();
-console.log('DOM is ready!');
+### Manager Instance
 
-// Load an external script dynamically
-await loadScript({
-  src: 'https://example.com/script.js',
-  async: true,
-  crossorigin: 'anonymous',
-  timeout: 30000,
-  retries: 2
-});
-
-// Or simply pass a URL string
-await loadScript('https://example.com/script.js');
-```
-
-You can also access these via the Manager instance:
+The Manager is a singleton that provides access to all modules:
 
 ```javascript
-const domUtils = Manager.dom();
-await domUtils.loadScript('https://example.com/script.js');
-await domUtils.ready();
-```
+import Manager from 'web-manager';
 
-### Utilities
+// Module getters
+Manager.storage();        // Storage API
+Manager.auth();           // Firebase Auth wrapper
+Manager.bindings();       // Data binding system
+Manager.firestore();      // Firestore wrapper
+Manager.notifications();  // Push notifications
+Manager.serviceWorker();  // Service worker management
+Manager.sentry();         // Error tracking
+Manager.dom();            // DOM utilities
+Manager.utilities();      // Utility functions
 
-The utilities module provides essential helper functions:
+// Helper methods
+Manager.isDevelopment();                        // Check if in development mode
+Manager.getFunctionsUrl();                      // Get Firebase Functions URL
+Manager.getFunctionsUrl('development');         // Force development URL
+Manager.getApiUrl();                            // Get API URL (derived from authDomain)
+Manager.isValidRedirectUrl('https://...');      // Validate redirect URL
 
-```javascript
-import { clipboardCopy, escapeHTML, getContext, showNotification } from 'web-manager';
+// Firebase instances (after initialization)
+Manager.firebaseApp;       // Firebase App instance
+Manager.firebaseAuth;      // Firebase Auth instance
+Manager.firebaseFirestore; // Firestore instance
+Manager.firebaseMessaging; // FCM instance
 
-// Copy text to clipboard
-await clipboardCopy('Text to copy');
-
-// Escape HTML to prevent XSS attacks
-const safe = escapeHTML('<script>alert("xss")</script>');
-// Returns: &lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;
-
-// Get client context information
-const context = getContext();
-// Returns: {
-//   client: { language, mobile, platform, userAgent, url },
-//   browser: { vendor }
-// }
-
-// Show Bootstrap-styled notification
-showNotification('Success!', { type: 'success', timeout: 5000 });
-showNotification('Error occurred', 'danger'); // Shorthand
-showNotification(new Error('Something went wrong')); // Auto-detects error
-```
-
-Access via Manager instance:
-
-```javascript
-const utils = Manager.utilities();
-utils.clipboardCopy('Hello!');
-utils.escapeHTML('<div>Test</div>');
-utils.getContext();
-utils.showNotification('Message', 'info');
+// Configuration
+Manager.config;            // Access full configuration
 ```
 
 ### Storage API
 
-Enhanced localStorage and sessionStorage with automatic JSON serialization and nested path support:
+Enhanced localStorage and sessionStorage with path-based access:
 
 ```javascript
 const storage = Manager.storage();
 
-// LocalStorage operations (persists across sessions)
+// LocalStorage (persists across browser sessions)
 storage.set('user.name', 'John');
 storage.set('user.preferences', { theme: 'dark', lang: 'en' });
 
-const name = storage.get('user.name'); // 'John'
-const theme = storage.get('user.preferences.theme'); // 'dark'
-const all = storage.get(); // Get entire storage object
+const name = storage.get('user.name');                    // 'John'
+const theme = storage.get('user.preferences.theme');      // 'dark'
+const all = storage.get();                                // Entire storage object
+const fallback = storage.get('missing.path', 'default');  // 'default'
 
 storage.remove('user.name');
-storage.clear(); // Clear all data
+storage.clear();
 
-// SessionStorage operations (cleared when browser closes)
-storage.session.set('temp.data', 'value');
-const tempData = storage.session.get('temp.data');
-storage.session.remove('temp.data');
+// SessionStorage (cleared when browser closes)
+storage.session.set('temp.token', 'abc123');
+storage.session.get('temp.token');
+storage.session.remove('temp.token');
 storage.session.clear();
 ```
 
-All data is automatically serialized to JSON, so you can store objects, arrays, and primitives without manual conversion.
+**Features**:
+- Automatic JSON serialization/deserialization
+- Nested path access using dot notation
+- Fallback to in-memory storage if localStorage unavailable
+- Uses lodash `get`/`set` for reliable path access
 
-### Utilizing the Data Binding System
-Web Manager includes a powerful data binding system that automatically updates your DOM elements based on data changes. Simply add the `data-wm-bind` attribute to any element.
+### Authentication
 
-#### Basic Text Binding
-```html
-<!-- Display user email -->
-<span data-wm-bind="auth.user.email"></span>
-
-<!-- Display nested properties -->
-<div data-wm-bind="auth.account.subscription.plan"></div>
-```
-
-#### Input/Textarea Value Binding
-```html
-<!-- Set input value -->
-<input data-wm-bind="@value settings.theme" />
-
-<!-- Set textarea value -->
-<textarea data-wm-bind="@value user.bio"></textarea>
-
-<!-- Combine with other actions -->
-<input data-wm-bind="@value auth.user.email, @attr disabled auth.user.emailVerified" />
-```
-
-#### Conditional Visibility
-```html
-<!-- Show element when condition is true -->
-<div data-wm-bind="@show auth.user">Welcome!</div>
-<div data-wm-bind="@show auth.user.emailVerified">Email is verified</div>
-
-<!-- Hide element when condition is true -->
-<div data-wm-bind="@hide auth.user">Please log in</div>
-
-<!-- Or, show element when condition is false -->
-<div data-wm-bind="@show !auth.user">Please log in</div>
-
-<!-- Comparisons -->
-<div data-wm-bind="@show auth.account.subscription.plan === 'premium'">Premium features</div>
-<div data-wm-bind="@hide settings.custom === 'value">Notifications enabled</div>
-```
-
-#### Usage in JavaScript
-```javascript
-// Auth data is automatically bound when using auth().listen()
-Manager.auth().listen({ account: true }, (result) => {
-  // auth.user and auth.account data are automatically bound to the DOM
-});
-
-// Update bindings with custom data
-Manager.bindings().update({
-  settings: { custom: 'value' },
-});
-
-// Get current binding context
-const context = Manager.bindings().getContext();
-
-// Clear all bindings
-Manager.bindings().clear();
-```
-
-#### Attribute Actions
-```html
-<!-- Set an attribute value -->
-<img data-wm-bind="@attr src auth.user.photoURL" />
-<a data-wm-bind="@attr href settings.profileUrl">Profile</a>
-
-<!-- Multiple attributes on same element -->
-<img data-wm-bind="@attr src auth.user.photoURL, @attr alt auth.user.displayName" />
-```
-
-#### Multiple Actions
-You can combine multiple actions on a single element by separating them with commas:
-
-```html
-<!-- Set text AND show/hide -->
-<div data-wm-bind="@show auth.user, @text auth.user.displayName"></div>
-
-<!-- Set text AND multiple attributes -->
-<img data-wm-bind="@text auth.user.displayName, @attr src auth.user.photoURL, @attr title auth.user.email" />
-
-<!-- Multiple attributes -->
-<a data-wm-bind="@attr href settings.url, @attr target settings.target, @text settings.linkText"></a>
-```
-
-#### Skeleton Loaders
-Add the `wm-binding-skeleton` class to show a loading skeleton while data is being bound:
-
-```html
-<!-- Shows a shimmer loading effect until data is bound -->
-<span data-wm-bind="auth.user.displayName" class="wm-binding-skeleton"></span>
-
-<!-- Profile card with multiple skeleton loaders -->
-<div class="profile-card">
-  <img data-wm-bind="@attr src auth.user.photoURL" class="wm-binding-skeleton">
-  <h3 data-wm-bind="auth.user.displayName" class="wm-binding-skeleton"></h3>
-  <p data-wm-bind="auth.user.email" class="wm-binding-skeleton"></p>
-</div>
-
-<!-- Elements without the class won't show skeleton loaders -->
-<span data-wm-bind="settings.theme"></span>
-```
-
-The skeleton loader automatically:
-- Displays a shimmer animation while the element is unbound
-- Hides the text content during loading
-- Prevents interaction until data is loaded
-- Fades in smoothly when data arrives
-- Adapts to dark themes
-- Respects `prefers-reduced-motion` accessibility settings
-
-#### Visual Feedback
-When an element is bound, Web Manager automatically adds the `wm-bound` class to it. You can use this class for styling or debugging:
-
-```css
-/* Add a subtle indicator for bound elements in development */
-.wm-bound {
-  outline: 1px dashed rgba(0, 123, 255, 0.3);
-}
-
-/* Custom styling after binding */
-.wm-bound {
-  /* Element has been successfully bound */
-}
-```
-
-#### Style Bindings
-Set CSS custom properties (CSS variables) or inline styles dynamically:
-
-```html
-<!-- Set CSS custom property -->
-<div data-wm-bind="@style --rating-percent site.ratings.starWidth"></div>
-
-<!-- Set regular style property -->
-<div data-wm-bind="@style width user.profile.width"></div>
-
-<!-- Multiple styles -->
-<div data-wm-bind="@style --primary-color theme.primaryColor, @style --secondary-color theme.secondaryColor"></div>
-```
-
-Then use the custom property in your CSS:
-
-```css
-.rating-stars::before {
-  width: var(--rating-percent, 0%);
-  background: var(--primary-color, #007bff);
-}
-```
-
-#### Supported Actions
-- **`@text`** (default): Sets the text content of the element
-- **`@value`**: Sets the value of an input or textarea element
-- **`@show`**: Shows the element when condition is true
-- **`@hide`**: Hides the element when condition is true
-- **`@attr`**: Sets an attribute value (format: `@attr attributeName expression`)
-- **`@style`**: Sets a CSS custom property or inline style (format: `@style propertyName expression`)
-
-Future actions like `@class` can be easily added.
-
-### Firebase Authentication
-
-The auth module provides Firebase Authentication integration with automatic account data fetching:
+Firebase Authentication wrapper with automatic account data fetching:
 
 ```javascript
 const auth = Manager.auth();
 
-// Listen for auth state changes (waits for settled state)
+// Listen for auth state changes
 const unsubscribe = auth.listen({ account: true }, (result) => {
-  console.log('User:', result.user);
-  console.log('Account:', result.account);
-
-  // result.user contains: uid, email, displayName, photoURL, emailVerified
-  // result.account contains resolved account data from Firestore
+  console.log('User:', result.user);     // Firebase user or null
+  console.log('Account:', result.account); // Firestore account data or null
 });
 
-// Listen only once
+// Listen once (useful for initial state)
 auth.listen({ once: true }, (result) => {
-  console.log('Initial auth state:', result);
+  console.log('Initial state:', result);
 });
 
-// Check if user is authenticated
+// Check authentication status
 if (auth.isAuthenticated()) {
   const user = auth.getUser();
-  console.log('Current user:', user);
+  console.log('Logged in as:', user.email);
 }
 
-// Sign in with email and password
+// Sign in
 try {
   const user = await auth.signInWithEmailAndPassword('user@example.com', 'password');
-  console.log('Signed in:', user);
 } catch (error) {
-  console.error('Sign in failed:', error);
+  console.error('Sign in failed:', error.message);
 }
 
-// Sign in with custom token
-await auth.signInWithCustomToken('custom-token');
+// Sign in with custom token (from backend)
+await auth.signInWithCustomToken('custom-jwt-token');
+
+// Get ID token for API calls
+const idToken = await auth.getIdToken();
+const freshToken = await auth.getIdToken(true); // Force refresh
 
 // Sign out
 await auth.signOut();
 
-// Get ID token for API calls
-const idToken = await auth.getIdToken(forceRefresh = false);
+// Stop listening
+unsubscribe();
 ```
 
-#### Built-in Auth UI Classes
-
-Add these CSS classes to HTML elements for automatic auth functionality:
-
-* `.auth-signout-btn` - Sign out button (shows confirmation)
-
-The auth system automatically updates DOM elements with `data-wm-bind` attributes (see Data Binding section).
-
-### Push Notifications
-
-Simplified Firebase Cloud Messaging integration:
-
+**getUser() returns enhanced user object**:
 ```javascript
-const notifications = Manager.notifications();
-
-// Check if notifications are supported
-if (notifications.isSupported()) {
-  console.log('Push notifications are supported!');
+{
+  uid: 'abc123',
+  email: 'user@example.com',
+  displayName: 'John Doe',        // Falls back to email or 'User'
+  photoURL: 'https://...',        // Falls back to ui-avatars.com
+  emailVerified: true
 }
-
-// Check subscription status
-const isSubscribed = await notifications.isSubscribed();
-
-// Subscribe to push notifications
-try {
-  const result = await notifications.subscribe({
-    vapidKey: 'your-vapid-key' // Optional
-  });
-  console.log('Subscribed!', result.token);
-} catch (error) {
-  console.error('Subscription failed:', error);
-}
-
-// Unsubscribe
-await notifications.unsubscribe();
-
-// Get current FCM token
-const token = await notifications.getToken();
-
-// Listen for foreground messages
-const unsubscribe = await notifications.onMessage((payload) => {
-  console.log('Message received:', payload);
-});
-
-// Sync subscription with current auth state
-await notifications.syncSubscription();
 ```
 
-The notification system automatically:
-- Requests permission after user interaction (configurable via `pushNotifications.config.autoRequest`)
-- Stores subscription info in Firestore
-- Syncs with user authentication state
-- Shows notifications when app is in foreground
+**HTML Auth Classes**:
+Add these classes to elements for automatic auth functionality:
+- `.auth-signout-btn` - Sign out button (shows confirmation dialog)
 
-### Service Worker
+### Data Binding System
 
-Manage service workers with automatic support detection:
+Reactive DOM updates with `data-wm-bind` attributes:
 
+#### Basic Text Binding
+```html
+<!-- Display text content (default action) -->
+<span data-wm-bind="auth.user.email"></span>
+<span data-wm-bind="@text auth.user.displayName"></span>
+```
+
+#### Input/Textarea Value Binding
+```html
+<input data-wm-bind="@value settings.email" />
+<textarea data-wm-bind="@value user.bio"></textarea>
+```
+
+#### Conditional Visibility
+```html
+<!-- Show when truthy -->
+<div data-wm-bind="@show auth.user">Welcome back!</div>
+
+<!-- Hide when truthy -->
+<div data-wm-bind="@hide auth.user">Please log in</div>
+
+<!-- Negation -->
+<div data-wm-bind="@show !auth.user">Not logged in</div>
+
+<!-- Comparisons -->
+<div data-wm-bind="@show auth.account.plan === 'premium'">Premium content</div>
+<div data-wm-bind="@hide settings.notifications === false">Notifications on</div>
+```
+
+#### Attribute Binding
+```html
+<img data-wm-bind="@attr src auth.user.photoURL" />
+<a data-wm-bind="@attr href settings.profileUrl">Profile</a>
+<input data-wm-bind="@attr disabled auth.loading" />
+```
+
+#### Style Binding
+```html
+<!-- CSS custom properties -->
+<div data-wm-bind="@style --rating-width ratings.percent"></div>
+
+<!-- Inline styles -->
+<div data-wm-bind="@style background-color theme.primary"></div>
+```
+
+#### Multiple Actions
+Combine actions with commas:
+```html
+<img data-wm-bind="@show auth.user, @attr src auth.user.photoURL, @attr alt auth.user.displayName" />
+```
+
+#### JavaScript API
 ```javascript
-const sw = Manager.serviceWorker();
+const bindings = Manager.bindings();
 
-// Check if service workers are supported
-if (sw.isSupported()) {
-  console.log('Service workers are supported!');
-}
-
-// Register service worker (done automatically during initialization)
-const registration = await sw.register({
-  path: '/service-worker.js',
-  scope: '/'
+// Update context data
+bindings.update({
+  settings: { theme: 'dark', email: 'user@example.com' },
+  custom: { value: 123 }
 });
 
-// Wait for service worker to be ready
-await sw.ready();
+// Get current context
+const context = bindings.getContext();
 
-// Get current registration
-const reg = sw.getRegistration();
-
-// Post message to service worker
-try {
-  const response = await sw.postMessage({
-    command: 'cache-clear',
-    payload: { pattern: '*.js' }
-  }, { timeout: 5000 });
-  console.log('Response:', response);
-} catch (error) {
-  console.error('Message failed:', error);
-}
-
-// Listen for messages from service worker
-const unsubscribe = sw.onMessage('notification-click', (data, event) => {
-  console.log('Notification clicked:', data);
-});
-
-// Get service worker state
-const state = sw.getState(); // 'none', 'installing', 'waiting', 'active'
+// Clear all bindings
+bindings.clear();
 ```
+
+#### Skeleton Loaders
+```html
+<!-- Shows shimmer animation until bound -->
+<span data-wm-bind="auth.user.name" class="wm-binding-skeleton"></span>
+```
+
+The skeleton automatically:
+- Displays shimmer animation while loading
+- Fades in smoothly when data arrives
+- Adds `wm-bound` class when complete
+- Respects `prefers-reduced-motion`
+
+#### Supported Actions
+
+| Action | Syntax | Description |
+|--------|--------|-------------|
+| `@text` | `@text path` | Set text content (default) |
+| `@value` | `@value path` | Set input/textarea value |
+| `@show` | `@show condition` | Show element if truthy |
+| `@hide` | `@hide condition` | Hide element if truthy |
+| `@attr` | `@attr name path` | Set attribute value |
+| `@style` | `@style prop path` | Set CSS property or variable |
 
 ### Firestore
 
@@ -570,43 +456,139 @@ Simplified Firestore wrapper with chainable queries:
 ```javascript
 const db = Manager.firestore();
 
-// Document operations
+// Document operations - two syntax options
 await db.doc('users/user123').set({ name: 'John', age: 30 });
 await db.doc('users', 'user123').update({ age: 31 });
 
 const docSnap = await db.doc('users/user123').get();
 if (docSnap.exists()) {
-  console.log('User data:', docSnap.data());
+  console.log('Data:', docSnap.data());
+  console.log('ID:', docSnap.id);
 }
 
 await db.doc('users/user123').delete();
 
 // Collection queries
 const snapshot = await db.collection('users').get();
+console.log('Count:', snapshot.size);
+console.log('Empty:', snapshot.empty);
 snapshot.docs.forEach(doc => {
   console.log(doc.id, doc.data());
 });
 
-// Query with filters
-const result = await db.collection('users')
-  .where('age', '>=', 18)
-  .orderBy('age', 'desc')
-  .limit(10)
-  .get();
-
-// Chainable queries
-const adults = await db.collection('users')
+// Query with filters (chainable)
+const results = await db.collection('users')
   .where('age', '>=', 18)
   .where('active', '==', true)
   .orderBy('createdAt', 'desc')
   .limit(20)
-  .startAt(lastDoc)
+  .get();
+
+// Pagination
+const page2 = await db.collection('users')
+  .orderBy('name')
+  .startAt('M')
+  .endAt('N')
   .get();
 ```
 
-### Sentry Integration
+**Where Operators**: `<`, `<=`, `==`, `!=`, `>=`, `>`, `array-contains`, `in`, `array-contains-any`, `not-in`
 
-Error tracking with automatic configuration:
+### Push Notifications
+
+Firebase Cloud Messaging integration:
+
+```javascript
+const notifications = Manager.notifications();
+
+// Check support
+if (notifications.isSupported()) {
+  console.log('Push notifications available');
+}
+
+// Check subscription status
+const isSubscribed = await notifications.isSubscribed();
+
+// Subscribe
+try {
+  const result = await notifications.subscribe({
+    vapidKey: 'your-vapid-key' // Optional
+  });
+  console.log('Token:', result.token);
+} catch (error) {
+  if (error.message.includes('permission')) {
+    console.log('User denied permission');
+  }
+}
+
+// Unsubscribe
+await notifications.unsubscribe();
+
+// Get current token
+const token = await notifications.getToken();
+
+// Listen for foreground messages
+const unsubscribe = await notifications.onMessage((payload) => {
+  console.log('Received:', payload);
+});
+
+// Sync subscription with auth state
+await notifications.syncSubscription();
+```
+
+**Features**:
+- Stores subscription in localStorage and Firestore
+- Tracks device context (platform, runtime, deviceType)
+- Auto-requests after configurable delay post-click
+- Syncs with user authentication state
+
+### Service Worker
+
+Service worker registration and messaging:
+
+```javascript
+const sw = Manager.serviceWorker();
+
+// Check support
+if (sw.isSupported()) {
+  console.log('Service workers available');
+}
+
+// Register (done automatically during init if enabled)
+const registration = await sw.register({
+  path: '/service-worker.js',
+  scope: '/'
+});
+
+// Wait for ready state
+await sw.ready();
+
+// Get registration
+const reg = sw.getRegistration();
+
+// Post message with response
+try {
+  const response = await sw.postMessage({
+    command: 'cache-clear',
+    payload: { pattern: '*.js' }
+  }, { timeout: 5000 });
+  console.log('Response:', response);
+} catch (error) {
+  console.error('Timeout or error:', error);
+}
+
+// Listen for messages from service worker
+const unsubscribe = sw.onMessage('notification-click', (data, event) => {
+  console.log('Clicked:', data);
+});
+
+// Get current state
+const state = sw.getState(); // 'none', 'installing', 'waiting', 'active', 'unknown'
+```
+
+### Sentry Error Tracking
+
+Automatic error tracking with Sentry:
 
 ```javascript
 const sentry = Manager.sentry();
@@ -622,54 +604,191 @@ try {
 }
 ```
 
-Sentry is automatically configured with:
-- Environment and release tracking
-- User context from auth state
-- Session replay (if configured)
-- Filtering for development/automated browsers
+**Automatic Features**:
+- Environment and release tracking from config
+- User context from auth state (uid, email)
+- Session duration tracking
+- Filters out Lighthouse and automated browsers (Selenium, Puppeteer)
+- Blocks sending in development mode
+- Dynamic import to reduce bundle size
 
-### Manager Helper Methods
-
-The Manager instance provides several utility methods:
+### DOM Utilities
 
 ```javascript
-// Check if running in development mode
-if (Manager.isDevelopment()) {
-  console.log('Running in development');
-}
+import { loadScript, ready } from 'web-manager/modules/dom';
+// Or: const { loadScript, ready } = Manager.dom();
 
-// Get Firebase Functions URL
-const functionsUrl = Manager.getFunctionsUrl(); // Uses config environment
-const devUrl = Manager.getFunctionsUrl('development'); // http://localhost:5001/...
-const prodUrl = Manager.getFunctionsUrl('production'); // https://us-central1-...
+// Wait for DOM ready
+await ready();
 
-// Get API URL (derives from Firebase config)
-const apiUrl = Manager.getApiUrl(); // https://api.your-domain.com
+// Load external script
+await loadScript({
+  src: 'https://example.com/script.js',
+  async: true,
+  defer: false,
+  crossorigin: 'anonymous',
+  integrity: 'sha384-...',
+  timeout: 30000,
+  retries: 2,
+  parent: document.head,
+  attributes: { 'data-custom': 'value' }
+});
 
-// Validate redirect URLs (for auth flows)
-const isValid = Manager.isValidRedirectUrl('https://example.com/callback');
-
-// Access Firebase instances directly
-const app = Manager.firebaseApp;
-const auth = Manager.firebaseAuth;
-const firestore = Manager.firebaseFirestore;
-const messaging = Manager.firebaseMessaging;
-
-// Access configuration
-const config = Manager.config;
-console.log('Brand:', config.brand);
-console.log('Environment:', config.environment);
+// Simple string syntax
+await loadScript('https://example.com/script.js');
 ```
 
-## 🗨️ Final Words
-If you are still having difficulty, we would love for you to post
-a question to [the Web Manager issues page](https://github.com/itw-creative-works/web-manager/issues). It is much easier to answer questions that include your code and relevant files! So if you can provide them, we'd be extremely grateful (and more likely to help you find the answer!)
+**loadScript Options**:
 
-## 📚 Projects Using this Library
-[Somiibo](https://somiibo.com/): A Social Media Bot with an open-source module library. <br>
-[JekyllUp](https://jekyllup.com/): A website devoted to sharing the best Jekyll themes. <br>
-[Slapform](https://slapform.com/): A backend processor for your HTML forms on static sites. <br>
-[SoundGrail Music App](https://app.soundgrail.com/): A resource for producers, musicians, and DJs. <br>
-[Hammock Report](https://hammockreport.com/): An API for exploring and listing backyard products. <br>
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `src` | string | required | Script URL |
+| `async` | boolean | `true` | Load asynchronously |
+| `defer` | boolean | `false` | Defer execution |
+| `crossorigin` | boolean/string | `false` | CORS setting |
+| `integrity` | string | `null` | SRI hash |
+| `timeout` | number | `60000` | Timeout in ms |
+| `retries` | number | `0` | Retry attempts |
+| `parent` | Element | `document.head` | Parent element |
+| `attributes` | object | `{}` | Custom attributes |
 
-Ask us to have your project listed! :)
+### Utility Functions
+
+```javascript
+import {
+  clipboardCopy,
+  escapeHTML,
+  showNotification,
+  getPlatform,
+  getRuntime,
+  isMobile,
+  getDeviceType,
+  getContext
+} from 'web-manager/modules/utilities';
+// Or: const utils = Manager.utilities();
+
+// Copy to clipboard
+await clipboardCopy('Text to copy');
+await clipboardCopy(document.querySelector('#input')); // From element
+
+// Escape HTML (XSS prevention)
+const safe = escapeHTML('<script>alert("xss")</script>');
+// '&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'
+
+// Show notification (Bootstrap-styled)
+showNotification('Success!', { type: 'success', timeout: 5000 });
+showNotification('Error!', 'danger');
+showNotification(new Error('Failed'), { timeout: 0 }); // No auto-dismiss
+
+// Platform detection
+getPlatform(); // 'windows', 'mac', 'linux', 'ios', 'android', 'chromeos', 'unknown'
+
+// Runtime detection
+getRuntime(); // 'web', 'browser-extension'
+
+// Device detection
+isMobile();     // true/false
+getDeviceType(); // 'mobile' (<768px), 'tablet' (768-1199px), 'desktop' (>=1200px)
+
+// Full context
+getContext();
+// {
+//   client: { language, mobile, deviceType, platform, runtime, userAgent, url },
+//   browser: { vendor }
+// }
+```
+
+**showNotification Options**:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `type` | string | `'info'` | `'info'`, `'success'`, `'warning'`, `'danger'` |
+| `timeout` | number | `5000` | Auto-dismiss after ms (0 = never) |
+
+## HTML Data Attributes
+
+Web Manager automatically sets these attributes on the `<html>` element during initialization:
+
+```html
+<html data-platform="mac" data-runtime="web" data-device="desktop">
+```
+
+| Attribute | Values | Description |
+|-----------|--------|-------------|
+| `data-platform` | `windows`, `mac`, `linux`, `ios`, `android`, `chromeos`, `unknown` | Operating system |
+| `data-runtime` | `web`, `browser-extension` | Runtime environment |
+| `data-device` | `mobile`, `tablet`, `desktop` | Device type by screen width |
+
+**CSS Usage**:
+```css
+/* Platform-specific styles */
+[data-platform="ios"] .download-btn { display: none; }
+[data-platform="windows"] .app-icon { content: url('windows-icon.png'); }
+
+/* Device-responsive styles */
+[data-device="mobile"] .sidebar { display: none; }
+[data-device="desktop"] .mobile-menu { display: none; }
+```
+
+## Direct Module Imports
+
+Import individual modules to reduce bundle size:
+
+```javascript
+// Storage only
+import Storage from 'web-manager/modules/storage';
+const storage = new Storage();
+
+// Utilities only
+import { clipboardCopy, escapeHTML } from 'web-manager/modules/utilities';
+
+// DOM utilities only
+import { loadScript, ready } from 'web-manager/modules/dom';
+
+// Full manager (default)
+import Manager from 'web-manager';
+```
+
+**Available Modules**:
+- `web-manager/modules/storage` - Storage class
+- `web-manager/modules/utilities` - Utility functions
+- `web-manager/modules/dom` - DOM utilities
+- `web-manager/modules/auth` - Auth class (requires Manager)
+- `web-manager/modules/bindings` - Bindings class (requires Manager)
+- `web-manager/modules/firestore` - Firestore class (requires Manager)
+- `web-manager/modules/notifications` - Notifications class (requires Manager)
+- `web-manager/modules/service-worker` - ServiceWorker class (requires Manager)
+- `web-manager/modules/sentry` - Sentry class (requires Manager)
+
+## Browser Support
+
+Web Manager is transpiled to ES5 for broad browser support:
+
+| Browser | Version | Support |
+|---------|---------|---------|
+| Chrome | 60+ | Full |
+| Firefox | 55+ | Full |
+| Safari | 11+ | Full |
+| Edge | 79+ | Full |
+| IE | 11 | Not supported |
+
+**Notes**:
+- Service Workers require HTTPS (except localhost)
+- Push Notifications require Service Worker support
+- Some features use modern APIs with fallbacks
+
+## Projects Using This Library
+
+- [Somiibo](https://somiibo.com/): A Social Media Bot with an open-source module library
+- [JekyllUp](https://jekyllup.com/): A website devoted to sharing the best Jekyll themes
+- [Slapform](https://slapform.com/): A backend processor for HTML forms on static sites
+- [SoundGrail Music App](https://app.soundgrail.com/): A resource for producers, musicians, and DJs
+- [Hammock Report](https://hammockreport.com/): An API for exploring and listing backyard products
+
+*Want your project listed? [Open an issue](https://github.com/itw-creative-works/web-manager/issues)!*
+
+## Support
+
+If you're having issues or have questions:
+- [Open an issue](https://github.com/itw-creative-works/web-manager/issues) on GitHub
+- Include code samples and relevant files to help us help you faster

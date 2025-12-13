@@ -123,13 +123,6 @@ class Auth {
 
     // Set up listener for auth state changes
     unsubscribe = this.onAuthStateChanged((user) => {
-      // If once option is set, unsubscribe
-      // We have to do this here because unsubscribe is only available after this call
-      if (options.once && unsubscribe) {
-        unsubscribe();
-        return;
-      }
-
       // Wait for settled state before first callback
       if (!hasCalledback && !this.manager._firebaseAuthInitialized) {
         return; // Auth state not yet determined
@@ -140,6 +133,11 @@ class Auth {
 
       // Get current state and call the callback
       getStateAndCallback(user);
+
+      // If once option is set, unsubscribe AFTER calling the callback
+      if (options.once && unsubscribe) {
+        unsubscribe();
+      }
     });
 
     return unsubscribe;

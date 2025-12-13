@@ -1,42 +1,270 @@
-This is a helper library that I built 6 years ago in 2019 when the web landscape was very different.
+# Web Manager - AI Agent Guide
 
-I built many functionalities that I found myself writing for every project so that I could reuse them easily.
-It has been a great help in my projects, but many of these things are now not needed due to webpack, and other amazing tools.
+This document helps AI agents understand the web-manager codebase for effective contributions.
 
-The first thing I did is move all the old code to the "legacy" folder so that we can keep it as a reference. You should reference this as your REBUILD THE NEW LIBRARY IN "src" folder. DO NOT DELETE OR CHANGE LEGACY CODE, just reference it and recreate the functioinality I want in the "src" folder.
+## Project Overview
 
-Going forward, you can use any new JS you want like backticks and => since we are going to transpile everything to ES5.
+**Purpose**: Modern JavaScript utility library for web applications with Firebase integration. Provides authentication, data binding, storage, push notifications, error tracking, and more.
 
-MAKE THIS NEW VERSION OF THE LIBRARY OPTIMIZED FOR WEBPACK (but know that it WONT ALWAYS BE USED WITH WEBPACK)
+**Target Environments**:
+- Web (primary, webpack-optimized)
+- Electron (renderer process)
+- Chrome/Firefox Extensions (content scripts, popups)
 
-We are going to completely rewrite and refactor this library. Let's start with how and where it will be used.
-1. Web: It will be webpacked with a project that transpiles everything to ES5
-2. Electron: It will be used in an Electron app.
-3. Chrome Extension: It will be used in a Chrome extension.
+**Version**: 4.0.x | **Node**: >=12 | **License**: CC-BY-4.0
 
-Now lets go over what I want to keep.
-1. Firebase
-  - Let's updte to use the latest version of Firebase (12)
-  - I want a sort of "mini firebase auth wrapper" that has some basic functions
-    - auth.ready(options).then(result => {})
-      - This should return a promise that resolves when the auth is ready OR not (so i can call it when the page loads and result will either be the signed in user or nothing if they are not signed in)
-      - result (AN OBJECT) = {
-        user: the signed in firebase user OR null
-        account: the signed in user's acconunt data IF requested in options.account = true
-      }
-    - We will for sure need to have Firebase auth, firestore, messaging.
-2. Manager.prototype.notifications
-  - Easily check if subscribed and subscribe to push notifications. Keeps track in local storage.
-  - automatically requests permission after a click and a timeout
-3. Manager.prototype.storage
-  - A simple wrapper around localStorage and sessionStorage that allows for easy setting, getting, and removing of items.
-4. navigator.serviceWorker.register
-  - A simple wrapper around the service worker registration that allows for easy registration and unregistration.
+## Architecture
 
-Some things we can definitely remove:
-1. Most of the legacy/lib/dom.js library since webpack can help me avoid this shit. BUT i do want a light helper that does some things
-  - loadScript so we can load and dynamically import external scripts
-2. I think we can remove init_loadPolyfills since we are transpiling, correct?
-3. Most of legacy/lib/utilities.js
-  - Keep clipboardCopy, escapeHTML, getContext
+### Singleton Pattern
+The library exports a singleton `Manager` instance:
+```javascript
+const manager = new Manager();
+export default manager;
+export { Manager };
+```
 
+### Directory Structure
+```
+web-manager/
+├── src/                       # Source code (ES6+)
+│   ├── index.js               # Manager class, initialization, Firebase setup
+│   └── modules/               # Feature modules
+│       ├── auth.js            # Firebase Auth wrapper
+│       ├── bindings.js        # Reactive DOM data binding
+│       ├── dom.js             # loadScript, ready utilities
+│       ├── firestore.js       # Firestore wrapper with chainable queries
+│       ├── notifications.js   # FCM push notifications
+│       ├── sentry.js          # Error tracking integration
+│       ├── service-worker.js  # SW registration and messaging
+│       ├── storage.js         # localStorage/sessionStorage wrapper
+│       └── utilities.js       # Helper functions (clipboard, escape, etc.)
+├── dist/                      # Transpiled ES5 output (generated)
+├── _legacy/                   # Old implementation (reference only, DO NOT MODIFY)
+└── test/                      # Mocha tests
+```
+
+### Module Dependencies
+```
+Manager (index.js)
+├── Storage (standalone, no deps)
+├── Auth → Manager, Bindings, Storage, Firestore
+├── Bindings → Manager
+├── Firestore → Manager (lazy Firebase import)
+├── Notifications → Manager, Storage, Firestore
+├── ServiceWorker → Manager
+├── Sentry → Manager (dynamic import)
+├── DOM utilities (standalone)
+└── Utilities (standalone)
+```
+
+## Key Patterns
+
+### 1. Early Return (Short-Circuit)
+Always use early returns instead of nested conditionals:
+```javascript
+// CORRECT
+function doSomething() {
+  if (!condition) {
+    return;
+  }
+  // Long code block...
+}
+
+// WRONG
+function doSomething() {
+  if (condition) {
+    // Long code block...
+  }
+}
+```
+
+### 2. DOM Element Naming
+Prefix DOM element variables with `$`:
+```javascript
+const $button = document.querySelector('.submit-btn');
+const $input = document.getElementById('email');
+```
+
+### 3. Logical Operator Formatting
+Place operators at the START of continuation lines:
+```javascript
+// CORRECT
+const result = conditionA
+  || conditionB
+  || conditionC;
+
+// WRONG
+const result = conditionA ||
+  conditionB ||
+  conditionC;
+```
+
+### 4. Firestore Path Syntax
+Prefer path syntax over collection/doc chaining:
+```javascript
+// PREFERRED
+db.doc('users/userId')
+
+// ALSO SUPPORTED
+db.doc('users', 'userId')
+```
+
+### 5. Dynamic Imports
+Firebase modules are dynamically imported to reduce bundle size:
+```javascript
+const { initializeApp } = await import('firebase/app');
+const { getAuth } = await import('firebase/auth');
+```
+
+### 6. Configuration Deep Merge
+User config is deep-merged with defaults in `_processConfiguration()`. Only override what you need:
+```javascript
+// Defaults defined in _processConfiguration()
+const defaults = {
+  environment: 'production',
+  firebase: { app: { enabled: true, config: {} } },
+  // ...
+};
+```
+
+### 7. Event Delegation
+Auth UI uses event delegation on document body:
+```javascript
+document.body.addEventListener('click', (e) => {
+  if (e.target.closest('.auth-signout-btn')) {
+    // Handle signout
+  }
+});
+```
+
+## Module Quick Reference
+
+### Storage (`storage.js`)
+- **Class**: `Storage`
+- **Key Methods**: `get(path, default)`, `set(path, value)`, `remove(path)`, `clear()`
+- **Session**: Same methods under `.session` namespace
+- **Storage Key**: `_manager` in localStorage
+
+### Auth (`auth.js`)
+- **Class**: `Auth`
+- **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`
+- **Bindings**: Updates `auth.user` and `auth.account` context
+
+### Bindings (`bindings.js`)
+- **Class**: `Bindings`
+- **Key Methods**: `update(data)`, `getContext()`, `clear()`
+- **HTML Attr**: `data-wm-bind`
+- **Actions**: `@text`, `@value`, `@show`, `@hide`, `@attr`, `@style`
+
+### Firestore (`firestore.js`)
+- **Class**: `Firestore`
+- **Key Methods**: `doc(path)`, `collection(path)`
+- **Doc Methods**: `.get()`, `.set()`, `.update()`, `.delete()`
+- **Query Methods**: `.where()`, `.orderBy()`, `.limit()`, `.startAt()`, `.endAt()`
+
+### Notifications (`notifications.js`)
+- **Class**: `Notifications`
+- **Key Methods**: `isSupported()`, `isSubscribed()`, `subscribe()`, `unsubscribe()`, `getToken()`, `onMessage()`
+- **Storage**: Saves to localStorage and Firestore
+
+### ServiceWorker (`service-worker.js`)
+- **Class**: `ServiceWorker`
+- **Key Methods**: `isSupported()`, `register()`, `ready()`, `postMessage()`, `onMessage()`, `getState()`
+
+### Sentry (`sentry.js`)
+- **Class**: `Sentry` (named `mod` internally)
+- **Key Methods**: `init(config)`, `captureException(error, context)`
+- **Filtering**: Blocks dev mode, Lighthouse, Selenium/Puppeteer
+
+### DOM (`dom.js`)
+- **Exports**: `loadScript(options)`, `ready()`
+- **loadScript Options**: src, async, defer, crossorigin, integrity, timeout, retries
+
+### Utilities (`utilities.js`)
+- **Exports**: `clipboardCopy()`, `escapeHTML()`, `showNotification()`, `getPlatform()`, `getRuntime()`, `isMobile()`, `getDeviceType()`, `getContext()`
+
+## Build System
+
+### prepare-package
+The library uses `prepare-package` for ES5 transpilation:
+
+```json
+{
+  "preparePackage": {
+    "input": "./src",
+    "output": "./dist"
+  }
+}
+```
+
+**Commands**:
+- `npm run prepare` - Build once
+- `npm start` - Watch mode
+- `npm test` - Run Mocha tests
+
+### Package Exports
+```json
+{
+  "main": "dist/index.js",
+  "module": "src/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./modules/*": "./dist/modules/*"
+  }
+}
+```
+
+## Testing
+
+Tests are in `test/test.js` using Mocha:
+```bash
+npm test
+```
+
+Current test coverage is minimal - focuses on configuration and storage.
+
+## Common Tasks
+
+### Adding a New Utility Function
+1. Add function to `src/modules/utilities.js`
+2. Export it: `export function myFunction() { ... }`
+3. Update README.md with documentation
+4. Run `npm run prepare` to build
+
+### Adding a New Module
+1. Create `src/modules/my-module.js`
+2. Export class: `export default class MyModule { constructor(manager) { ... } }`
+3. Import in `src/index.js`: `import MyModule from './modules/my-module.js'`
+4. Add to Manager constructor: `this._myModule = new MyModule(this)`
+5. Add getter: `myModule() { return this._myModule; }`
+6. Update README.md
+7. Run `npm run prepare`
+
+### Modifying Configuration Defaults
+1. Edit `_processConfiguration()` in `src/index.js`
+2. Add to `defaults` object
+3. Document in README.md Configuration section
+
+### Adding a Data Binding Action
+1. Edit `_executeAction()` in `src/modules/bindings.js`
+2. Add case for new action (e.g., `@class`)
+3. Document in README.md Data Binding section
+
+## Dependencies
+
+| Package | Purpose |
+|---------|---------|
+| `firebase` (^12.x) | Auth, Firestore, Messaging |
+| `@sentry/browser` (^10.x) | Error tracking |
+| `lodash` (^4.x) | get/set for path-based access |
+| `resolve-account` (^2.x) | Account data resolution |
+| `itwcw-package-analytics` | Analytics (internal) |
+
+## Important Notes
+
+1. **DO NOT MODIFY `_legacy/`** - Reference only for historical context
+2. **Backwards compatibility is NOT required** - Just change to the new way
+3. **Prefer `fs-jetpack`** over `fs` for any file operations in tests/scripts
+4. **No TypeScript** - This is a pure JavaScript library
+5. **Template strings** - Use backticks for string interpolation
+6. **Modular design** - Keep modules focused and small
