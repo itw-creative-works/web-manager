@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "4.0.33",
+  "version": "4.0.34",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -42,7 +42,7 @@
     "@sentry/browser": "Resolved by using OVERRIDES in web-manager (lighthouse is the issue"
   },
   "dependencies": {
-    "@sentry/browser": "^10.27.0",
+    "@sentry/browser": "^10.30.0",
     "firebase": "^12.6.0",
     "itwcw-package-analytics": "^1.0.6",
     "lodash": "^4.17.21",
