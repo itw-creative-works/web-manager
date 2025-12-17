@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
-## [4.0.40] - 2025-12-16
+## [4.1.0] - 2025-12-16
 ### Added
 - Added `analytics.js` module for Google Analytics 4 Measurement Protocol support (browser extensions and Electron).
 - Added `usage.js` module to track install date, session count, session duration, and version history.
