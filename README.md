@@ -660,6 +660,7 @@ import {
   escapeHTML,
   showNotification,
   getPlatform,
+  getBrowser,
   getRuntime,
   isMobile,
   getDeviceType,
