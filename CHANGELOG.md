@@ -15,6 +15,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.1] - 2025-12-17
+### Added
+- Added `getBrowser()` utility to detect browser type (chrome, firefox, safari, edge, opera, brave).
+- Added `data-browser` HTML attribute set during initialization.
+- Added `browser` and `vendor` fields to `getContext().client`.
+- Added `geolocation` object to `getContext()` with placeholder fields (ip, country, region, city, latitude, longitude).
+
+### Changed
+- Moved `vendor` from `browser` object to `client` object in `getContext()`.
+- Replaced `browser` object with `geolocation` object in `getContext()` return structure.
+
+---
 ## [4.1.0] - 2025-12-16
 ### Added
 - Added `analytics.js` module for Google Analytics 4 Measurement Protocol support (browser extensions and Electron).

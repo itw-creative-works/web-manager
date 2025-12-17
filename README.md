@@ -108,14 +108,14 @@ Web Manager is designed to work in multiple environments:
 - **Firebase v12 Integration**: Modern Firebase Auth, Firestore, and Cloud Messaging
 - **Data Binding System**: Reactive DOM updates with `data-wm-bind` attributes
 - **Storage API**: Enhanced localStorage/sessionStorage with path-based access and JSON serialization
-- **Utilities**: `clipboardCopy()`, `escapeHTML()`, `getContext()`, `showNotification()`, `getPlatform()`, `getRuntime()`, `isMobile()`, `getDeviceType()`
+- **Utilities**: `clipboardCopy()`, `escapeHTML()`, `getContext()`, `showNotification()`, `getPlatform()`, `getBrowser()`, `getRuntime()`, `isMobile()`, `getDeviceType()`
 - **DOM Utilities**: Dynamic script loading with retry/timeout support
 - **Service Worker Management**: Registration, messaging, and state tracking
 - **Push Notifications**: Firebase Cloud Messaging with auto-subscription
 - **Error Tracking**: Sentry integration with session replay
 - **App Check**: Optional reCAPTCHA Enterprise protection
 - **Version Checking**: Auto-reload when new version is deployed
-- **HTML Data Attributes**: Automatic `data-platform`, `data-runtime`, `data-device` on `<html>`
+- **HTML Data Attributes**: Automatic `data-platform`, `data-browser`, `data-runtime`, `data-device` on `<html>`
 
 ## Configuration
 

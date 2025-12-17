@@ -361,6 +361,9 @@ class Manager {
     // Set platform (OS) - windows, mac, linux, ios, android, chromeos, unknown
     $html.dataset.platform = this._utilities.getPlatform();
 
+    // Set browser - chrome, firefox, safari, edge, opera, brave
+    $html.dataset.browser = this._utilities.getBrowser();
+
     // Set runtime - web, browser-extension, electron, node
     $html.dataset.runtime = this._utilities.getRuntime();
 

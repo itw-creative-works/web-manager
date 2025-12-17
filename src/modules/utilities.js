@@ -128,6 +128,40 @@ class Utilities {
     return 'unknown';
   }
 
+  // Get browser name
+  getBrowser() {
+    const ua = navigator.userAgent;
+
+    // Order matters - check more specific browsers first
+    // Edge before Chrome (Edge includes "Chrome" in UA)
+    if (/edg/i.test(ua)) {
+      return 'edge';
+    }
+    // Opera before Chrome (Opera includes "Chrome" in UA)
+    if (/opera|opr/i.test(ua)) {
+      return 'opera';
+    }
+    // Brave before Chrome (Brave includes "Chrome" in UA)
+    if (navigator.brave || /brave/i.test(ua)) {
+      return 'brave';
+    }
+    // Chrome (including Chromium-based browsers)
+    if (/chrome|chromium|crios/i.test(ua)) {
+      return 'chrome';
+    }
+    // Firefox
+    if (/firefox|fxios/i.test(ua)) {
+      return 'firefox';
+    }
+    // Safari last (most browsers include "Safari" in UA)
+    if (/safari/i.test(ua)) {
+      return 'safari';
+    }
+
+    // Fallback
+    return null;
+  }
+
   // Get runtime environment
   getRuntime() {
     // Use config runtime if provided
@@ -195,12 +229,19 @@ class Utilities {
         mobile: this.isMobile(),
         deviceType: this.getDeviceType(),
         platform: this.getPlatform(),
+        browser: this.getBrowser(),
+        vendor: navigator.vendor,
         runtime: this.getRuntime(),
         userAgent: navigator.userAgent,
         url: window.location.href,
       },
-      browser: {
-        vendor: navigator.vendor,
+      geolocation: {
+        ip: null,
+        country: null,
+        region: null,
+        city: null,
+        latitude: null,
+        longitude: null,
       },
     };
   }
