@@ -1,12 +1,14 @@
 import Storage from './modules/storage.js';
-import * as utilities from './modules/utilities.js';
+import Utilities from './modules/utilities.js';
 import * as domUtils from './modules/dom.js';
+import Analytics from './modules/analytics.js';
 import Auth from './modules/auth.js';
 import Bindings from './modules/bindings.js';
 import Firestore from './modules/firestore.js';
 import Notifications from './modules/notifications.js';
 import ServiceWorker from './modules/service-worker.js';
 import Sentry from './modules/sentry.js';
+import Usage from './modules/usage.js';
 
 class Manager {
   constructor() {
@@ -23,12 +25,15 @@ class Manager {
 
     // Initialize modules
     this._storage = new Storage();
+    this._utilities = new Utilities(this);
+    this._analytics = new Analytics(this);
     this._auth = new Auth(this);
     this._bindings = new Bindings(this);
     this._firestore = new Firestore(this);
     this._notifications = new Notifications(this);
     this._serviceWorker = new ServiceWorker(this);
     this._sentry = new Sentry(this);
+    this._usage = new Usage(this);
   }
 
   // Module getters
@@ -60,13 +65,21 @@ class Manager {
     return this._sentry;
   }
 
+  usage() {
+    return this._usage;
+  }
+
+  analytics() {
+    return this._analytics;
+  }
+
   // DOM utilities
   dom() {
     return domUtils;
   }
 
   utilities() {
-    return utilities;
+    return this._utilities;
   }
 
   // Initialize the manager
@@ -86,6 +99,16 @@ class Manager {
       // Initialize Sentry if enabled
       if (this.config.sentry?.enabled) {
         await this._sentry.init(this.config.sentry.config);
+      }
+
+      // Initialize Analytics if tracking ID and secret are provided
+      if (this.config.tracking?.['google-analytics'] && this.config.tracking?.['google-analytics-secret']) {
+        this._analytics.init({
+          id: this.config.tracking['google-analytics'],
+          secret: this.config.tracking['google-analytics-secret'],
+        });
+      } else {
+        console.log('[Analytics] Skipped: missing google-analytics ID or secret');
       }
 
       // Initialize service worker if enabled
@@ -111,8 +134,14 @@ class Manager {
       // Old IE force polyfill
       // await this._loadPolyfillsIfNeeded();
 
-      // Update bindings with config
-      this.bindings().update({ config: this.config });
+      // Initialize usage tracking
+      await this._usage.initialize();
+
+      // Update bindings with config and usage data
+      this.bindings().update({
+        config: this.config,
+        usage: this._usage.getBindingData(),
+      });
 
       return this;
     } catch (error) {
@@ -124,6 +153,7 @@ class Manager {
   _processConfiguration(configuration) {
     // Default configuration structure
     const defaults = {
+      runtime: null, // Auto-detect if not provided (web, browser-extension, electron, node)
       environment: 'production',
       buildTime: Date.now(),
       brand: {
@@ -266,6 +296,12 @@ class Manager {
           path: '/service-worker.js'
         }
       },
+      tracking: {
+        'google-analytics': '',
+        'google-analytics-secret': '',
+        'meta-pixel': '',
+        'tiktok-pixel': '',
+      },
     };
 
     // Deep merge configuration with defaults
@@ -282,6 +318,11 @@ class Manager {
 
     if (merged.refreshNewVersion?.config?.interval) {
       merged.refreshNewVersion.config.interval = safeEvaluate(merged.refreshNewVersion.config.interval);
+    }
+
+    // Calculate buildTimeISO from buildTime
+    if (merged.buildTime) {
+      merged.buildTimeISO = new Date(merged.buildTime).toISOString();
     }
 
     // Return merged configuration
@@ -318,13 +359,13 @@ class Manager {
     const $html = document.documentElement;
 
     // Set platform (OS) - windows, mac, linux, ios, android, chromeos, unknown
-    $html.dataset.platform = utilities.getPlatform();
+    $html.dataset.platform = this._utilities.getPlatform();
 
-    // Set runtime - web, extension, electron, node
-    $html.dataset.runtime = utilities.getRuntime();
+    // Set runtime - web, browser-extension, electron, node
+    $html.dataset.runtime = this._utilities.getRuntime();
 
     // Set device type - mobile, tablet, desktop
-    $html.dataset.device = utilities.getDeviceType();
+    $html.dataset.device = this._utilities.getDeviceType();
   }
 
   async _initializeFirebase() {
@@ -417,18 +458,13 @@ class Manager {
       return 'http://localhost:5002';
     }
 
-    const authDomain = this.config.firebase.app.config.authDomain;
-    const baseUrl = url || (authDomain ? `https://${authDomain}` : window.location.origin);
+    const apiDomain = this.config.firebase.app.config.authDomain; // Has to be this since some projects like Clockii use ITW Universal Auth
+    // const apiDomain = this.config.brand.url;
+    const baseUrl = url || (apiDomain ? `https://${apiDomain}` : window.location.origin);
     const urlObj = new URL(baseUrl);
-    const hostnameParts = urlObj.hostname.split('.');
 
-    if (hostnameParts.length > 2) {
-      hostnameParts[0] = 'api';
-    } else {
-      hostnameParts.unshift('api');
-    }
-
-    urlObj.hostname = hostnameParts.join('.');
+    // Prepend 'api.' subdomain (universal-auth.itwcreativeworks.com -> api.universal-auth.itwcreativeworks.com)
+    urlObj.hostname = `api.${urlObj.hostname}`;
 
     // Strip trailing slash
     return urlObj.toString().replace(/\/$/, '');

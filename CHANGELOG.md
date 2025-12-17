@@ -15,6 +15,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.0.40] - 2025-12-16
+### Added
+- Added `analytics.js` module for Google Analytics 4 Measurement Protocol support (browser extensions and Electron).
+- Added `usage.js` module to track install date, session count, session duration, and version history.
+- Added `tracking` config section for analytics credentials (`google-analytics`, `google-analytics-secret`, `meta-pixel`, `tiktok-pixel`).
+- Added `runtime` config option for explicit runtime override.
+- Added `buildTimeISO` auto-calculated from `buildTime`.
+- Added `usage` data to bindings context for UI display.
+
+### Changed
+- Refactored `utilities.js` from standalone functions to class pattern for consistency with other modules.
+- Simplified `getApiUrl()` to always prepend `api.` subdomain instead of replacing first subdomain.
+
 ## [4.0.33] - 2025-12-12
 ### BREAKING
 - `@text` binding action no longer auto-detects input/textarea elements. Use `@value` for inputs instead.
