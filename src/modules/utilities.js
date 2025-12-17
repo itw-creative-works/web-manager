@@ -1,13 +1,21 @@
-// Copy text to clipboard
-export function clipboardCopy(input) {
-  // Get the text from the input
-  const text = input && input.nodeType
-    ? input.value || input.innerText || input.innerHTML
-    : input;
+class Utilities {
+  constructor(manager) {
+    this.manager = manager;
+  }
 
-  // Try to use the modern clipboard API
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    return navigator.clipboard.writeText(text).catch(() => {
+  // Copy text to clipboard
+  clipboardCopy(input) {
+    // Get the text from the input
+    const text = input && input.nodeType
+      ? input.value || input.innerText || input.innerHTML
+      : input;
+
+    // Try to use the modern clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).catch(() => {
+        fallbackCopy(text);
+      });
+    } else {
       fallbackCopy(text);
     }
 
