@@ -181,7 +181,7 @@ document.body.addEventListener('click', (e) => {
 - **loadScript Options**: src, async, defer, crossorigin, integrity, timeout, retries
 
 ### Utilities (`utilities.js`)
-- **Exports**: `clipboardCopy()`, `escapeHTML()`, `showNotification()`, `getPlatform()`, `getRuntime()`, `isMobile()`, `getDeviceType()`, `getContext()`
+- **Exports**: `clipboardCopy()`, `escapeHTML()`, `showNotification()`, `getPlatform()`, `getBrowser()`, `getRuntime()`, `isMobile()`, `getDeviceType()`, `getContext()`
 
 ## Build System
 

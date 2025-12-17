@@ -684,6 +684,9 @@ showNotification(new Error('Failed'), { timeout: 0 }); // No auto-dismiss
 // Platform detection
 getPlatform(); // 'windows', 'mac', 'linux', 'ios', 'android', 'chromeos', 'unknown'
 
+// Browser detection
+getBrowser(); // 'chrome', 'firefox', 'safari', 'edge', 'opera', 'brave', null
+
 // Runtime detection
 getRuntime(); // 'web', 'browser-extension'
 
@@ -694,8 +697,8 @@ getDeviceType(); // 'mobile' (<768px), 'tablet' (768-1199px), 'desktop' (>=1200p
 // Full context
 getContext();
 // {
-//   client: { language, mobile, deviceType, platform, runtime, userAgent, url },
-//   browser: { vendor }
+//   client: { language, mobile, deviceType, platform, browser, vendor, runtime, userAgent, url },
+//   geolocation: { ip, country, region, city, latitude, longitude }
 // }
 ```
 
@@ -711,12 +714,13 @@ getContext();
 Web Manager automatically sets these attributes on the `<html>` element during initialization:
 
 ```html
-<html data-platform="mac" data-runtime="web" data-device="desktop">
+<html data-platform="mac" data-browser="chrome" data-runtime="web" data-device="desktop">
 ```
 
 | Attribute | Values | Description |
 |-----------|--------|-------------|
 | `data-platform` | `windows`, `mac`, `linux`, `ios`, `android`, `chromeos`, `unknown` | Operating system |
+| `data-browser` | `chrome`, `firefox`, `safari`, `edge`, `opera`, `brave` | Browser name |
 | `data-runtime` | `web`, `browser-extension` | Runtime environment |
 | `data-device` | `mobile`, `tablet`, `desktop` | Device type by screen width |
 
@@ -725,6 +729,10 @@ Web Manager automatically sets these attributes on the `<html>` element during i
 /* Platform-specific styles */
 [data-platform="ios"] .download-btn { display: none; }
 [data-platform="windows"] .app-icon { content: url('windows-icon.png'); }
+
+/* Browser-specific styles */
+[data-browser="safari"] .webkit-fix { -webkit-transform: translateZ(0); }
+[data-browser="firefox"] .gecko-fix { overflow: hidden; }
 
 /* Device-responsive styles */
 [data-device="mobile"] .sidebar { display: none; }
