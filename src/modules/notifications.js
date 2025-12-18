@@ -261,14 +261,12 @@ class Notifications {
         return;
       }
 
-      const { getContext } = await import('./utilities.js');
-
       const now = new Date();
       const timestamp = now.toISOString();
       const timestampUNIX = Math.floor(now.getTime() / 1000);
 
       // Get context for client information
-      const context = getContext();
+      const context = this.manager.utilities().getContext();
       const clientData = context.client;
 
       // Reference to the notification document (ID is the token)
@@ -283,41 +281,33 @@ class Notifications {
       const existingUid = existingData?.uid || null;
       const needsUpdate = existingUid !== currentUid;
 
+      // Common data for both create and update
+      const baseData = {
+        context: {
+          client: clientData
+        },
+        updated: {
+          timestamp,
+          timestampUNIX
+        },
+        uid: currentUid
+      };
+
+      // Create or update the document as needed
       if (!existingData) {
         // New subscription - create the document
-        const subscriptionData = {
+        await notificationDoc.set({
+          ...baseData,
           token,
-          context: {
-            client: clientData
-          },
           tags: ['general'],
           created: {
             timestamp,
             timestampUNIX
           },
-          updated: {
-            timestamp,
-            timestampUNIX
-          },
-          uid: currentUid
-        };
-
-        await notificationDoc.set(subscriptionData);
-
+        });
       } else if (needsUpdate) {
         // Existing subscription needs update (userId changed)
-        const updateData = {
-          context: {
-            client: clientData
-          },
-          updated: {
-            timestamp,
-            timestampUNIX
-          },
-          uid: currentUid
-        };
-
-        await notificationDoc.update(updateData);
+        await notificationDoc.update(baseData);
       }
       // If no update needed, do nothing
 
