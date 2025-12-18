@@ -137,22 +137,27 @@ class Utilities {
     if (/edg/i.test(ua)) {
       return 'edge';
     }
+
     // Opera before Chrome (Opera includes "Chrome" in UA)
     if (/opera|opr/i.test(ua)) {
       return 'opera';
     }
+
     // Brave before Chrome (Brave includes "Chrome" in UA)
     if (navigator.brave || /brave/i.test(ua)) {
       return 'brave';
     }
+
     // Chrome (including Chromium-based browsers)
     if (/chrome|chromium|crios/i.test(ua)) {
       return 'chrome';
     }
+
     // Firefox
     if (/firefox|fxios/i.test(ua)) {
       return 'firefox';
     }
+
     // Safari last (most browsers include "Safari" in UA)
     if (/safari/i.test(ua)) {
       return 'safari';
