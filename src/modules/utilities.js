@@ -81,8 +81,8 @@ class Utilities {
     const timeout = options.timeout !== undefined ? options.timeout : 5000;
 
     const $notification = document.createElement('div');
-    $notification.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-5`;
-    $notification.style.zIndex = '9999';
+    $notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    $notification.style.cssText = 'z-index: 9999; top: 1rem; left: 50%; transform: translateX(-50%);';
     $notification.innerHTML = `
       ${text}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>

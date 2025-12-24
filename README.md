@@ -354,6 +354,35 @@ unsubscribe();
 Add these classes to elements for automatic auth functionality:
 - `.auth-signout-btn` - Sign out button (shows confirmation dialog)
 
+**⚠️ Auth State Timing**:
+
+On fresh page loads, Firebase Auth needs time to restore the user session from IndexedDB/localStorage. Methods like `auth.isAuthenticated()`, `auth.getUser()`, and `auth.getIdToken()` may return `null`/`false` if called before auth state is determined.
+
+**Problem:**
+```javascript
+// ❌ May fail on page load - auth state not yet determined
+await Manager.dom().ready();
+const token = await auth.getIdToken(); // Could throw if currentUser is null
+```
+
+**Solution:** Use `auth.listen({ once: true })` to wait for auth state:
+```javascript
+// ✅ Wait for auth state to be determined first
+auth.listen({ once: true }, async (result) => {
+  if (result.user) {
+    const token = await auth.getIdToken(); // Safe - user is authenticated
+  }
+});
+```
+
+**When this matters:**
+- Pages making authenticated API calls immediately on load
+- OAuth callback pages
+- Deep links requiring authentication
+
+**When NOT needed:**
+- User-triggered actions (button clicks) - auth state is always determined by then
+
 ### Data Binding System
 
 Reactive DOM updates with `data-wm-bind` attributes:
