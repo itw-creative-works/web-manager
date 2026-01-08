@@ -367,8 +367,8 @@ class Manager {
     // Set runtime - web, browser-extension, electron, node
     $html.dataset.runtime = this._utilities.getRuntime();
 
-    // Set device type - mobile, tablet, desktop
-    $html.dataset.device = this._utilities.getDeviceType();
+    // Set device - mobile, tablet, desktop
+    $html.dataset.device = this._utilities.getDevice();
   }
 
   async _initializeFirebase() {

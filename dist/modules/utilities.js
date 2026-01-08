@@ -207,8 +207,8 @@ class Utilities {
     }
   }
 
-  // Get device type based on screen width
-  getDeviceType() {
+  // Get device based on screen width
+  getDevice() {
     const width = window.innerWidth;
 
     // Mobile: < 768px (Bootstrap's md breakpoint)
@@ -232,7 +232,7 @@ class Utilities {
       client: {
         language: navigator.language,
         mobile: this.isMobile(),
-        deviceType: this.getDeviceType(),
+        device: this.getDevice(),
         platform: this.getPlatform(),
         browser: this.getBrowser(),
         vendor: navigator.vendor,

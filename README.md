@@ -108,7 +108,7 @@ Web Manager is designed to work in multiple environments:
 - **Firebase v12 Integration**: Modern Firebase Auth, Firestore, and Cloud Messaging
 - **Data Binding System**: Reactive DOM updates with `data-wm-bind` attributes
 - **Storage API**: Enhanced localStorage/sessionStorage with path-based access and JSON serialization
-- **Utilities**: `clipboardCopy()`, `escapeHTML()`, `getContext()`, `showNotification()`, `getPlatform()`, `getBrowser()`, `getRuntime()`, `isMobile()`, `getDeviceType()`
+- **Utilities**: `clipboardCopy()`, `escapeHTML()`, `getContext()`, `showNotification()`, `getPlatform()`, `getBrowser()`, `getRuntime()`, `isMobile()`, `getDevice()`
 - **DOM Utilities**: Dynamic script loading with retry/timeout support
 - **Service Worker Management**: Registration, messaging, and state tracking
 - **Push Notifications**: Firebase Cloud Messaging with auto-subscription
@@ -567,7 +567,7 @@ await notifications.syncSubscription();
 
 **Features**:
 - Stores subscription in localStorage and Firestore
-- Tracks device context (platform, runtime, deviceType)
+- Tracks device context (platform, runtime, device)
 - Auto-requests after configurable delay post-click
 - Syncs with user authentication state
 
@@ -692,7 +692,7 @@ import {
   getBrowser,
   getRuntime,
   isMobile,
-  getDeviceType,
+  getDevice,
   getContext
 } from 'web-manager/modules/utilities';
 // Or: const utils = Manager.utilities();
@@ -720,13 +720,13 @@ getBrowser(); // 'chrome', 'firefox', 'safari', 'edge', 'opera', 'brave', null
 getRuntime(); // 'web', 'browser-extension'
 
 // Device detection
-isMobile();     // true/false
-getDeviceType(); // 'mobile' (<768px), 'tablet' (768-1199px), 'desktop' (>=1200px)
+isMobile();   // true/false
+getDevice();  // 'mobile' (<768px), 'tablet' (768-1199px), 'desktop' (>=1200px)
 
 // Full context
 getContext();
 // {
-//   client: { language, mobile, deviceType, platform, browser, vendor, runtime, userAgent, url },
+//   client: { language, mobile, device, platform, browser, vendor, runtime, userAgent, url },
 //   geolocation: { ip, country, region, city, latitude, longitude }
 // }
 ```
