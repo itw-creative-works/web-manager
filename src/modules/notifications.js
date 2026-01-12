@@ -278,8 +278,8 @@ class Notifications {
 
       // Determine if we need to update
       const currentUid = user?.uid || null;
-      const existingUid = existingData?.uid || null;
-      const needsUpdate = existingUid !== currentUid;
+      const existingOwner = existingData?.owner || null;
+      const needsUpdate = existingOwner !== currentUid;
 
       // Common data for both create and update
       const baseData = {
@@ -290,7 +290,7 @@ class Notifications {
           timestamp,
           timestampUNIX
         },
-        uid: currentUid
+        owner: currentUid
       };
 
       // Create or update the document as needed
@@ -300,6 +300,7 @@ class Notifications {
           ...baseData,
           token,
           tags: ['general'],
+          // TODO: add attribution data on create
           created: {
             timestamp,
             timestampUNIX
