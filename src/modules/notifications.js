@@ -256,6 +256,7 @@ class Notifications {
     try {
       const firestore = this.manager.firestore();
       const user = this.manager.auth().getUser();
+      const storage = this.manager.storage();
 
       if (!token) {
         return;
@@ -300,7 +301,7 @@ class Notifications {
           ...baseData,
           token,
           tags: ['general'],
-          // TODO: add attribution data on create
+          attribution: storage.get('attribution', {}),
           created: {
             timestamp,
             timestampUNIX
