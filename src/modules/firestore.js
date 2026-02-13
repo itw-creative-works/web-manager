@@ -27,7 +27,7 @@ class Firestore {
 
       // Dynamically import Firestore
       const { getFirestore, doc: firestoreDoc, collection: firestoreCollection, getDoc, setDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, limit, startAt, endAt } = await import('firebase/firestore');
-      
+
       // Store references for later use
       this._firestoreMethods = {
         getFirestore,
@@ -48,6 +48,15 @@ class Firestore {
 
       // Initialize Firestore
       this._db = getFirestore(this.manager._firebaseApp);
+
+      // Connect to Firestore emulator in development
+      if (this.manager.isDevelopment() && this.manager.config.env?.FIREBASE_EMULATOR_CONNECT) {
+        console.log('[Firestore] Connecting to emulator at localhost:8080');
+        const { connectFirestoreEmulator } = await import('firebase/firestore');
+        connectFirestoreEmulator(this._db, 'localhost', 8080);
+        console.log('[Firestore] Emulator connected');
+      }
+
       this._initialized = true;
 
       return this._db;
@@ -78,7 +87,7 @@ class Firestore {
         await self._ensureInitialized();
         const docRef = self._firestoreMethods.doc(self._db, docPath);
         const docSnap = await self._firestoreMethods.getDoc(docRef);
-        
+
         return {
           exists: () => docSnap.exists(),
           data: () => docSnap.data(),
@@ -110,13 +119,13 @@ class Firestore {
   // Collection method for queries
   collection(collectionPath) {
     const self = this;
-    
+
     return {
       async get() {
         await self._ensureInitialized();
         const collRef = self._firestoreMethods.collection(self._db, collectionPath);
         const querySnapshot = await self._firestoreMethods.getDocs(collRef);
-        
+
         return {
           docs: querySnapshot.docs.map(doc => ({
             id: doc.id,
@@ -185,7 +194,7 @@ class Firestore {
       async get() {
         await self._ensureInitialized();
         const collRef = self._firestoreMethods.collection(self._db, collectionPath);
-        
+
         // Build query constraints
         const queryConstraints = [];
         for (const constraint of constraints) {
@@ -210,7 +219,7 @@ class Firestore {
 
         const q = self._firestoreMethods.query(collRef, ...queryConstraints);
         const querySnapshot = await self._firestoreMethods.getDocs(q);
-        
+
         return {
           docs: querySnapshot.docs.map(doc => ({
             id: doc.id,

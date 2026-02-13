@@ -281,6 +281,9 @@ class Manager {
           autoRequest: 1000 * 60
         }
       },
+      env: {
+        FIREBASE_EMULATOR_CONNECT: false,
+      },
       validRedirectHosts: [],
 
       // Non-configurable defaults
