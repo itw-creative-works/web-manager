@@ -257,7 +257,6 @@ Current test coverage is minimal - focuses on configuration and storage.
 | `firebase` (^12.x) | Auth, Firestore, Messaging |
 | `@sentry/browser` (^10.x) | Error tracking |
 | `lodash` (^4.x) | get/set for path-based access |
-| `resolve-account` (^2.x) | Account data resolution |
 | `itwcw-package-analytics` | Analytics (internal) |
 
 ## Important Notes

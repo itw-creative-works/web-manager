@@ -1,4 +1,62 @@
-import resolveAccount from 'resolve-account';
+const DEFAULT_ACCOUNT = {
+  auth: { uid: null, email: null, temporary: false },
+  subscription: {
+    product: { id: 'basic', name: 'Basic' },
+    status: 'active',
+    expires: { timestamp: null, timestampUNIX: null },
+    trial: { activated: false, expires: { timestamp: null, timestampUNIX: null } },
+    cancellation: { pending: false, date: { timestamp: null, timestampUNIX: null } },
+    payment: {
+      processor: null,
+      resourceId: null,
+      frequency: null,
+      startDate: { timestamp: null, timestampUNIX: null },
+      updatedBy: {
+        event: { name: null, id: null },
+        date: { timestamp: null, timestampUNIX: null },
+      },
+    },
+  },
+  roles: { admin: false, betaTester: false, developer: false },
+  affiliate: { code: null, referrals: [] },
+  activity: {
+    lastActivity: { timestamp: null, timestampUNIX: null },
+    created: { timestamp: null, timestampUNIX: null },
+  },
+  api: { clientId: null, privateKey: null },
+  usage: { requests: { total: 0, period: 0 } },
+  personal: { name: { first: '', last: '' } },
+  oauth2: {},
+};
+
+function resolveAccount(rawData, firebaseUser) {
+  const user = firebaseUser || {};
+  const data = rawData || {};
+
+  // Deep merge: rawData values take precedence over defaults
+  function deepMerge(target, source) {
+    const result = { ...target };
+    for (const key in source) {
+      if (!source.hasOwnProperty(key)) continue;
+      if (result[key] === null || result[key] === undefined) {
+        result[key] = source[key];
+      } else if (typeof result[key] === 'object' && !Array.isArray(result[key])
+        && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+        result[key] = deepMerge(result[key], source[key]);
+      }
+    }
+    return result;
+  }
+
+  const account = deepMerge(data, DEFAULT_ACCOUNT);
+
+  // Set auth from firebase user if not already set
+  account.auth = account.auth || {};
+  account.auth.uid = account.auth.uid || user.uid || null;
+  account.auth.email = account.auth.email || user.email || null;
+
+  return account;
+}
 
 class Auth {
   constructor(manager) {
