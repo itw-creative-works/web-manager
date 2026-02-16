@@ -4,7 +4,7 @@ const DEFAULT_ACCOUNT = {
     product: { id: 'basic', name: 'Basic' },
     status: 'active',
     expires: { timestamp: null, timestampUNIX: null },
-    trial: { activated: false, expires: { timestamp: null, timestampUNIX: null } },
+    trial: { claimed: false, expires: { timestamp: null, timestampUNIX: null } },
     cancellation: { pending: false, date: { timestamp: null, timestampUNIX: null } },
     payment: {
       processor: null,
@@ -25,7 +25,7 @@ const DEFAULT_ACCOUNT = {
   },
   api: { clientId: null, privateKey: null },
   usage: { requests: { total: 0, period: 0 } },
-  personal: { name: { first: '', last: '' } },
+  personal: { name: { first: null, last: null } },
   oauth2: {},
 };
 
