@@ -27,6 +27,10 @@ const DEFAULT_ACCOUNT = {
   usage: { requests: { total: 0, period: 0 } },
   personal: { name: { first: null, last: null } },
   oauth2: {},
+  attribution: {
+    affiliate: { code: null, timestamp: null, url: null, page: null },
+    utm: { tags: {}, timestamp: null, url: null, page: null },
+  },
 };
 
 function resolveAccount(rawData, firebaseUser) {
