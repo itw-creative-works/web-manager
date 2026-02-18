@@ -7,6 +7,9 @@ Do we need to use polyfill? the project that consumes this  is using webpack and
 - async
 
 
+Eventually update auth.js to have an intelligent schema for user object
+
+
 UTM management
 
 LOCALSTORAGE

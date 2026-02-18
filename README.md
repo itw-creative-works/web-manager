@@ -296,20 +296,24 @@ storage.session.clear();
 
 ### Authentication
 
-Firebase Authentication wrapper with automatic account data fetching:
+Firebase Authentication wrapper with a promise-based auth settler:
 
 ```javascript
 const auth = Manager.auth();
 
-// Listen for auth state changes
-const unsubscribe = auth.listen({ account: true }, (result) => {
-  console.log('User:', result.user);     // Firebase user or null
-  console.log('Account:', result.account); // Firestore account data or null
+// Listen once — waits for auth to settle, fires exactly once
+auth.listen({ once: true }, (state) => {
+  if (state.user) {
+    console.log('Logged in:', state.user.email);
+    console.log('Account:', state.account);
+  } else {
+    console.log('Not logged in');
+  }
 });
 
-// Listen once (useful for initial state)
-auth.listen({ once: true }, (result) => {
-  console.log('Initial state:', result);
+// Persistent listener — fires on initial settle + every future auth change
+const unsubscribe = auth.listen({}, (state) => {
+  console.log('Auth changed:', state.user?.email || 'signed out');
 });
 
 // Check authentication status
@@ -319,11 +323,7 @@ if (auth.isAuthenticated()) {
 }
 
 // Sign in
-try {
-  const user = await auth.signInWithEmailAndPassword('user@example.com', 'password');
-} catch (error) {
-  console.error('Sign in failed:', error.message);
-}
+await auth.signInWithEmailAndPassword('user@example.com', 'password');
 
 // Sign in with custom token (from backend)
 await auth.signInWithCustomToken('custom-jwt-token');
@@ -335,9 +335,16 @@ const freshToken = await auth.getIdToken(true); // Force refresh
 // Sign out
 await auth.signOut();
 
-// Stop listening
+// Stop persistent listener
 unsubscribe();
 ```
+
+**Auth Settler Design**:
+
+On page load, Firebase Auth takes time to restore the user session. The auth settler (`Manager._authReady`) is a promise that resolves once Firebase determines the auth state (user or null). All `listen()` callbacks wait for this settler before firing — consumers never see an intermediate/unknown state.
+
+- `{ once: true }` — Waits for the settler promise, calls the callback once, done. No cleanup needed.
+- `{}` (persistent) — Gets the initial settled state via `_handleAuthStateChange`, then fires again on every future sign-in/sign-out.
 
 **getUser() returns enhanced user object**:
 ```javascript
@@ -351,37 +358,23 @@ unsubscribe();
 ```
 
 **HTML Auth Classes**:
-Add these classes to elements for automatic auth functionality:
 - `.auth-signout-btn` - Sign out button (shows confirmation dialog)
 
 **⚠️ Auth State Timing**:
 
-On fresh page loads, Firebase Auth needs time to restore the user session from IndexedDB/localStorage. Methods like `auth.isAuthenticated()`, `auth.getUser()`, and `auth.getIdToken()` may return `null`/`false` if called before auth state is determined.
+Methods like `auth.isAuthenticated()`, `auth.getUser()`, and `auth.getIdToken()` read the current state directly — they may return `null` before auth settles.
 
-**Problem:**
 ```javascript
 // ❌ May fail on page load - auth state not yet determined
-await Manager.dom().ready();
-const token = await auth.getIdToken(); // Could throw if currentUser is null
-```
+const token = await auth.getIdToken();
 
-**Solution:** Use `auth.listen({ once: true })` to wait for auth state:
-```javascript
-// ✅ Wait for auth state to be determined first
-auth.listen({ once: true }, async (result) => {
-  if (result.user) {
-    const token = await auth.getIdToken(); // Safe - user is authenticated
+// ✅ Wait for auth to settle first
+auth.listen({ once: true }, async (state) => {
+  if (state.user) {
+    const token = await auth.getIdToken(); // Safe
   }
 });
 ```
-
-**When this matters:**
-- Pages making authenticated API calls immediately on load
-- OAuth callback pages
-- Deep links requiring authentication
-
-**When NOT needed:**
-- User-triggered actions (button clicks) - auth state is always determined by then
 
 ### Data Binding System
 

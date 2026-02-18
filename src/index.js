@@ -20,8 +20,12 @@ class Manager {
       serviceWorker: null
     };
 
-    // Track Firebase auth initialization
+    // Auth settler: resolves when Firebase auth first determines user state
     this._firebaseAuthInitialized = false;
+    this._authReadyResolve = null;
+    this._authReady = new Promise((resolve) => {
+      this._authReadyResolve = resolve;
+    });
 
     // Initialize modules
     this._storage = new Storage();
@@ -419,8 +423,11 @@ class Manager {
 
     // Setup auth state listener
     onAuthStateChanged(this._firebaseAuth, (user) => {
-      // Mark auth as initialized after first callback
-      this._firebaseAuthInitialized = true;
+      // Mark auth as initialized and resolve the settler promise on first callback
+      if (!this._firebaseAuthInitialized) {
+        this._firebaseAuthInitialized = true;
+        this._authReadyResolve();
+      }
 
       // Let auth module handle everything including DOM updates
       this._auth._handleAuthStateChange(user);

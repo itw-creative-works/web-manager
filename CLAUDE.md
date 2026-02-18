@@ -150,6 +150,14 @@ document.body.addEventListener('click', (e) => {
 - **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`
 - **Bindings**: Updates `auth.user` and `auth.account` context
 
+#### Auth Settler Pattern
+Auth uses a promise-based settler (`_authReady`) that resolves once Firebase's first `onAuthStateChanged` fires — the moment auth state is guaranteed (authenticated user OR null). This eliminates race conditions.
+
+- **`once` listeners** (`listen({ once: true }, cb)`): Wait for `_authReady`, fire once, done. No cleanup needed.
+- **Persistent listeners** (`listen({}, cb)`): Subscribe to `_authStateCallbacks`. If auth already settled when registered, catch up via `_authReady.then()`. Otherwise, `_handleAuthStateChange` handles the initial call naturally.
+- **`_hasProcessedStateChange`**: Ensures bindings/storage updates run only once per auth state change across all listeners.
+- **Manager owns the promise**: `_authReady` and `_authReadyResolve` live on the Manager instance. The `onAuthStateChanged` callback in `index.js` resolves it on first fire and sets `_firebaseAuthInitialized = true`.
+
 ### Bindings (`bindings.js`)
 - **Class**: `Bindings`
 - **Key Methods**: `update(data)`, `getContext()`, `clear()`

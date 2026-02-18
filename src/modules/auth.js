@@ -66,7 +66,6 @@ class Auth {
   constructor(manager) {
     this.manager = manager;
     this._authStateCallbacks = [];
-    this._readyCallbacks = [];
     this._hasProcessedStateChange = false;
   }
 
@@ -132,89 +131,66 @@ class Auth {
 
     // If Firebase is not enabled, call callback immediately with null
     if (!this.manager.config.firebase?.app?.enabled) {
-      // Call callback with null user and empty account
       callback({
         user: null,
-        account: resolveAccount({}, {})
+        account: resolveAccount({}, {}),
       });
 
-      // Return empty unsubscribe function
       return () => {};
     }
 
-    // Function to get current state and call callback
-    const getStateAndCallback = async (user) => {
-      // Start with the user which will return null if not authenticated
+    // Build auth state and call the provided callback
+    const run = async (user) => {
       const state = { user: this.getUser() };
 
-      // Then, add account data if requested and user exists
-      // if (options.account && user && this.manager.firebaseFirestore) {
-      // Fetch account if the user is logged in AND Firestore is available
+      // Fetch account data if the user is logged in and Firestore is available
       if (user && this.manager.firebaseFirestore) {
         try {
           state.account = await this._getAccountData(user.uid);
         } catch (error) {
-          // Pass error to Sentry
           this.manager.sentry().captureException(new Error('Failed to get account data', { cause: error }));
         }
       }
 
-      // Always ensure account is at least a default resolved object
+      // Ensure account is always a resolved object
       state.account = state.account || resolveAccount({}, { uid: user?.uid });
 
-      // Process state change (update bindings and storage) only once across all callbacks
-      // Now ONLY the first listener will process the state change until the next auth state change
+      // Update bindings and storage once per auth state change
       if (!this._hasProcessedStateChange) {
-        // Run update - nest state under 'auth' key for consistent access
         this.manager.bindings().update({ auth: state });
-
-        // Save to storage
-        const storage = this.manager.storage();
-        storage.set('auth', state);
-
-        // Mark that we've processed this state change
+        this.manager.storage().set('auth', state);
         this._hasProcessedStateChange = true;
       }
 
-      // Call the provided callback with the state
       callback(state);
     };
 
-    let hasCalledback = false;
-    let unsubscribe = null;
+    // Once listeners: wait for auth to settle, fire once, done
+    if (options.once) {
+      this.manager._authReady.then(() => {
+        run(this.manager.firebaseAuth?.currentUser || null);
+      });
 
-    // Set up listener for auth state changes
-    unsubscribe = this.onAuthStateChanged((user) => {
-      // Wait for settled state before first callback
-      if (!hasCalledback && !this.manager._firebaseAuthInitialized) {
-        return; // Auth state not yet determined
-      }
+      return () => {};
+    }
 
-      // Mark that we've called back at least once
-      hasCalledback = true;
+    // Persistent listeners: subscribe to all auth state changes (initial + future)
+    // If auth already settled, fire the first callback via the promise to catch up
+    const unsubscribe = this._subscribe(run);
 
-      // Get current state and call the callback
-      getStateAndCallback(user);
-
-      // If once option is set, unsubscribe AFTER calling the callback
-      if (options.once && unsubscribe) {
-        unsubscribe();
-      }
-    });
+    if (this.manager._firebaseAuthInitialized) {
+      this.manager._authReady.then(() => {
+        run(this.manager.firebaseAuth?.currentUser || null);
+      });
+    }
 
     return unsubscribe;
   }
 
-  // Listen for auth state changes
-  onAuthStateChanged(callback) {
+  // Subscribe to ongoing auth state changes (sign-in, sign-out after initial settle)
+  _subscribe(callback) {
     this._authStateCallbacks.push(callback);
 
-    // If auth is already initialized, call the callback immediately
-    if (this.manager._firebaseAuthInitialized) {
-      callback(this.manager.firebaseAuth?.currentUser || null);
-    }
-
-    // Return unsubscribe function
     return () => {
       const index = this._authStateCallbacks.indexOf(callback);
       if (index > -1) {
@@ -223,12 +199,12 @@ class Auth {
     };
   }
 
-  // Internal method to handle auth state changes
+  // Called by Manager when Firebase auth state changes
   _handleAuthStateChange(user) {
     // Reset state processing flag for new auth state
     this._hasProcessedStateChange = false;
 
-    // Call all registered callbacks
+    // Call all persistent listener callbacks
     this._authStateCallbacks.forEach(callback => {
       try {
         callback(user);
