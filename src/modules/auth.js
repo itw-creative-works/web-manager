@@ -8,6 +8,7 @@ const DEFAULT_ACCOUNT = {
     cancellation: { pending: false, date: { timestamp: null, timestampUNIX: null } },
     payment: {
       processor: null,
+      orderId: null,
       resourceId: null,
       frequency: null,
       startDate: { timestamp: null, timestampUNIX: null },
