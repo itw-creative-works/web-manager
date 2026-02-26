@@ -11,6 +11,7 @@ const DEFAULT_ACCOUNT = {
       orderId: null,
       resourceId: null,
       frequency: null,
+      price: 0,
       startDate: { timestamp: null, timestampUNIX: null },
       updatedBy: {
         event: { name: null, id: null },
