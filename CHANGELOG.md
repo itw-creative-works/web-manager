@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.15] - 2026-02-26
+### Fixed
+- Fixed bindings skeleton removal happening prematurely when partial context updates didn't match any of the element's bindings.
+
+### Changed
+- `_executeAction` now returns a boolean indicating whether the action was processed, allowing `update()` to defer skeleton removal until at least one binding runs.
+
+---
 ## [4.1.10] - 2026-02-17
 ### Changed
 - Refactored auth to use promise-based settler pattern (`_authReady`) for reliable auth state detection, eliminating race conditions with late-registered listeners.

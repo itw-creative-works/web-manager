@@ -47,10 +47,16 @@ class Bindings {
       // Split by comma to support multiple actions
       const bindings = this._parseBindings(bindValue);
 
-      // Execute each action
+      // Execute each action, track if any were actually processed
+      let anyProcessed = false;
       bindings.forEach(({ action, expression }) => {
-        this._executeAction(element, action, expression, context, updatedKeys);
+        if (this._executeAction(element, action, expression, context, updatedKeys)) {
+          anyProcessed = true;
+        }
       });
+
+      // Only remove skeleton if at least one binding was actually processed
+      if (!anyProcessed) return;
 
       // Add bound class to trigger fade out
       element.classList.add('wm-bound');
@@ -94,6 +100,7 @@ class Bindings {
   }
 
   // Execute a single action on an element
+  // Returns true if the action was processed, false if skipped
   _executeAction(element, action, expression, context, updatedKeys = null) {
     switch (action) {
       case '@show':
@@ -101,7 +108,7 @@ class Bindings {
 
         // Check if this path should be updated
         if (!this._shouldUpdatePath(expression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const shouldShow = expression ? this._evaluateCondition(expression, context) : true;
@@ -110,14 +117,14 @@ class Bindings {
         } else {
           element.setAttribute('hidden', '');
         }
-        break;
+        return true;
 
       case '@hide':
         // Hide element if condition is true (or always if no condition)
 
         // Check if this path should be updated
         if (!this._shouldUpdatePath(expression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const shouldHide = expression ? this._evaluateCondition(expression, context) : true;
@@ -126,7 +133,7 @@ class Bindings {
         } else {
           element.removeAttribute('hidden');
         }
-        break;
+        return true;
 
       case '@attr':
         // Set attribute value
@@ -137,7 +144,7 @@ class Bindings {
 
         // Check if this path should be updated
         if (!this._shouldUpdatePath(attrExpression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const attrValue = this._resolvePath(context, attrExpression) || '';
@@ -147,7 +154,7 @@ class Bindings {
         } else {
           element.removeAttribute(attrName);
         }
-        break;
+        return true;
 
       case '@style':
         // Set CSS custom property or style
@@ -158,7 +165,7 @@ class Bindings {
 
         // Check if this path should be updated
         if (!this._shouldUpdatePath(styleExpression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const styleValue = this._resolvePath(context, styleExpression);
@@ -179,18 +186,18 @@ class Bindings {
             element.style[styleName] = '';
           }
         }
-        break;
+        return true;
 
       case '@value':
         // Set input/textarea value explicitly
         // Check if this path should be updated
         if (!this._shouldUpdatePath(expression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const inputValue = this._resolvePath(context, expression) ?? '';
         element.value = inputValue;
-        break;
+        return true;
 
       case '@text':
       default:
@@ -198,12 +205,12 @@ class Bindings {
 
         // Check if this path should be updated
         if (!this._shouldUpdatePath(expression, updatedKeys)) {
-          return;
+          return false;
         }
 
         const textValue = this._resolvePath(context, expression) ?? '';
         element.textContent = textValue;
-        break;
+        return true;
     }
   }
 
