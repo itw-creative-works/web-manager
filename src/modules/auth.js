@@ -26,7 +26,7 @@ const DEFAULT_ACCOUNT = {
     created: { timestamp: null, timestampUNIX: null },
   },
   api: { clientId: null, privateKey: null },
-  usage: { requests: { total: 0, period: 0 } },
+  usage: {},
   personal: { name: { first: null, last: null } },
   oauth2: {},
   attribution: {
