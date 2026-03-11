@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.18] - 2026-03-11
+### Added
+- Added new chatsy import.
+
+---
 ## [4.1.15] - 2026-02-26
 ### Fixed
 - Fixed bindings skeleton removal happening prematurely when partial context updates didn't match any of the element's bindings.
