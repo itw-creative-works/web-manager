@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
-## [4.1.18] - 2026-03-11
+## [4.1.19] - 2026-03-11
 ### Added
 - Added new chatsy import.
 
