@@ -135,6 +135,11 @@ class Manager {
         this._setupNotificationAutoRequest();
       }
 
+      // Initialize Chatsy chat widget if enabled
+      if (this.config.chatsy?.enabled && this.config.chatsy?.config?.agentId) {
+        this._initializeChatsy();
+      }
+
       // Old IE force polyfill
       // await this._loadPolyfillsIfNeeded();
 
@@ -225,12 +230,14 @@ class Manager {
       chatsy: {
         enabled: false,
         config: {
-          accountId: '',
-          chatId: '',
+          agentId: '',
           settings: {
-            openChatButton: {
-              background: '#237afc',
-              text: '#fff'
+            button: {
+              backgroundColor: '#237afc',
+              textColor: '#FFFFFF',
+              position: 'bottom-right',
+              type: 'round',
+              icon: 'default',
             }
           }
         }
@@ -493,6 +500,21 @@ class Manager {
         || (this.config.validRedirectHosts || []).includes(returnUrlObject.host);
     } catch (e) {
       return false;
+    }
+  }
+
+  async _initializeChatsy() {
+    try {
+      const { default: Chatsy } = await import('chatsy');
+      const config = this.config.chatsy.config;
+
+      this._chatsy = new Chatsy(config.agentId, {
+        settings: config.settings,
+      });
+
+      console.log('[Chatsy] Initialized');
+    } catch (error) {
+      console.error('[Chatsy] Failed to initialize:', error);
     }
   }
 
