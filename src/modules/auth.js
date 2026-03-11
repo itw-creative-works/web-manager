@@ -22,8 +22,10 @@ const DEFAULT_ACCOUNT = {
   roles: { admin: false, betaTester: false, developer: false },
   affiliate: { code: null, referrals: [] },
   activity: {
-    lastActivity: { timestamp: null, timestampUNIX: null },
+  },
+  metadata: {
     created: { timestamp: null, timestampUNIX: null },
+    updated: { timestamp: null, timestampUNIX: null },
   },
   api: { clientId: null, privateKey: null },
   usage: {},
