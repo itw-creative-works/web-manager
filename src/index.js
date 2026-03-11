@@ -438,6 +438,12 @@ class Manager {
 
       // Let auth module handle everything including DOM updates
       this._auth._handleAuthStateChange(user);
+
+      // Update Chatsy with current user
+      if (this._chatsy) {
+        const resolved = this._auth.getUser();
+        this._chatsy.setUser(resolved ? { id: resolved.uid, email: resolved.email, firstName: resolved.displayName, photoURL: resolved.photoURL } : null);
+      }
     });
   }
 
