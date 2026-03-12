@@ -105,14 +105,14 @@ class Manager {
         await this._sentry.init(this.config.sentry.config);
       }
 
-      // Initialize Analytics if tracking ID and secret are provided
-      if (this.config.tracking?.['google-analytics'] && this.config.tracking?.['google-analytics-secret']) {
+      // Initialize Analytics if ID and secret are provided
+      if (this.config.analytics?.google && this.config.analytics?.googleSecret) {
         this._analytics.init({
-          id: this.config.tracking['google-analytics'],
-          secret: this.config.tracking['google-analytics-secret'],
+          id: this.config.analytics.google,
+          secret: this.config.analytics.googleSecret,
         });
       } else {
-        console.log('[Analytics] Skipped: missing google-analytics ID or secret');
+        console.log('[Analytics] Skipped: missing analytics google ID or secret');
       }
 
       // Initialize service worker if enabled
@@ -310,11 +310,11 @@ class Manager {
           path: '/service-worker.js'
         }
       },
-      tracking: {
-        'google-analytics': '',
-        'google-analytics-secret': '',
-        'meta-pixel': '',
-        'tiktok-pixel': '',
+      analytics: {
+        google: '',
+        googleSecret: '',
+        meta: '',
+        tiktok: '',
       },
     };
 

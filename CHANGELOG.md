@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.22] - 2026-03-11
+### BREAKING
+- Renamed `config.tracking` to `config.analytics` with simplified property names: `google-analytics` → `google`, `google-analytics-secret` → `googleSecret`, `meta-pixel` → `meta`, `tiktok-pixel` → `tiktok`.
+
+---
 ## [4.1.19] - 2026-03-11
 ### Added
 - Added new chatsy import.
