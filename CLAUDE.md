@@ -147,8 +147,22 @@ document.body.addEventListener('click', (e) => {
 
 ### Auth (`auth.js`)
 - **Class**: `Auth`
-- **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`
+- **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`, `resolveSubscription(account?)`
 - **Bindings**: Updates `auth.user` and `auth.account` context
+
+#### resolveSubscription(account?)
+Derives calculated subscription fields from raw account data. Returns only fields that require derivation logic — raw data (product.id, status, trial, cancellation) lives on `account.subscription` directly.
+
+```javascript
+const resolved = auth.resolveSubscription(account);
+// Returns: { plan, active, trialing, cancelling }
+```
+- `plan`: Effective plan ID the user has access to RIGHT NOW (`'basic'` if cancelled/suspended)
+- `active`: User has active access (active, trialing, or cancelling — all mean the user can use the product)
+- `trialing`: In an active trial (status `'active'` + `trial.claimed` + unexpired `trial.expires`)
+- `cancelling`: Cancellation pending (status `'active'` + `cancellation.pending` + NOT trialing)
+
+**Unified with BEM**: The same function exists on `User.resolveSubscription(account)` in backend-manager (`helpers/user.js`) with identical logic and return shape.
 
 #### Auth Settler Pattern
 Auth uses a promise-based settler (`_authReady`) that resolves once Firebase's first `onAuthStateChanged` fires — the moment auth state is guaranteed (authenticated user OR null). This eliminates race conditions.

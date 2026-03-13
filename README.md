@@ -360,6 +360,48 @@ On page load, Firebase Auth takes time to restore the user session. The auth set
 **HTML Auth Classes**:
 - `.auth-signout-btn` - Sign out button (shows confirmation dialog)
 
+**Resolve Subscription State**:
+
+Derives calculated subscription fields from raw account data. Returns only fields that require logic — raw data is on `account.subscription` directly.
+
+```javascript
+const resolved = auth.resolveSubscription(account);
+// Or without an argument (reads from storage):
+const resolved = auth.resolveSubscription();
+```
+
+Returns:
+```javascript
+{
+  plan: 'basic',       // Effective plan ID right now ('basic' if cancelled/suspended)
+  active: true,        // Has active access (active, trialing, or cancelling)
+  trialing: false,     // In an active trial (status 'active' + unexpired trial)
+  cancelling: false,   // Cancellation pending (status 'active' + cancellation.pending)
+}
+```
+
+Usage:
+```javascript
+auth.listen({ once: true }, (state) => {
+  const resolved = auth.resolveSubscription(state.account);
+
+  if (!resolved.active) {
+    // User is on free plan or subscription ended
+  }
+
+  if (resolved.trialing) {
+    // Show trial banner
+  }
+
+  if (resolved.cancelling) {
+    // Show "your plan will cancel at end of period" notice
+  }
+
+  // Use resolved.plan for effective plan ID
+  const product = products.find(p => p.id === resolved.plan);
+});
+```
+
 **⚠️ Auth State Timing**:
 
 Methods like `auth.isAuthenticated()`, `auth.getUser()`, and `auth.getIdToken()` read the current state directly — they may return `null` before auth settles.
