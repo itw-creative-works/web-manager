@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.24] - 2026-03-13
+### Added
+- Added `resolveSubscription()` method to Auth module that derives calculated subscription fields (plan, active, trialing, cancelling) from raw backend data.
+
+---
 ## [4.1.22] - 2026-03-11
 ### Changed
 - Renamed `config.tracking` to `config.analytics` with simplified property names: `google-analytics` → `google`, `google-analytics-secret` → `googleSecret`, `meta-pixel` → `meta`, `tiktok-pixel` → `tiktok`.

@@ -218,6 +218,37 @@ class Auth {
     });
   }
 
+  // Resolves calculated subscription fields that require derivation logic
+  // Raw data (product.id, status, trial, cancellation) is on account.subscription directly
+  // Returns: { plan, active, trialing, cancelling }
+  // - plan: the plan ID the user effectively has access to RIGHT NOW ('basic' if cancelled/suspended)
+  // - active: user has active access (active, trialing, or cancelling)
+  // - trialing: user is in an active trial (backend status is 'active' but trial hasn't expired)
+  // - cancelling: cancellation is pending (backend status is 'active' but cancellation.pending is true)
+  resolveSubscription(account) {
+    const subscription = (account || this.manager.storage().get('auth', {})?.account)?.subscription || {};
+    const productId = subscription.product?.id || 'basic';
+
+    // Derive trial and cancelling states from raw backend data
+    let trialing = false;
+    let cancelling = false;
+
+    if (productId !== 'basic' && subscription.status === 'active') {
+      trialing = !!(subscription.trial?.claimed
+        && subscription.trial?.expires?.timestampUNIX > Math.floor(Date.now() / 1000));
+      cancelling = !trialing && !!subscription.cancellation?.pending;
+    }
+
+    const active = (productId !== 'basic' && subscription.status === 'active');
+
+    return {
+      plan: active ? productId : 'basic',
+      active,
+      trialing,
+      cancelling,
+    };
+  }
+
   // Get ID token for the current user
   async getIdToken(forceRefresh = false) {
     try {
