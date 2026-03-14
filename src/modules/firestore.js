@@ -26,7 +26,7 @@ class Firestore {
       }
 
       // Dynamically import Firestore
-      const { getFirestore, doc: firestoreDoc, collection: firestoreCollection, getDoc, setDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, limit, startAt, endAt } = await import('firebase/firestore');
+      const { getFirestore, doc: firestoreDoc, collection: firestoreCollection, getDoc, setDoc, updateDoc, deleteDoc, getDocs, query, where, orderBy, limit, startAt, endAt, onSnapshot } = await import('firebase/firestore');
 
       // Store references for later use
       this._firestoreMethods = {
@@ -43,7 +43,8 @@ class Firestore {
         orderBy,
         limit,
         startAt,
-        endAt
+        endAt,
+        onSnapshot,
       };
 
       // Initialize Firestore
@@ -112,6 +113,25 @@ class Firestore {
         await self._ensureInitialized();
         const docRef = self._firestoreMethods.doc(self._db, docPath);
         return await self._firestoreMethods.deleteDoc(docRef);
+      },
+
+      onSnapshot(callback, errorCallback) {
+        let unsubscribe = function () {};
+
+        self._ensureInitialized().then(function () {
+          const docRef = self._firestoreMethods.doc(self._db, docPath);
+
+          unsubscribe = self._firestoreMethods.onSnapshot(docRef, function (docSnap) {
+            callback({
+              exists: () => docSnap.exists(),
+              data: () => docSnap.data(),
+              id: docSnap.id,
+              ref: docRef,
+            });
+          }, errorCallback);
+        });
+
+        return function () { unsubscribe(); };
       }
     };
   }
@@ -192,49 +212,85 @@ class Firestore {
       },
 
       async get() {
-        await self._ensureInitialized();
-        const collRef = self._firestoreMethods.collection(self._db, collectionPath);
+        return self._executeQuery(collectionPath, constraints);
+      },
 
-        // Build query constraints
-        const queryConstraints = [];
-        for (const constraint of constraints) {
-          switch (constraint.type) {
-            case 'where':
-              queryConstraints.push(self._firestoreMethods.where(constraint.field, constraint.operator, constraint.value));
-              break;
-            case 'orderBy':
-              queryConstraints.push(self._firestoreMethods.orderBy(constraint.field, constraint.direction));
-              break;
-            case 'limit':
-              queryConstraints.push(self._firestoreMethods.limit(constraint.count));
-              break;
-            case 'startAt':
-              queryConstraints.push(self._firestoreMethods.startAt(...constraint.values));
-              break;
-            case 'endAt':
-              queryConstraints.push(self._firestoreMethods.endAt(...constraint.values));
-              break;
-          }
-        }
+      onSnapshot(callback, errorCallback) {
+        let unsubscribe = function () {};
 
-        const q = self._firestoreMethods.query(collRef, ...queryConstraints);
-        const querySnapshot = await self._firestoreMethods.getDocs(q);
+        self._ensureInitialized().then(function () {
+          const collRef = self._firestoreMethods.collection(self._db, collectionPath);
+          const queryConstraints = self._buildConstraints(constraints);
+          const q = self._firestoreMethods.query(collRef, ...queryConstraints);
 
-        return {
-          docs: querySnapshot.docs.map(doc => ({
-            id: doc.id,
-            data: () => doc.data(),
-            exists: () => doc.exists(),
-            ref: doc.ref
-          })),
-          size: querySnapshot.size,
-          empty: querySnapshot.empty,
-          forEach: (callback) => querySnapshot.forEach(callback)
-        };
+          unsubscribe = self._firestoreMethods.onSnapshot(q, function (querySnapshot) {
+            callback({
+              docs: querySnapshot.docs.map(doc => ({
+                id: doc.id,
+                data: () => doc.data(),
+                exists: () => doc.exists(),
+                ref: doc.ref,
+              })),
+              size: querySnapshot.size,
+              empty: querySnapshot.empty,
+              forEach: (cb) => querySnapshot.forEach(cb),
+            });
+          }, errorCallback);
+        });
+
+        return function () { unsubscribe(); };
       }
     };
 
     return queryBuilder;
+  }
+
+  // Build query constraint objects from constraint descriptors
+  _buildConstraints(constraints) {
+    const queryConstraints = [];
+
+    for (const constraint of constraints) {
+      switch (constraint.type) {
+        case 'where':
+          queryConstraints.push(this._firestoreMethods.where(constraint.field, constraint.operator, constraint.value));
+          break;
+        case 'orderBy':
+          queryConstraints.push(this._firestoreMethods.orderBy(constraint.field, constraint.direction));
+          break;
+        case 'limit':
+          queryConstraints.push(this._firestoreMethods.limit(constraint.count));
+          break;
+        case 'startAt':
+          queryConstraints.push(this._firestoreMethods.startAt(...constraint.values));
+          break;
+        case 'endAt':
+          queryConstraints.push(this._firestoreMethods.endAt(...constraint.values));
+          break;
+      }
+    }
+
+    return queryConstraints;
+  }
+
+  // Execute a query and return formatted results
+  async _executeQuery(collectionPath, constraints) {
+    await this._ensureInitialized();
+    const collRef = this._firestoreMethods.collection(this._db, collectionPath);
+    const queryConstraints = this._buildConstraints(constraints);
+    const q = this._firestoreMethods.query(collRef, ...queryConstraints);
+    const querySnapshot = await this._firestoreMethods.getDocs(q);
+
+    return {
+      docs: querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        data: () => doc.data(),
+        exists: () => doc.exists(),
+        ref: doc.ref,
+      })),
+      size: querySnapshot.size,
+      empty: querySnapshot.empty,
+      forEach: (callback) => querySnapshot.forEach(callback),
+    };
   }
 
   // Helper to generate document IDs (similar to Firebase auto-generated IDs)
