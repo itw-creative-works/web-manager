@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.25] - 2026-03-13
+### Added
+- Automatically attach resolved subscription state (`state.resolved`) to auth state during processing, making `plan`, `active`, `trialing`, and `cancelling` available to bindings and consumers without manual calls.
+
+---
 ## [4.1.24] - 2026-03-13
 ### Added
 - Added `resolveSubscription()` method to Auth module that derives calculated subscription fields (plan, active, trialing, cancelling) from raw backend data.

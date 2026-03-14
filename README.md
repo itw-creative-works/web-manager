@@ -366,9 +366,11 @@ Derives calculated subscription fields from raw account data. Returns only field
 
 ```javascript
 const resolved = auth.resolveSubscription(account);
-// Or without an argument (reads from storage):
+// Or without an argument (falls back to stored auth state):
 const resolved = auth.resolveSubscription();
 ```
+
+When called without an argument, reads the account from `localStorage` (the last auth state saved by `listen()`). Pass an explicit account when you have one to avoid stale data.
 
 Returns:
 ```javascript

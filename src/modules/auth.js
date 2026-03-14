@@ -159,6 +159,9 @@ class Auth {
       // Ensure account is always a resolved object
       state.account = state.account || resolveAccount({}, { uid: user?.uid });
 
+      // Derive resolved subscription state for bindings and consumers
+      state.resolved = this.resolveSubscription(state.account);
+
       // Update bindings and storage once per auth state change
       if (!this._hasProcessedStateChange) {
         this.manager.bindings().update({ auth: state });
