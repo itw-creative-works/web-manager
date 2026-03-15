@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.28] - 2026-03-15
+### Changed
+- Bumped `chatsy` from `^2.0.5` to `^2.0.8`.
+- Upgraded `prepare-package` from `^1.2.6` to `^2.0.7` (major version with esbuild bundler).
+- Added `preparePackage.type = "copy"` config option.
+
+---
 ## [4.1.27] - 2026-03-14
 ### Changed
 - Renamed default brand config values from `id:'app'`/`name:'Application'` to `id:'brand'`/`name:'Brand'`.
