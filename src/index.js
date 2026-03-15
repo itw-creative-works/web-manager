@@ -166,8 +166,8 @@ class Manager {
       environment: 'production',
       buildTime: Date.now(),
       brand: {
-        id: 'app',
-        name: 'Application',
+        id: 'brand',
+        name: 'Brand',
         description: '',
         type: 'Organization',
         images: {

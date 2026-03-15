@@ -39,7 +39,7 @@ class ServiceWorker {
 
       // Build config object to pass to service worker
       const config = {
-        app: this.manager.config.brand?.id,
+        brand: this.manager.config.brand?.id,
         environment: this.manager.config.environment,
         buildTime: this.manager.config.buildTime,
         firebase: this.manager.config.firebase?.app?.config || null

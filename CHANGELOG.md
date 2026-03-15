@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.27] - 2026-03-14
+### Changed
+- Renamed default brand config values from `id:'app'`/`name:'Application'` to `id:'brand'`/`name:'Brand'`.
+- Renamed service worker config key from `app` to `brand` to align with brand terminology.
+
+---
 ## [4.1.25] - 2026-03-13
 ### Added
 - Automatically attach resolved subscription state (`state.resolved`) to auth state during processing, making `plan`, `active`, `trialing`, and `cancelling` available to bindings and consumers without manual calls.
