@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.30] - 2026-03-20
+### Changed
+- Bumped `@sentry/browser` from `^10.43.0` to `^10.45.0`.
+- Bumped `chatsy` from `^2.0.9` to `^2.0.11`.
+- Bumped `firebase` from `^12.10.0` to `^12.11.0`.
+
+---
 ## [4.1.29] - 2026-03-19
 ### Changed
 - Restructured notification subscription documents to use nested `metadata.created` and `metadata.updated` timestamps instead of top-level fields.
