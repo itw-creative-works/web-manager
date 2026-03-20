@@ -282,34 +282,28 @@ class Notifications {
       const existingOwner = existingData?.owner || null;
       const needsUpdate = existingOwner !== currentUid;
 
-      // Common data for both create and update
-      const baseData = {
-        context: {
-          client: clientData
-        },
-        updated: {
-          timestamp,
-          timestampUNIX
-        },
-        owner: currentUid
-      };
-
       // Create or update the document as needed
       if (!existingData) {
         // New subscription - create the document
         await notificationDoc.set({
-          ...baseData,
           token,
+          owner: currentUid,
           tags: ['general'],
           attribution: storage.get('attribution', {}),
-          created: {
-            timestamp,
-            timestampUNIX
+          context: { client: clientData },
+          metadata: {
+            created: { timestamp, timestampUNIX },
+            updated: { timestamp, timestampUNIX },
           },
         });
       } else if (needsUpdate) {
         // Existing subscription needs update (userId changed)
-        await notificationDoc.update(baseData);
+        // Use dot-notation to avoid overwriting metadata.created
+        await notificationDoc.update({
+          owner: currentUid,
+          context: { client: clientData },
+          'metadata.updated': { timestamp, timestampUNIX },
+        });
       }
       // If no update needed, do nothing
 

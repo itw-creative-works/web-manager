@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.29] - 2026-03-19
+### Changed
+- Restructured notification subscription documents to use nested `metadata.created` and `metadata.updated` timestamps instead of top-level fields.
+- Update operations now use dot-notation (`metadata.updated`) to preserve `metadata.created` when updating existing subscriptions.
+
+---
 ## [4.1.28] - 2026-03-15
 ### Changed
 - Bumped `chatsy` from `^2.0.5` to `^2.0.8`.
