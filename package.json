@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "4.1.31",
+  "version": "4.1.32",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@sentry/browser": "^10.45.0",
-    "chatsy": "^2.0.11",
+    "chatsy": "^2.0.12",
     "firebase": "^12.11.0",
     "itwcw-package-analytics": "^1.0.8",
     "lodash": "^4.17.23"
