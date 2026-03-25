@@ -391,7 +391,7 @@ class Manager {
     // Dynamically import Firebase v12
     const { initializeApp } = await import('firebase/app');
     const { getAuth, onAuthStateChanged } = await import('firebase/auth');
-    const { getFirestore } = await import('firebase/firestore');
+    const { initializeFirestore } = await import('firebase/firestore');
     const { getMessaging } = await import('firebase/messaging');
 
     // If we're in devmode, set the firebase config authDomain to the current host
@@ -405,7 +405,7 @@ class Manager {
     // Store Firebase references
     this._firebaseApp = app;
     this._firebaseAuth = getAuth(app);
-    this._firebaseFirestore = getFirestore(app);
+    this._firebaseFirestore = initializeFirestore(app, {});
 
     // Only initialize messaging if service workers are supported
     if ('serviceWorker' in navigator) {

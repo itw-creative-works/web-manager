@@ -30,7 +30,6 @@ class Firestore {
 
       // Store references for later use
       this._firestoreMethods = {
-        getFirestore,
         doc: firestoreDoc,
         collection: firestoreCollection,
         getDoc,
@@ -47,7 +46,7 @@ class Firestore {
         onSnapshot,
       };
 
-      // Initialize Firestore
+      // Reuse the Firestore instance already initialized in index.js
       this._db = getFirestore(this.manager._firebaseApp);
 
       // Connect to Firestore emulator in development

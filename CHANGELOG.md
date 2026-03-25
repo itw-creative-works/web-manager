@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.31] - 2026-03-24
+### Changed
+- Switched from `getFirestore` to `initializeFirestore` in `index.js` to support custom Firestore configuration options.
+- Removed redundant `getFirestore` from firestore module's stored methods since the instance is already initialized in `index.js`.
+
+---
 ## [4.1.30] - 2026-03-20
 ### Changed
 - Bumped `@sentry/browser` from `^10.43.0` to `^10.45.0`.
