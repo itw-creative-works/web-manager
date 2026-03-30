@@ -43,8 +43,8 @@
     "@sentry/browser": "Resolved by using OVERRIDES in web-manager (lighthouse is the issue"
   },
   "dependencies": {
-    "@sentry/browser": "^10.45.0",
-    "chatsy": "^2.0.12",
+    "@sentry/browser": "^10.46.0",
+    "chatsy": "^2.0.13",
     "firebase": "^12.11.0",
     "itwcw-package-analytics": "^1.0.8",
     "lodash": "^4.17.23"
