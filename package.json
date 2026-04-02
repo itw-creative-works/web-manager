@@ -1,6 +1,6 @@
 {
   "name": "web-manager",
-  "version": "4.1.35",
+  "version": "4.1.36",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -11,8 +11,7 @@
   },
   "scripts": {
     "start": "npm run prepare:watch",
-    "test": "./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
-    "test_": "npm run prepare && ./node_modules/mocha/bin/mocha test/ --recursive --timeout=10000",
+    "test": "npm run prepare && mocha --require ./test/setup.js --require ./test/helpers.js 'test/tests/**/*.test.js' --timeout=10000 --exit",
     "prepare_": "node -e 'require(`prepare-package`)()'",
     "prepare": "node -e \"require('prepare-package')()\"",
     "prepare:watch": "node -e \"require('prepare-package/watch')()\""

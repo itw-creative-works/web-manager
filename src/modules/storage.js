@@ -1,4 +1,5 @@
-import { get as _get, set as _set } from 'lodash';
+import lodash from 'lodash';
+const { get: _get, set: _set } = lodash;
 
 class Storage {
   constructor() {

@@ -37,26 +37,48 @@ class Utilities {
   }
 
   // Escape HTML to prevent XSS
-  escapeHTML(str) {
-    if (typeof str !== 'string') {
-      return '';
+  // Accepts a string, object, or array — walks recursively, escaping all string values
+  escapeHTML(input) {
+    // Strings — escape and return
+    if (typeof input === 'string') {
+      this._shadowElement = this._shadowElement || document.createElement('p');
+      this._shadowElement.innerHTML = '';
+
+      // This automatically escapes HTML entities like <, >, &, etc.
+      this._shadowElement.appendChild(document.createTextNode(input));
+
+      // This is needed to escape quotes to prevent attribute injection
+      return this._shadowElement.innerHTML.replace(/["']/g, (m) => {
+        switch (m) {
+          case '"':
+            return '&quot;';
+          default:
+            return '&#039;';
+        }
+      });
     }
 
-    this._shadowElement = this._shadowElement || document.createElement('p');
-    this._shadowElement.innerHTML = '';
+    // Null/undefined — pass through
+    if (input == null) {
+      return input;
+    }
 
-    // This automatically escapes HTML entities like <, >, &, etc.
-    this._shadowElement.appendChild(document.createTextNode(str));
+    // Arrays — recurse each item
+    if (Array.isArray(input)) {
+      return input.map(item => this.escapeHTML(item));
+    }
 
-    // This is needed to escape quotes to prevent attribute injection
-    return this._shadowElement.innerHTML.replace(/["']/g, (m) => {
-      switch (m) {
-        case '"':
-          return '&quot;';
-        default:
-          return '&#039;';
+    // Objects — shallow clone, recurse each value
+    if (typeof input === 'object') {
+      const result = {};
+      for (const [key, value] of Object.entries(input)) {
+        result[key] = this.escapeHTML(value);
       }
-    });
+      return result;
+    }
+
+    // Numbers, booleans, etc. — pass through unchanged
+    return input;
   }
 
   // Show notification
@@ -83,10 +105,17 @@ class Utilities {
     const $notification = document.createElement('div');
     $notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
     $notification.style.cssText = 'z-index: 9999; top: 1rem; left: 50%; transform: translateX(-50%);';
-    $notification.innerHTML = `
-      ${text}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
+
+    const $text = document.createElement('span');
+    $text.textContent = text;
+
+    const $closeBtn = document.createElement('button');
+    $closeBtn.type = 'button';
+    $closeBtn.className = 'btn-close';
+    $closeBtn.setAttribute('data-bs-dismiss', 'alert');
+
+    $notification.appendChild($text);
+    $notification.appendChild($closeBtn);
 
     document.body.appendChild($notification);
 

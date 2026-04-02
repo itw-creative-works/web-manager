@@ -150,6 +150,14 @@ class Bindings {
         const attrValue = this._resolvePath(context, attrExpression) || '';
 
         if (attrValue) {
+          // Block javascript: protocol on URL attributes to prevent XSS
+          const URL_ATTRS = ['href', 'src', 'action', 'formaction'];
+          if (URL_ATTRS.includes(attrName.toLowerCase())
+            && /^\s*javascript\s*:/i.test(String(attrValue))) {
+            console.warn(`[Bindings] Blocked javascript: URL in @attr ${attrName}`);
+            return true;
+          }
+
           element.setAttribute(attrName, attrValue);
         } else {
           element.removeAttribute(attrName);

@@ -15,6 +15,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.36] - 2026-04-02
+### Fixed
+- Fixed mocha binary path preventing `npm test` from running.
+- Fixed lodash ESM named import incompatibility with Node.js (`storage.js`).
+- Fixed test suite calling nonexistent API methods (`init` → `initialize`, `storage('local')` → `storage()`).
+- Fixed mocha hanging after tests due to `setInterval` in version checker (added `--exit` flag).
+
+### Changed
+- Enhanced `escapeHTML` to recursively handle objects, arrays, and pass through non-string types.
+- Rewrote `showNotification` to use safe DOM construction (`textContent`) instead of `innerHTML`.
+- Split monolithic `test.js` into 8 modular test files under `test/tests/`.
+- Expanded test coverage from ~10 broken tests to 70 passing tests.
+
+### Security
+- Blocked `javascript:` protocol in `@attr` bindings for URL attributes (`href`, `src`, `action`, `formaction`).
+
+---
 ## [4.1.35] - 2026-04-02
 ### Changed
 - Bumped `chatsy` from `^2.0.13` to `^2.0.14`.

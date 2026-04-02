@@ -1,10 +1,10 @@
-// Test setup for ES modules
-// Since the source is ES modules, we need to handle the import differently
-
 // Mock browser globals for Node.js testing
+
 global.window = {
   location: {
-    href: 'http://localhost:3000/test'
+    href: 'http://localhost:3000/test',
+    search: '',
+    origin: 'http://localhost:3000',
   },
   screen: {
     width: 1920,
@@ -32,6 +32,10 @@ global.window = {
   }
 };
 
+// Expose globals that some modules reference directly (not via window.*)
+global.localStorage = global.window.localStorage;
+global.sessionStorage = global.window.sessionStorage;
+
 global.navigator = {
   userAgent: 'Mozilla/5.0 (Testing) Node.js',
   language: 'en-US',
@@ -43,17 +47,22 @@ global.navigator = {
   userAgentData: {
     mobile: false
   },
-  serviceWorker: undefined // Service workers not supported in Node
+  serviceWorker: undefined
 };
 
 global.document = {
+  readyState: 'complete',
   createElement: (tag) => {
     const element = {
       tag,
+      className: '',
+      textContent: '',
+      type: '',
       setAttribute: () => {},
+      getAttribute: () => null,
+      remove: () => {},
       appendChild: (child) => {
         if (child.nodeValue) {
-          // Properly escape HTML entities when appending text nodes
           element.innerHTML = child.nodeValue
             .replace(/&/g, '&amp;')
             .replace(/</g, '&lt;')
@@ -65,19 +74,38 @@ global.document = {
       innerHTML: '',
       value: '',
       select: () => {},
-      style: {}
+      style: {
+        cssText: '',
+        setProperty: () => {},
+        removeProperty: () => {},
+      },
     };
     return element;
   },
   createTextNode: (text) => ({ nodeValue: text }),
+  documentElement: {
+    dataset: {},
+    setAttribute: () => {},
+    appendChild: () => {},
+  },
+  head: {
+    appendChild: () => {},
+  },
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  querySelectorAll: () => [],
+  querySelector: () => null,
   body: {
     appendChild: () => {},
-    removeChild: () => {}
+    removeChild: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
   },
   execCommand: () => true
 };
 
 global.URL = URL;
+global.URLSearchParams = URLSearchParams;
 
 // Firebase Messaging checks for self
 global.self = global.window;
