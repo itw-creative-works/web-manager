@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.35] - 2026-04-02
+### Changed
+- Bumped `chatsy` from `^2.0.13` to `^2.0.14`.
+
+---
 ## [4.1.34] - 2026-04-01
 ### Changed
 - Bumped `@sentry/browser` from `^10.46.0` to `^10.47.0`.
