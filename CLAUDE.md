@@ -16,12 +16,16 @@ This document helps AI agents understand the web-manager codebase for effective 
 ## Architecture
 
 ### Singleton Pattern
-The library exports a singleton `Manager` instance:
+The library exports a singleton `Manager` instance. Import it directly from any file — it's always the same initialized instance:
 ```javascript
-const manager = new Manager();
-export default manager;
-export { Manager };
+import webManager from 'web-manager';
+
+// Same instance everywhere — config, auth, firestore, all ready
+webManager.auth().listen((state) => { ... });
+webManager.utilities().escapeHTML(untrustedText);
+webManager.config.environment; // 'development' or 'production'
 ```
+**Do NOT create new instances** (`new Manager()`). UJM and BXM initialize the singleton — every import gets that same object. Do NOT pass `webManager` through function params or store it in module-level variables — just import it.
 
 ### Directory Structure
 ```

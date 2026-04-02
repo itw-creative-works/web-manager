@@ -15,6 +15,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.34] - 2026-04-01
+### Changed
+- Bumped `@sentry/browser` from `^10.46.0` to `^10.47.0`.
+- Bumped `lodash` from `^4.17.23` to `^4.18.1`.
+- Improved CLAUDE.md singleton pattern documentation with clearer usage examples and explicit anti-patterns.
+
+---
 ## [4.1.31] - 2026-03-24
 ### Changed
 - Switched from `getFirestore` to `initializeFirestore` in `index.js` to support custom Firestore configuration options.
