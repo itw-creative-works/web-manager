@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.37] - 2026-04-05
+### Added
+- Added `_resolveUsage()` to auth module that merges account usage data with plan limits from config, exposed as a top-level `usage` binding context.
+- Added `payment.processors` and `payment.plans` defaults to configuration.
+
 ## [4.1.36] - 2026-04-02
 ### Fixed
 - Fixed mocha binary path preventing `npm test` from running.

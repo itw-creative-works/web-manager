@@ -164,8 +164,12 @@ class Auth {
 
       // Update bindings and storage once per auth state change
       if (!this._hasProcessedStateChange) {
-        this.manager.bindings().update({ auth: state });
+        this.manager.bindings().update({
+          auth: state,
+          usage: this._resolveUsage(state),
+        });
         this.manager.storage().set('auth', state);
+
         this._hasProcessedStateChange = true;
       }
 
@@ -250,6 +254,29 @@ class Auth {
       trialing,
       cancelling,
     };
+  }
+
+  // Resolve usage bindings from account data + plan limits from config.
+  // Returns: { credits: { monthly: 5, limit: 100 }, ... }
+  _resolveUsage(state) {
+    const accountUsage = state.account?.usage || {};
+    const plan = state.resolved?.plan || 'basic';
+    const plans = this.manager.config.payment?.plans || [];
+    const planConfig = plans.find(p => p.id === plan) || {};
+    const limits = planConfig.limits || {};
+
+    // Merge current usage with limits for each feature
+    const usage = {};
+    const keys = new Set([...Object.keys(accountUsage), ...Object.keys(limits)]);
+
+    for (const key of keys) {
+      usage[key] = {
+        ...(accountUsage[key] || {}),
+        limit: limits[key] || 0,
+      };
+    }
+
+    return usage;
   }
 
   // Get ID token for the current user

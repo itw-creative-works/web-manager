@@ -296,6 +296,10 @@ class Manager {
         FIREBASE_EMULATOR_CONNECT: false,
       },
       validRedirectHosts: [],
+      payment: {
+        processors: {},
+        plans: [],
+      },
 
       // Non-configurable defaults
       refreshNewVersion: {
