@@ -81,6 +81,26 @@ class Utilities {
     return input;
   }
 
+  // Sanitize URL to prevent javascript:, data:, and other dangerous URI schemes
+  // Returns the original URL if safe, or '' if rejected
+  sanitizeURL(url) {
+    if (!url || typeof url !== 'string') {
+      return '';
+    }
+
+    try {
+      const parsed = new URL(url, window.location.origin);
+
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+        return '';
+      }
+
+      return url;
+    } catch (e) {
+      return '';
+    }
+  }
+
   // Show notification
   showNotification(message, options = {}) {
     // Handle different input types
