@@ -49,6 +49,25 @@ describe('Utilities Module', () => {
       assert.strictEqual(u.escapeHTML(42), 42);
       assert.strictEqual(u.escapeHTML(true), true);
     });
+
+    it('should work when detached from the utilities instance', () => {
+      // Methods are arrow class fields — `this` is permanently bound to the instance,
+      // so destructuring, aliasing, or passing as a callback must all work.
+      const utilities = getManager().utilities();
+
+      // Destructured
+      const { escapeHTML } = utilities;
+      assert.strictEqual(escapeHTML('<b>x</b>'), '&lt;b&gt;x&lt;/b&gt;');
+
+      // Aliased via property access
+      const escape = utilities.escapeHTML;
+      assert.strictEqual(escape('<b>x</b>'), '&lt;b&gt;x&lt;/b&gt;');
+
+      // Passed as a callback
+      const result = ['<a>', '<b>'].map(utilities.escapeHTML);
+      assert.strictEqual(result[0], '&lt;a&gt;');
+      assert.strictEqual(result[1], '&lt;b&gt;');
+    });
   });
 
   describe('Detection methods', () => {

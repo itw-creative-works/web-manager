@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.39] - 2026-04-10
+### Changed
+- Converted `Utilities` methods to arrow class fields so `this` is permanently bound to the instance, allowing methods to be destructured, aliased, or passed as callbacks without losing context.
+
+---
 ## [4.1.38] - 2026-04-08
 ### Added
 - Added `sanitizeURL()` utility method that validates URLs against dangerous URI schemes (javascript:, data:, etc.), allowing only http: and https: protocols.

@@ -1,10 +1,16 @@
+// Methods are defined as arrow class fields so `this` is permanently bound to the instance.
+// This means consumers can safely alias or destructure methods without losing context:
+//   const { escapeHTML } = webManager.utilities(); // ✓ works
+//   const escape = webManager.utilities().escapeHTML; // ✓ works
+//   items.map(webManager.utilities().escapeHTML); // ✓ works
+// Safe because webManager.utilities() is a singleton — only one instance ever exists.
 class Utilities {
   constructor(manager) {
     this.manager = manager;
   }
 
   // Copy text to clipboard
-  clipboardCopy(input) {
+  clipboardCopy = (input) => {
     // Get the text from the input
     const text = input && input.nodeType
       ? input.value || input.innerText || input.innerHTML
@@ -38,7 +44,7 @@ class Utilities {
 
   // Escape HTML to prevent XSS
   // Accepts a string, object, or array — walks recursively, escaping all string values
-  escapeHTML(input) {
+  escapeHTML = (input) => {
     // Strings — escape and return
     if (typeof input === 'string') {
       this._shadowElement = this._shadowElement || document.createElement('p');
@@ -83,7 +89,7 @@ class Utilities {
 
   // Sanitize URL to prevent javascript:, data:, and other dangerous URI schemes
   // Returns the original URL if safe, or '' if rejected
-  sanitizeURL(url) {
+  sanitizeURL = (url) => {
     if (!url || typeof url !== 'string') {
       return '';
     }
@@ -102,7 +108,7 @@ class Utilities {
   }
 
   // Show notification
-  showNotification(message, options = {}) {
+  showNotification = (message, options = {}) => {
     // Handle different input types
     let text = message;
     let type = options.type || 'info';
@@ -148,7 +154,7 @@ class Utilities {
   }
 
   // Get platform (OS)
-  getPlatform() {
+  getPlatform = () => {
     const ua = navigator.userAgent.toLowerCase();
     const platform = (navigator.userAgentData?.platform || navigator.platform || '').toLowerCase();
 
@@ -178,7 +184,7 @@ class Utilities {
   }
 
   // Get browser name
-  getBrowser() {
+  getBrowser = () => {
     const ua = navigator.userAgent;
 
     // Order matters - check more specific browsers first
@@ -217,7 +223,7 @@ class Utilities {
   }
 
   // Get runtime environment
-  getRuntime() {
+  getRuntime = () => {
     // Use config runtime if provided
     if (this.manager?.config?.runtime) {
       return this.manager.config.runtime;
@@ -237,7 +243,7 @@ class Utilities {
   }
 
   // Check if mobile device
-  isMobile() {
+  isMobile = () => {
     try {
       // Try modern API first
       const m = navigator.userAgentData?.mobile;
@@ -257,7 +263,7 @@ class Utilities {
   }
 
   // Get device based on screen width
-  getDevice() {
+  getDevice = () => {
     const width = window.innerWidth;
 
     // Mobile: < 768px (Bootstrap's md breakpoint)
@@ -275,7 +281,7 @@ class Utilities {
   }
 
   // Get context information
-  getContext() {
+  getContext = () => {
     // Return context information
     return {
       client: {
