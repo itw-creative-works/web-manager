@@ -298,7 +298,7 @@ class Manager {
       validRedirectHosts: [],
       payment: {
         processors: {},
-        plans: [],
+        products: [],
       },
 
       // Non-configurable defaults

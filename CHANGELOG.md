@@ -15,6 +15,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.40] - 2026-05-10
+### Changed
+- **BREAKING (internal)**: `_resolveUsage()` now reads `config.payment.products` instead of `config.payment.plans`. Aligns with OMEGA's canonical shape (the SSOT) — same key name in BEM, UJM, EM. No backwards-compat shim; consumers must use `payment.products`. Default in `_processConfiguration()` updated from `plans: []` to `products: []`. Renamed local vars `plan`/`plans`/`planConfig` → `productId`/`products`/`product`. CLAUDE.md updated.
+
+---
 ## [4.1.39] - 2026-04-10
 ### Changed
 - Converted `Utilities` methods to arrow class fields so `this` is permanently bound to the instance, allowing methods to be destructured, aliased, or passed as callbacks without losing context.

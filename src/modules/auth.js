@@ -256,14 +256,17 @@ class Auth {
     };
   }
 
-  // Resolve usage bindings from account data + plan limits from config.
+  // Resolve usage bindings from account data + product limits from config.
   // Returns: { credits: { monthly: 5, limit: 100 }, ... }
+  //
+  // The product catalog lives at `config.payment.products` (OMEGA canonical
+  // shape — matches BEM, UJM, and EM). Each product entry has `{ id, limits: {...} }`.
   _resolveUsage(state) {
     const accountUsage = state.account?.usage || {};
-    const plan = state.resolved?.plan || 'basic';
-    const plans = this.manager.config.payment?.plans || [];
-    const planConfig = plans.find(p => p.id === plan) || {};
-    const limits = planConfig.limits || {};
+    const productId    = state.resolved?.plan || 'basic';
+    const products     = this.manager.config.payment?.products || [];
+    const product      = products.find(p => p.id === productId) || {};
+    const limits       = product.limits || {};
 
     // Merge current usage with limits for each feature
     const usage = {};

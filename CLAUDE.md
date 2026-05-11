@@ -153,7 +153,7 @@ document.body.addEventListener('click', (e) => {
 - **Class**: `Auth`
 - **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`, `resolveSubscription(account?)`
 - **Bindings**: Updates `auth` and `usage` context on auth settle
-- **Usage Resolution**: `_resolveUsage(state)` merges `account.usage` (Firestore) with plan limits from `config.payment.plans` to produce the `usage` bindings key (e.g., `{ credits: { monthly: 5, limit: 100 } }`)
+- **Usage Resolution**: `_resolveUsage(state)` merges `account.usage` (Firestore) with product limits from `config.payment.products` (OMEGA-canonical shape — same key name in BEM, UJM, and EM) to produce the `usage` bindings key (e.g., `{ credits: { monthly: 5, limit: 100 } }`)
 
 #### resolveSubscription(account?)
 Derives calculated subscription fields from raw account data. Returns only fields that require derivation logic — raw data (product.id, status, trial, cancellation) lives on `account.subscription` directly.
@@ -269,13 +269,13 @@ Current test coverage is minimal - focuses on configuration and storage.
 
 ### Modifying Configuration Defaults
 1. Edit `_processConfiguration()` in `src/index.js`
-2. Add to `defaults` object (e.g., `payment: { processors: {}, plans: [] }`)
+2. Add to `defaults` object (e.g., `payment: { processors: {}, products: [] }`)
 3. Document in README.md Configuration section
 
 ### Payment Configuration
-Payment config is set in `_config.yml` under `web_manager.payment` and includes:
-- `processors`: Stripe, PayPal, etc. (publishable keys)
-- `plans`: Array of `{ id, limits: { feature: N } }` used to resolve usage limits on the frontend
+Payment config shape mirrors OMEGA (the SSOT) — same key names used in BEM, UJM, and EM:
+- `processors`: Stripe, PayPal, Chargebee, Coinbase (publishable keys / client IDs)
+- `products`: Array of `{ id, name, type, limits: { feature: N }, prices, trial, paypal, stripe, chargebee }` — used to resolve usage limits on the frontend AND drive checkout flows
 
 ### Adding a Data Binding Action
 1. Edit `_executeAction()` in `src/modules/bindings.js`
