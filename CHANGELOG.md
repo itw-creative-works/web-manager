@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.41] - 2026-05-10
+### Changed
+- Bumped dependencies: `@sentry/browser` ^10.47.0 → ^10.52.0, `firebase` ^12.11.0 → ^12.13.0, `prepare-package` ^2.0.7 → ^2.1.0.
+- Added empty `hooks: {}` to `preparePackage` config to align with prepare-package 2.1.0 schema.
+
+---
 ## [4.1.40] - 2026-05-10
 ### Changed
 - **BREAKING (internal)**: `_resolveUsage()` now reads `config.payment.products` instead of `config.payment.plans`. Aligns with OMEGA's canonical shape (the SSOT) — same key name in BEM, UJM, EM. No backwards-compat shim; consumers must use `payment.products`. Default in `_processConfiguration()` updated from `plans: []` to `products: []`. Renamed local vars `plan`/`plans`/`planConfig` → `productId`/`products`/`product`. CLAUDE.md updated.
