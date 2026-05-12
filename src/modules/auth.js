@@ -133,8 +133,8 @@ class Auth {
       options = {};
     }
 
-    // If Firebase is not enabled, call callback immediately with null
-    if (!this.manager.config.firebase?.app?.enabled) {
+    // If Firebase isn't configured (no firebaseConfig blob), call callback immediately with null.
+    if (!this.manager._resolveFirebaseConfig()) {
       callback({
         user: null,
         account: resolveAccount({}, {}),

@@ -42,7 +42,7 @@ class ServiceWorker {
         brand: this.manager.config.brand?.id,
         environment: this.manager.config.environment,
         buildTime: this.manager.config.buildTime,
-        firebase: this.manager.config.firebase?.app?.config || null
+        firebase: this.manager._resolveFirebaseConfig()
       };
 
       // Register service worker

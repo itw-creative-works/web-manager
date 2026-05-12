@@ -95,8 +95,11 @@ class Manager {
       // Set platform and runtime on HTML element
       this._setHtmlDataAttributes();
 
-      // Initialize Firebase if enabled
-      if (this.config.firebase?.app?.enabled) {
+      // Initialize Firebase if a config blob is present (presence-driven — matches BEM
+      // convention). Reads flat `firebaseConfig` (BEM/BXM/EM canonical shape) and falls
+      // back to nested `firebase.app.config` (UJM's current `_config.yml` shape).
+      // Once UJM migrates to the flat shape this fallback can be dropped.
+      if (this._resolveFirebaseConfig()) {
         await this._initializeFirebase();
       }
 
@@ -389,8 +392,23 @@ class Manager {
     $html.dataset.device = this._utilities.getDevice();
   }
 
+  // Resolve the Firebase web SDK config blob. Flat `firebaseConfig` first (canonical
+  // shape — BEM/BXM/EM), then nested `firebase.app.config` (UJM legacy yaml shape).
+  // Returns the blob when it has at least one own key, otherwise null.
+  _resolveFirebaseConfig() {
+    const flat = this.config.firebaseConfig;
+    if (flat && typeof flat === 'object' && Object.keys(flat).length > 0) {
+      return flat;
+    }
+    const nested = this.config.firebase?.app?.config;
+    if (nested && typeof nested === 'object' && Object.keys(nested).length > 0) {
+      return nested;
+    }
+    return null;
+  }
+
   async _initializeFirebase() {
-    const firebaseConfig = this.config.firebase.app.config;
+    const firebaseConfig = this._resolveFirebaseConfig();
 
     // Dynamically import Firebase v12
     const { initializeApp } = await import('firebase/app');
@@ -403,8 +421,11 @@ class Manager {
     //   firebaseConfig.authDomain = window.location.hostname;
     // }
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
+    // Initialize Firebase. Re-init guards: if there's already a [DEFAULT] app
+    // (live reload, re-init in tests), get the existing one rather than throwing
+    // `app/duplicate-app`.
+    const { getApp, getApps } = await import('firebase/app');
+    const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
     // Store Firebase references
     this._firebaseApp = app;
@@ -463,7 +484,7 @@ class Manager {
 
   getFunctionsUrl(environment) {
     const env = environment || this.config.environment;
-    const projectId = this.config.firebase?.app?.config?.projectId;
+    const projectId = this._resolveFirebaseConfig()?.projectId;
 
     if (!projectId) {
       throw new Error('Firebase project ID not configured');
@@ -488,7 +509,7 @@ class Manager {
       return 'http://localhost:5002';
     }
 
-    const apiDomain = this.config.firebase.app.config.authDomain; // Has to be this since some projects like Clockii use ITW Universal Auth
+    const apiDomain = this._resolveFirebaseConfig()?.authDomain; // Has to be this since some projects like Clockii use ITW Universal Auth
     // const apiDomain = this.config.brand.url;
     const baseUrl = url || (apiDomain ? `https://${apiDomain}` : window.location.origin);
     const urlObj = new URL(baseUrl);

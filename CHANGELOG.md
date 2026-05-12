@@ -15,6 +15,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.1.42] - 2026-05-11
+### Changed
+- **Firebase config: presence-driven + flat shape canonical.** Firebase now initializes when a `firebaseConfig` blob is present in config (matching BEM/BXM/EM/OMEGA shape) — no separate `firebase.app.enabled` flag needed. Removes the `enabled` redundancy where consumers had to set both a credentials blob AND flip a flag.
+- New internal helper `_resolveFirebaseConfig()` reads flat `config.firebaseConfig` first (canonical), falls back to nested `config.firebase.app.config` (UJM legacy yaml). Used by `_initializeFirebase`, `getFunctionsUrl`, `getApiUrl`, `service-worker.js`, and `auth.js#listen` (Firebase-not-configured short-circuit).
+- `_initializeFirebase` now reuses an existing `[DEFAULT]` Firebase app if present (via `getApps()` / `getApp()`) instead of throwing `app/duplicate-app` on re-init (live reload, test re-runs).
+- No backwards-compat shim needed for UJM: both shapes resolve. UJM can migrate to the flat `firebaseConfig` shape on its own schedule; until then, its `firebase.app.config` keeps working.
+
+---
 ## [4.1.41] - 2026-05-10
 ### Changed
 - Bumped dependencies: `@sentry/browser` ^10.47.0 → ^10.52.0, `firebase` ^12.11.0 → ^12.13.0, `prepare-package` ^2.0.7 → ^2.1.0.
