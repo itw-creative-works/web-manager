@@ -130,7 +130,7 @@ class Utilities {
 
     const $notification = document.createElement('div');
     $notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
-    $notification.style.cssText = 'z-index: 9999; top: 1rem; left: 50%; transform: translateX(-50%);';
+    $notification.style.cssText = 'z-index: 9999; top: 1rem; left: 50%; transform: translateX(-50%); width: calc(100% - 2rem); max-width: 500px;';
 
     const $text = document.createElement('span');
     $text.textContent = text;

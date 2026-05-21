@@ -1,301 +1,82 @@
-# Web Manager - AI Agent Guide
+# Web Manager
 
-This document helps AI agents understand the web-manager codebase for effective contributions.
+> **Note for contributors and Claude:** This file is the architectural overview — identity, top-level conventions, and a map to deep references. The **meat** (module APIs, patterns, behavior tables) lives in `docs/<topic>.md`. When extending or adding content, write it in the matching `docs/*.md` file and cross-link from here — do NOT inline it. If a topic doesn't have a doc yet, create one. Goal: keep this file under 250 lines.
 
-## Project Overview
+## Identity
 
-**Purpose**: Modern JavaScript utility library for web applications with Firebase integration. Provides authentication, data binding, storage, push notifications, error tracking, and more.
+Web Manager is a modern JavaScript utility library for web applications with Firebase integration. It runs in the browser, in Electron's renderer process, and inside browser extensions (content scripts, popups, background pages). Provides:
 
-**Target Environments**:
-- Web (primary, webpack-optimized)
-- Electron (renderer process)
-- Chrome/Firefox Extensions (content scripts, popups)
+- A singleton `Manager` instance exposing authentication, reactive DOM data binding, Firestore, storage, push notifications, error tracking (Sentry), service-worker helpers, and DOM/utility functions
+- Lazy Firebase imports to keep consumer bundles small
+- Reactive `data-wm-bind` DOM directives wired to auth + usage state
+- A `resolveSubscription()` helper unified with backend-manager's `User.resolveSubscription()` so subscription-state logic is identical across frontend and backend
 
-**Version**: 4.0.x | **Node**: >=12 | **License**: CC-BY-4.0
+### Consumed by the frontend Manager family
 
-## Architecture
+Web Manager is the runtime singleton powering **Ultimate Jekyll Manager (UJM)**, **Browser Extension Manager (BXM)**, and **Electron Manager (EM)**. Each framework initializes the singleton once and exposes it as `manager.webManager`. Any consumer of those frameworks gets a fully-wired web-manager via `import webManager from 'web-manager'`.
 
-### Singleton Pattern
-The library exports a singleton `Manager` instance. Import it directly from any file — it's always the same initialized instance:
+## Recommended skills
+
+- **`js:patterns`** — JavaScript/Node.js conventions: file structure, JSDoc, defensive coding (`?.` usage), template literals, `package.json` conventions. Auto-loads when creating new `.js` files or touching JS module structure.
+
+## Quick Start
+
+### For Consuming Projects
+
+Web Manager is consumed indirectly through UJM, BXM, or EM — those frameworks initialize the singleton for you. Inside any consuming code:
+
 ```javascript
 import webManager from 'web-manager';
 
-// Same instance everywhere — config, auth, firestore, all ready
-webManager.auth().listen((state) => { ... });
+webManager.auth().listen({ once: true }, async () => { /* auth settled */ });
 webManager.utilities().escapeHTML(untrustedText);
-webManager.config.environment; // 'development' or 'production'
-```
-**Do NOT create new instances** (`new Manager()`). UJM and BXM initialize the singleton — every import gets that same object. Do NOT pass `webManager` through function params or store it in module-level variables — just import it.
-
-### Directory Structure
-```
-web-manager/
-├── src/                       # Source code (ES6+)
-│   ├── index.js               # Manager class, initialization, Firebase setup
-│   └── modules/               # Feature modules
-│       ├── auth.js            # Firebase Auth wrapper
-│       ├── bindings.js        # Reactive DOM data binding
-│       ├── dom.js             # loadScript, ready utilities
-│       ├── firestore.js       # Firestore wrapper with chainable queries
-│       ├── notifications.js   # FCM push notifications
-│       ├── sentry.js          # Error tracking integration
-│       ├── service-worker.js  # SW registration and messaging
-│       ├── storage.js         # localStorage/sessionStorage wrapper
-│       └── utilities.js       # Helper functions (clipboard, escape, etc.)
-├── dist/                      # Transpiled ES5 output (generated)
-├── _legacy/                   # Old implementation (reference only, DO NOT MODIFY)
-└── test/                      # Mocha tests
+webManager.firestore().doc('users/abc').get();
 ```
 
-### Module Dependencies
-```
-Manager (index.js)
-├── Storage (standalone, no deps)
-├── Auth → Manager, Bindings, Storage, Firestore
-├── Bindings → Manager
-├── Firestore → Manager (lazy Firebase import)
-├── Notifications → Manager, Storage, Firestore
-├── ServiceWorker → Manager
-├── Sentry → Manager (dynamic import)
-├── DOM utilities (standalone)
-└── Utilities (standalone)
-```
+### For Framework Development (This Repository)
 
-## Key Patterns
+1. `npm install` — install Web Manager's own deps
+2. `npm run prepare` — build once: copies `src/` → `dist/` via prepare-package (ES5 transpile)
+3. `npm start` — watch mode (rebuild on change)
+4. `npm test` — run Mocha tests
 
-### 1. Early Return (Short-Circuit)
-Always use early returns instead of nested conditionals:
-```javascript
-// CORRECT
-function doSomething() {
-  if (!condition) {
-    return;
-  }
-  // Long code block...
-}
+> **Important:** Web Manager is a library, not an app. There is no `npm run build` / `npm run serve` here. Consume it from inside a UJM / BXM / EM project for end-to-end behavior.
 
-// WRONG
-function doSomething() {
-  if (condition) {
-    // Long code block...
-  }
-}
-```
+## Architecture
 
-### 2. DOM Element Naming
-Prefix DOM element variables with `$`:
-```javascript
-const $button = document.querySelector('.submit-btn');
-const $input = document.getElementById('email');
-```
+Web Manager exports a singleton `Manager` instance from `src/index.js`. Every `import webManager from 'web-manager'` returns the same already-initialized object — do NOT call `new Manager()`, and do NOT pass `webManager` through function params or module-level variables.
 
-### 3. Logical Operator Formatting
-Place operators at the START of continuation lines:
-```javascript
-// CORRECT
-const result = conditionA
-  || conditionB
-  || conditionC;
+The singleton owns nine feature modules under `src/modules/`: `storage`, `auth`, `bindings`, `firestore`, `notifications`, `service-worker`, `sentry`, `dom`, `utilities`. Firebase modules are dynamically imported to keep the bundle small. See [docs/architecture.md](docs/architecture.md) for the directory structure and module dependency graph, and [docs/modules.md](docs/modules.md) for the API reference of each module.
 
-// WRONG
-const result = conditionA ||
-  conditionB ||
-  conditionC;
-```
+## File Conventions
 
-### 4. Firestore Path Syntax
-Prefer path syntax over collection/doc chaining:
-```javascript
-// PREFERRED
-db.doc('users/userId')
+- **CommonJS-friendly ES6+** in `src/`. `prepare-package` transpiles to ES5 in `dist/`.
+- **`fs-jetpack`** over `fs` / `fs-extra` for any file operations in tests/scripts.
+- **No TypeScript** — pure JavaScript library.
+- **Template strings** — use backticks for string interpolation.
+- **DO NOT modify `_legacy/`** — reference only, frozen for historical context.
+- **No backwards compatibility** unless explicitly requested — just change to the new way.
+- **Early-return / short-circuit** style throughout — see [docs/code-patterns.md](docs/code-patterns.md) for the full code-pattern checklist (`$`-prefixed DOM vars, operators at start of continuation lines, Firestore path syntax, dynamic imports, config deep-merge, event delegation).
 
-// ALSO SUPPORTED
-db.doc('users', 'userId')
-```
+## Doc-update parity
 
-### 5. Dynamic Imports
-Firebase modules are dynamically imported to reduce bundle size:
-```javascript
-const { initializeApp } = await import('firebase/app');
-const { getAuth } = await import('firebase/auth');
-```
+Whenever you make a behavioral change (new module, new method, new pattern, removed feature), update:
 
-### 6. Configuration Deep Merge
-User config is deep-merged with defaults in `_processConfiguration()`. Only override what you need:
-```javascript
-// Defaults defined in _processConfiguration()
-const defaults = {
-  environment: 'production',
-  firebase: { app: { enabled: true, config: {} } },
-  // ...
-};
-```
+1. **`README.md`** — user-facing summary
+2. **`CLAUDE.md`** (this file) — architecture overview, one paragraph or cross-link
+3. **`docs/<topic>.md`** — the meat. If a topic doesn't have a doc yet, create one.
+4. **`CHANGELOG.md`** — if the project keeps one
 
-### 7. Event Delegation
-Auth UI uses event delegation on document body:
-```javascript
-document.body.addEventListener('click', (e) => {
-  if (e.target.closest('.auth-signout-btn')) {
-    // Handle signout
-  }
-});
-```
+Don't ship behavioral changes with stale docs. Validate first, then document — write docs that describe shipped reality, not intentions.
 
-## Module Quick Reference
+## Documentation
 
-### Storage (`storage.js`)
-- **Class**: `Storage`
-- **Key Methods**: `get(path, default)`, `set(path, value)`, `remove(path)`, `clear()`
-- **Session**: Same methods under `.session` namespace
-- **Storage Key**: `_manager` in localStorage
+Deep references live in `docs/`. Treat docs as a first-class deliverable. **Whenever you make a behavioral change, update both this overview AND the relevant `docs/*.md` deep reference.**
 
-### Auth (`auth.js`)
-- **Class**: `Auth`
-- **Key Methods**: `listen(options, callback)`, `isAuthenticated()`, `getUser()`, `signInWithEmailAndPassword()`, `signOut()`, `getIdToken()`, `resolveSubscription(account?)`
-- **Bindings**: Updates `auth` and `usage` context on auth settle
-- **Usage Resolution**: `_resolveUsage(state)` merges `account.usage` (Firestore) with product limits from `config.payment.products` (OMEGA-canonical shape — same key name in BEM, UJM, and EM) to produce the `usage` bindings key (e.g., `{ credits: { monthly: 5, limit: 100 } }`)
-
-#### resolveSubscription(account?)
-Derives calculated subscription fields from raw account data. Returns only fields that require derivation logic — raw data (product.id, status, trial, cancellation) lives on `account.subscription` directly.
-
-```javascript
-const resolved = auth.resolveSubscription(account);
-// Returns: { plan, active, trialing, cancelling }
-```
-- `plan`: Effective plan ID the user has access to RIGHT NOW (`'basic'` if cancelled/suspended)
-- `active`: User has active access (active, trialing, or cancelling — all mean the user can use the product)
-- `trialing`: In an active trial (status `'active'` + `trial.claimed` + unexpired `trial.expires`)
-- `cancelling`: Cancellation pending (status `'active'` + `cancellation.pending` + NOT trialing)
-
-**Unified with BEM**: The same function exists on `User.resolveSubscription(account)` in backend-manager (`helpers/user.js`) with identical logic and return shape.
-
-#### Auth Settler Pattern
-Auth uses a promise-based settler (`_authReady`) that resolves once Firebase's first `onAuthStateChanged` fires — the moment auth state is guaranteed (authenticated user OR null). This eliminates race conditions.
-
-- **`once` listeners** (`listen({ once: true }, cb)`): Wait for `_authReady`, fire once, done. No cleanup needed.
-- **Persistent listeners** (`listen({}, cb)`): Subscribe to `_authStateCallbacks`. If auth already settled when registered, catch up via `_authReady.then()`. Otherwise, `_handleAuthStateChange` handles the initial call naturally.
-- **`_hasProcessedStateChange`**: Ensures bindings/storage updates run only once per auth state change across all listeners.
-- **Manager owns the promise**: `_authReady` and `_authReadyResolve` live on the Manager instance. The `onAuthStateChanged` callback in `index.js` resolves it on first fire and sets `_firebaseAuthInitialized = true`.
-
-### Bindings (`bindings.js`)
-- **Class**: `Bindings`
-- **Key Methods**: `update(data)`, `getContext()`, `clear()`
-- **HTML Attr**: `data-wm-bind`
-- **Actions**: `@text`, `@value`, `@show`, `@hide`, `@attr`, `@style`
-
-### Firestore (`firestore.js`)
-- **Class**: `Firestore`
-- **Key Methods**: `doc(path)`, `collection(path)`
-- **Doc Methods**: `.get()`, `.set()`, `.update()`, `.delete()`
-- **Query Methods**: `.where()`, `.orderBy()`, `.limit()`, `.startAt()`, `.endAt()`
-
-### Notifications (`notifications.js`)
-- **Class**: `Notifications`
-- **Key Methods**: `isSupported()`, `isSubscribed()`, `subscribe()`, `unsubscribe()`, `getToken()`, `onMessage()`
-- **Storage**: Saves to localStorage and Firestore
-
-### ServiceWorker (`service-worker.js`)
-- **Class**: `ServiceWorker`
-- **Key Methods**: `isSupported()`, `register()`, `ready()`, `postMessage()`, `onMessage()`, `getState()`
-
-### Sentry (`sentry.js`)
-- **Class**: `Sentry` (named `mod` internally)
-- **Key Methods**: `init(config)`, `captureException(error, context)`
-- **Filtering**: Blocks dev mode, Lighthouse, Selenium/Puppeteer
-
-### DOM (`dom.js`)
-- **Exports**: `loadScript(options)`, `ready()`
-- **loadScript Options**: src, async, defer, crossorigin, integrity, timeout, retries
-
-### Utilities (`utilities.js`)
-- **Exports**: `clipboardCopy()`, `escapeHTML()`, `showNotification()`, `getPlatform()`, `getBrowser()`, `getRuntime()`, `isMobile()`, `getDevice()`, `getContext()`
-
-## Build System
-
-### prepare-package
-The library uses `prepare-package` for ES5 transpilation:
-
-```json
-{
-  "preparePackage": {
-    "input": "./src",
-    "output": "./dist"
-  }
-}
-```
-
-**Commands**:
-- `npm run prepare` - Build once
-- `npm start` - Watch mode
-- `npm test` - Run Mocha tests
-
-### Package Exports
-```json
-{
-  "main": "dist/index.js",
-  "module": "src/index.js",
-  "exports": {
-    ".": "./dist/index.js",
-    "./modules/*": "./dist/modules/*"
-  }
-}
-```
-
-## Testing
-
-Tests are in `test/test.js` using Mocha:
-```bash
-npm test
-```
-
-Current test coverage is minimal - focuses on configuration and storage.
-
-## Common Tasks
-
-### Adding a New Utility Function
-1. Add function to `src/modules/utilities.js`
-2. Export it: `export function myFunction() { ... }`
-3. Update README.md with documentation
-4. Run `npm run prepare` to build
-
-### Adding a New Module
-1. Create `src/modules/my-module.js`
-2. Export class: `export default class MyModule { constructor(manager) { ... } }`
-3. Import in `src/index.js`: `import MyModule from './modules/my-module.js'`
-4. Add to Manager constructor: `this._myModule = new MyModule(this)`
-5. Add getter: `myModule() { return this._myModule; }`
-6. Update README.md
-7. Run `npm run prepare`
-
-### Modifying Configuration Defaults
-1. Edit `_processConfiguration()` in `src/index.js`
-2. Add to `defaults` object (e.g., `payment: { processors: {}, products: [] }`)
-3. Document in README.md Configuration section
-
-### Payment Configuration
-Payment config shape mirrors OMEGA (the SSOT) — same key names used in BEM, UJM, and EM:
-- `processors`: Stripe, PayPal, Chargebee, Coinbase (publishable keys / client IDs)
-- `products`: Array of `{ id, name, type, limits: { feature: N }, prices, trial, paypal, stripe, chargebee }` — used to resolve usage limits on the frontend AND drive checkout flows
-
-### Adding a Data Binding Action
-1. Edit `_executeAction()` in `src/modules/bindings.js`
-2. Add case for new action (e.g., `@class`)
-3. Document in README.md Data Binding section
-
-## Dependencies
-
-| Package | Purpose |
-|---------|---------|
-| `firebase` (^12.x) | Auth, Firestore, Messaging |
-| `@sentry/browser` (^10.x) | Error tracking |
-| `lodash` (^4.x) | get/set for path-based access |
-| `itwcw-package-analytics` | Analytics (internal) |
-
-## Important Notes
-
-1. **DO NOT MODIFY `_legacy/`** - Reference only for historical context
-2. **Backwards compatibility is NOT required** - Just change to the new way
-3. **Prefer `fs-jetpack`** over `fs` for any file operations in tests/scripts
-4. **No TypeScript** - This is a pure JavaScript library
-5. **Template strings** - Use backticks for string interpolation
-6. **Modular design** - Keep modules focused and small
+- [docs/architecture.md](docs/architecture.md) — singleton pattern, directory structure, module dependency graph
+- [docs/code-patterns.md](docs/code-patterns.md) — early returns, `$`-prefixed DOM vars, logical operator placement, Firestore path syntax, dynamic imports, config deep-merge, event delegation
+- [docs/modules.md](docs/modules.md) — full module quick reference (Storage, Auth + `resolveSubscription` + Settler Pattern, Bindings, Firestore, Notifications, ServiceWorker, Sentry, DOM, Utilities)
+- [docs/build-system.md](docs/build-system.md) — `prepare-package` ES5 transpile, build commands, package exports
+- [docs/testing.md](docs/testing.md) — Mocha test setup
+- [docs/common-tasks.md](docs/common-tasks.md) — adding a utility, adding a module, modifying config defaults, payment config (OMEGA SSOT shape), adding a binding action
+- [docs/dependencies.md](docs/dependencies.md) — dependencies table + important notes (no TypeScript, prefer fs-jetpack, no backwards-compat requirement, etc.)

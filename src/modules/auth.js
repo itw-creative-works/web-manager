@@ -35,6 +35,17 @@ const DEFAULT_ACCOUNT = {
     affiliate: { code: null, timestamp: null, url: null, page: null },
     utm: { tags: {}, timestamp: null, url: null, page: null },
   },
+  consent: {
+    legal: {
+      status: 'revoked',
+      grantedAt: { timestamp: null, timestampUNIX: null, source: null, ip: null, text: null },
+    },
+    marketing: {
+      status: 'revoked',
+      grantedAt: { timestamp: null, timestampUNIX: null, source: null, ip: null, text: null },
+      revokedAt: { timestamp: null, timestampUNIX: null, source: null, ip: null, text: null },
+    },
+  },
 };
 
 function resolveAccount(rawData, firebaseUser) {

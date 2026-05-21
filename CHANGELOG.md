@@ -15,6 +15,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.2.0] - 2026-05-21
+### Added
+- **Consent defaults in `DEFAULT_ACCOUNT`.** Phase A companion to `backend-manager` v5.2.0's marketing-consent system. `src/modules/auth.js` now defaults `account.consent.{legal,marketing}` to the canonical shape (`status: 'revoked'`, `grantedAt`/`revokedAt` with null leaves) so `resolveAccount()` always populates the field for legacy users whose Firestore doc predates the consent system. Without this, the account-page email-preferences toggle would read `undefined` for pre-migration users and mis-state.
+- **`docs/<topic>.md` deep references.** New `docs/architecture.md`, `docs/build-system.md`, `docs/code-patterns.md`, `docs/common-tasks.md`, `docs/dependencies.md`, `docs/modules.md`, `docs/testing.md`. Mirrors the architectural-overview-plus-deep-references pattern used in `backend-manager` and `electron-manager`.
+
+### Changed
+- **`CLAUDE.md` refactored to the architectural-overview pattern.** Trimmed from 301 lines to ~80; per-subsystem detail moved to the new `docs/*.md` files. Keeps Claude's loaded-context cost down on every conversation.
+
+### Fixed
+- **Toast notification width.** `src/modules/utilities.js`: notifications now have `width: calc(100% - 2rem); max-width: 500px` so longer text doesn't render as a narrow cramped strip at the top of the page.
+
+---
 ## [4.1.42] - 2026-05-11
 ### Changed
 - **Firebase config: presence-driven + flat shape canonical.** Firebase now initializes when a `firebaseConfig` blob is present in config (matching BEM/BXM/EM/OMEGA shape) — no separate `firebase.app.enabled` flag needed. Removes the `enabled` redundancy where consumers had to set both a credentials blob AND flip a flag.
