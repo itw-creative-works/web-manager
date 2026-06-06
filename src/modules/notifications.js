@@ -4,6 +4,56 @@ class Notifications {
     this._requestInProgress = false;
   }
 
+  initialize(config) {
+    const storage = this.manager.storage();
+    const stored = storage.get('notifications');
+    const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+
+    console.log('[WM:push] Page load check:', { storedSubscribed: stored?.subscribed, storedToken: stored?.token?.slice(-8), permission });
+
+    // If localStorage says subscribed but browser permission disagrees, clear it
+    if (stored?.subscribed && permission !== 'granted') {
+      console.log('[WM:push] Clearing stale subscription — permission is', permission);
+      storage.set('notifications', { subscribed: false, token: null });
+    }
+
+    // Arm auto-request if not currently subscribed (including just-cleared)
+    const autoRequest = config?.autoRequest;
+    if ((!stored?.subscribed || permission !== 'granted') && autoRequest > 0) {
+      console.log('[WM:push] Arming auto-request (delay:', autoRequest + 'ms)');
+      this._setupAutoRequest(autoRequest);
+    }
+
+    // Listen for foreground messages (tab is focused)
+    if (permission === 'granted') {
+      console.log('[WM:push] Setting up foreground listener...', { supported: this.isSupported(), hasMessaging: !!this.manager.firebaseMessaging });
+      this.onMessage((payload) => {
+        console.log('[WM:push] Foreground message received:', payload);
+      }).then(unsub => {
+        console.log('[WM:push] Foreground listener registered:', typeof unsub === 'function' ? 'OK' : 'FAILED (got empty fn)');
+      });
+    }
+  }
+
+  _setupAutoRequest(delay) {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const handleClick = () => {
+      document.removeEventListener('click', handleClick);
+
+      setTimeout(() => {
+        console.log('[WM:push] Auto-requesting notification permissions...');
+        this.subscribe().catch(err => {
+          console.error('[WM:push] Auto-subscription failed:', err.message);
+        });
+      }, delay);
+    };
+
+    document.addEventListener('click', handleClick);
+  }
+
   // Check if notifications are supported
   isSupported() {
     return 'Notification' in window &&
@@ -222,31 +272,54 @@ class Notifications {
     }
   }
 
-  // Sync subscription when auth state changes
+  // Sync subscription when auth state changes or on page load.
+  // Re-fetches the current FCM token — if it changed (browser rotated it,
+  // service worker was re-registered, etc.), saves the new token to Firestore
+  // and updates localStorage. Clears the subscribed state if the token is gone.
   async syncSubscription() {
     try {
-      // Check if we have a stored notification token
       const storage = this.manager.storage();
       const storedNotification = storage.get('notifications');
 
-      if (!storedNotification?.token) {
+      const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
+
+      console.log('[WM:push:sync] Starting sync:', { storedSubscribed: storedNotification?.subscribed, storedToken: storedNotification?.token?.slice(-8), permission });
+
+      if (permission !== 'granted') {
+        if (storedNotification?.subscribed) {
+          console.log('[WM:push:sync] Permission not granted — clearing localStorage');
+          storage.set('notifications', { subscribed: false, token: null });
+        } else {
+          console.log('[WM:push:sync] Permission not granted and not subscribed — nothing to do');
+        }
         return false;
       }
 
-      // Update the subscription in Firestore with current auth state
-      await this._saveSubscription(storedNotification.token);
+      // Permission is granted — check if there's a live token (covers localStorage cleared, new browser, etc.)
+      const currentToken = await this.getToken();
 
-      // Update local storage with current user ID
+      if (!currentToken) {
+        console.log('[WM:push:sync] Token fetch returned null — clearing localStorage');
+        storage.set('notifications', { subscribed: false, token: null });
+        return false;
+      }
+
+      console.log('[WM:push:sync] Token valid:', currentToken.slice(-8), storedNotification?.token ? (storedNotification.token.slice(-8) === currentToken.slice(-8) ? '(unchanged)' : '(CHANGED from ' + storedNotification.token.slice(-8) + ')') : '(recovered — localStorage was empty)');
+
+      await this._saveSubscription(currentToken);
+
       const user = this.manager.auth().getUser();
       storage.set('notifications', {
-        ...storedNotification,
+        subscribed: true,
+        token: currentToken,
         uid: user?.uid || null,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
+      console.log('[WM:push:sync] Sync complete — subscribed');
       return true;
     } catch (error) {
-      console.error('Sync subscription error:', error);
+      console.error('[WM:push:sync] Sync error:', error);
       return false;
     }
   }
