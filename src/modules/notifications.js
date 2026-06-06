@@ -5,6 +5,8 @@ class Notifications {
   }
 
   initialize(config) {
+    this._vapidKey = this.manager.config?.firebase?.messaging?.config?.vapidKey || null;
+
     const storage = this.manager.storage();
     const stored = storage.get('notifications');
     const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
@@ -112,10 +114,9 @@ class Notifications {
 
       // Get FCM token
       const { getToken } = await import('firebase/messaging');
-      const token = await getToken(messaging, {
-        serviceWorkerRegistration: swRegistration,
-        vapidKey: options.vapidKey
-      });
+      const tokenOptions = { serviceWorkerRegistration: swRegistration };
+      if (this._vapidKey) { tokenOptions.vapidKey = this._vapidKey; }
+      const token = await getToken(messaging, tokenOptions);
 
       if (!token) {
         throw new Error('Failed to get FCM token');
@@ -198,9 +199,9 @@ class Notifications {
       const { getToken } = await import('firebase/messaging');
       const swRegistration = this.manager.state.serviceWorker;
 
-      return await getToken(messaging, {
-        serviceWorkerRegistration: swRegistration
-      });
+      const tokenOptions = { serviceWorkerRegistration: swRegistration };
+      if (this._vapidKey) { tokenOptions.vapidKey = this._vapidKey; }
+      return await getToken(messaging, tokenOptions);
     } catch (error) {
       console.error('Get token error:', error);
       return null;
