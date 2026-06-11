@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.3.2] - 2026-06-11
+
+### Added
+- **`docs/bindings.md`**: full `data-wm-bind` deep reference migrated from the `omega:ujm` skill into the repo (the module that implements the feature) — actions table, comma-separated multi-binding syntax + parser caveat, condition operators, auth/usage/custom state paths, JS API, skeleton-loader lifecycle (`wm-binding-skeleton` → `wm-bound`), multi-phase binding, composite-text pattern, and root-key update filtering. Linked from CLAUDE.md and `docs/modules.md`. Part of the skills-as-routers refactor: framework facts live in repo docs (version-matched via `node_modules`).
+
+### Changed
+- **Dependency bumps**: `@sentry/browser` `^10.54.0` → `^10.57.0`, `firebase` `^12.13.0` → `^12.14.0`.
+
+---
 ## [4.2.0] - 2026-05-21
 ### Added
 - **Consent defaults in `DEFAULT_ACCOUNT`.** Phase A companion to `backend-manager` v5.2.0's marketing-consent system. `src/modules/auth.js` now defaults `account.consent.{legal,marketing}` to the canonical shape (`status: 'revoked'`, `grantedAt`/`revokedAt` with null leaves) so `resolveAccount()` always populates the field for legacy users whose Firestore doc predates the consent system. Without this, the account-page email-preferences toggle would read `undefined` for pre-migration users and mis-state.

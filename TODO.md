@@ -1,5 +1,10 @@
-BRING BACK THESE THINGS FROM LEGACY:
-- Add back build.json fetch
+RADOM
+Remove this remove this eventually once we test the VAPDI push notificationx issue
+
+
+      const tokenOptions = { serviceWorkerRegistration: swRegistration };
+      if (this._vapidKey) { tokenOptions.vapidKey = this._vapidKey; }
+      return await getToken(messaging, tokenOptions);
 
 Do we need to use polyfill? the project that consumes this  is using webpack and compiles to es5. we need to ensure we have
 - fetch api

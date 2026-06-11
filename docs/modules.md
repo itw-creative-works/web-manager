@@ -45,6 +45,7 @@ Auth uses a promise-based settler (`_authReady`) that resolves once Firebase's f
 - **Key Methods**: `update(data)`, `getContext()`, `clear()`
 - **HTML Attr**: `data-wm-bind`
 - **Actions**: `@text`, `@value`, `@show`, `@hide`, `@attr`, `@style`
+- **Deep reference**: [bindings.md](bindings.md) — comma syntax, condition operators, state paths, skeleton loaders, root-key filtering
 
 ## Firestore (`firestore.js`)
 

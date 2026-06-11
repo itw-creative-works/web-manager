@@ -76,6 +76,7 @@ Deep references live in `docs/`. Treat docs as a first-class deliverable. **When
 - [docs/architecture.md](docs/architecture.md) — singleton pattern, directory structure, module dependency graph
 - [docs/code-patterns.md](docs/code-patterns.md) — early returns, `$`-prefixed DOM vars, logical operator placement, Firestore path syntax, dynamic imports, config deep-merge, event delegation
 - [docs/modules.md](docs/modules.md) — full module quick reference (Storage, Auth + `resolveSubscription` + Settler Pattern, Bindings, Firestore, Notifications, ServiceWorker, Sentry, DOM, Utilities)
+- [docs/bindings.md](docs/bindings.md) — `data-wm-bind` deep reference: actions, comma syntax, condition operators, state paths, skeleton loaders, root-key update filtering
 - [docs/build-system.md](docs/build-system.md) — `prepare-package` ES5 transpile, build commands, package exports
 - [docs/testing.md](docs/testing.md) — Mocha test setup
 - [docs/common-tasks.md](docs/common-tasks.md) — adding a utility, adding a module, modifying config defaults, payment config (OMEGA SSOT shape), adding a binding action
