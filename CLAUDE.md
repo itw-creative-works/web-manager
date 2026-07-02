@@ -69,6 +69,8 @@ Whenever you make a behavioral change (new module, new method, new pattern, remo
 
 Don't ship behavioral changes with stale docs. Validate first, then document — write docs that describe shipped reality, not intentions.
 
+**The OMEGA docs are structurally MIRRORED.** WM follows the library subset of the canonical OMEGA CLAUDE.md skeleton (the scaffolding frameworks UJM / BEM / BXM / EM / MAM carry the full skeleton + a consumer template). Never add, rename, or reorder a section here without checking the sister repos and the canonical skeletons + omission rules in the `omega:main` skill's `mirror-spec.md` resource.
+
 ## Documentation
 
 Deep references live in `docs/`. Treat docs as a first-class deliverable. **Whenever you make a behavioral change, update both this overview AND the relevant `docs/*.md` deep reference.**
@@ -79,5 +81,6 @@ Deep references live in `docs/`. Treat docs as a first-class deliverable. **When
 - [docs/bindings.md](docs/bindings.md) — `data-wm-bind` deep reference: actions, comma syntax, condition operators, state paths, skeleton loaders, root-key update filtering
 - [docs/build-system.md](docs/build-system.md) — `prepare-package` ES5 transpile, build commands, package exports
 - [docs/testing.md](docs/testing.md) — Mocha test setup
+- [docs/cdp-debugging.md](docs/cdp-debugging.md) — driving a live browser (per-session isolated Chrome via the `chrome-devtools` MCP) to verify WM inside a consuming site
 - [docs/common-tasks.md](docs/common-tasks.md) — adding a utility, adding a module, modifying config defaults, payment config (OMEGA SSOT shape), adding a binding action
 - [docs/dependencies.md](docs/dependencies.md) — dependencies table + important notes (no TypeScript, prefer fs-jetpack, no backwards-compat requirement, etc.)

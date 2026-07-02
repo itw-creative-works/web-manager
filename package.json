@@ -1,8 +1,14 @@
 {
   "name": "web-manager",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "description": "Easily access important variables such as the query string, current domain, and current page in a single object.",
   "main": "dist/index.js",
+  "files": [
+    "dist/",
+    "src/",
+    "docs/",
+    "CLAUDE.md"
+  ],
   "module": "src/index.js",
   "exports": {
     ".": "./dist/index.js",

@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.3.3] - 2026-07-02
+
+### Added
+- **OMEGA mirror mandate** — `CLAUDE.md` (Doc-update parity) now states WM follows the library subset of the canonical OMEGA CLAUDE.md skeleton; structural changes require checking the sister repos (canonical skeletons: `omega:main` skill's mirror-spec resource).
+- **`docs/cdp-debugging.md`** — WM joins the mirrored browser-debugging doc (UJM/BEM/BXM/EM/WM): per-session isolated Chrome via the `chrome-devtools` MCP, WM flavor = verify WM behavior by driving a consuming site (UJM dev server at `https://localhost:4000` — never the LAN IP), exercising auth/bindings/Firestore from the real browser. Indexed in CLAUDE.md.
+
 ## [4.3.2] - 2026-06-11
 
 ### Added
