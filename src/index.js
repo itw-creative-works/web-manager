@@ -506,7 +506,9 @@ class Manager {
       || this.config.environment;
 
     if (env === 'development') {
-      return 'http://localhost:5002';
+      // BEM's `mgr serve` exposes the local API over HTTPS (mkcert proxy on 5002,
+      // since backend-manager 5.7.0) — plain http:// cannot connect to it.
+      return 'https://localhost:5002';
     }
 
     const apiDomain = this._resolveFirebaseConfig()?.authDomain; // Has to be this since some projects like Clockii use ITW Universal Auth
@@ -525,6 +527,14 @@ class Manager {
     try {
       const returnUrlObject = new URL(decodeURIComponent(url));
       const currentUrlObject = new URL(window.location.href);
+
+      // Loopback returns (RFC 8252 §7.3) are valid while the SITE runs in development:
+      // native apps (Electron Manager) can't OS-register their custom scheme in dev, so
+      // their sign-in flow returns to an ephemeral 127.0.0.1 listener instead. Any port —
+      // the app binds it at flow start. Production sites never match this branch.
+      if (this.isDevelopment() && ['127.0.0.1', '[::1]', 'localhost'].includes(returnUrlObject.hostname)) {
+        return true;
+      }
 
       return returnUrlObject.host === currentUrlObject.host
         || returnUrlObject.protocol === this.config.brand?.id + ':'

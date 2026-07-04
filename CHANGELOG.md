@@ -15,6 +15,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.3.4] - 2026-07-03
+
+### Added
+- **`isValidRedirectUrl` accepts loopback redirect URLs while the site runs in development** — `127.0.0.1` / `[::1]` / `localhost` on ANY port (RFC 8252 §7.3). This is the return channel for native-app sign-in in dev: Electron Manager's `openAuthFlow()` can't OS-register its custom scheme in dev builds, so the `/token` page redirects the minted token to the app's ephemeral loopback listener instead. Production sites are unaffected (the branch is gated on `isDevelopment()`); the existing same-host / `brand.id:` scheme / `validRedirectHosts` rules are unchanged.
+
+### Changed
+- **Dev API URL is now `https://localhost:5002`** (was `http://`) — backend-manager's `mgr serve` has exposed the local API through an HTTPS-only mkcert proxy on 5002 since BEM 5.7.0, and plain http:// cannot connect to it (the frontend's dev API calls failed outright). Requires consumers to run a BEM ≥ 5.7.0 `mgr serve` for local dev.
+
+---
 ## [4.3.3] - 2026-07-02
 
 ### Added

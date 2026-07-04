@@ -37,6 +37,22 @@ describe('Manager Methods', () => {
     assert.strictEqual(getManager().isValidRedirectUrl('not-a-url'), false);
   });
 
+  it('should allow loopback redirect URLs on any port when site runs in development', async () => {
+    const Manager = getManager();
+    await Manager.initialize({ ...TEST_CONFIG, environment: 'development' });
+    assert.strictEqual(Manager.isValidRedirectUrl('http://127.0.0.1:49152/auth/token?state=abc'), true);
+    assert.strictEqual(Manager.isValidRedirectUrl('http://localhost:49152/auth/token'), true);
+    assert.strictEqual(Manager.isValidRedirectUrl('http://[::1]:49152/auth/token'), true);
+  });
+
+  it('should reject loopback redirect URLs on foreign ports in production', async () => {
+    const Manager = getManager();
+    await Manager.initialize({ ...TEST_CONFIG, environment: 'production' });
+    assert.strictEqual(Manager.isValidRedirectUrl('http://127.0.0.1:49152/auth/token'), false);
+    // Same-host loopback still passes via the host check, not the dev branch
+    assert.strictEqual(Manager.isValidRedirectUrl('http://localhost:3000/page'), true);
+  });
+
   it('should return Functions URL for production', async () => {
     const Manager = getManager();
     await Manager.initialize({
@@ -74,7 +90,7 @@ describe('Manager Methods', () => {
   it('should return API URL for development', async () => {
     const Manager = getManager();
     await Manager.initialize({ ...TEST_CONFIG, environment: 'development' });
-    assert.strictEqual(Manager.getApiUrl(), 'http://localhost:5002');
+    assert.strictEqual(Manager.getApiUrl(), 'https://localhost:5002');
   });
 
   it('should return API URL with api. subdomain for production', async () => {
