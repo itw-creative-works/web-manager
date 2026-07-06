@@ -99,7 +99,10 @@ class Manager {
       // convention). Reads flat `firebaseConfig` (BEM/BXM/EM canonical shape) and falls
       // back to nested `firebase.app.config` (UJM's current `_config.yml` shape).
       // Once UJM migrates to the flat shape this fallback can be dropped.
-      if (this._resolveFirebaseConfig()) {
+      // Initialize Firebase only when the resolved config can actually boot the
+      // SDK — apiKey is mandatory (init without one crashes with auth/invalid-api-key).
+      // Configs carrying only projectId/authDomain still resolve for URL derivation.
+      if (this._resolveFirebaseConfig()?.apiKey) {
         await this._initializeFirebase();
       }
 
@@ -394,14 +397,20 @@ class Manager {
 
   // Resolve the Firebase web SDK config blob. Flat `firebaseConfig` first (canonical
   // shape — BEM/BXM/EM), then nested `firebase.app.config` (UJM legacy yaml shape).
-  // Returns the blob when it has at least one own key, otherwise null.
+  // A blob only counts when at least one value is non-empty — framework config merges
+  // (e.g. UJM's Jekyll chain) inject all-empty-string blobs into Firebase-less sites,
+  // and those must resolve to null (no init, no URL derivation).
   _resolveFirebaseConfig() {
+    const hasValues = (blob) => !!blob
+      && typeof blob === 'object'
+      && Object.values(blob).some((value) => value);
+
     const flat = this.config.firebaseConfig;
-    if (flat && typeof flat === 'object' && Object.keys(flat).length > 0) {
+    if (hasValues(flat)) {
       return flat;
     }
     const nested = this.config.firebase?.app?.config;
-    if (nested && typeof nested === 'object' && Object.keys(nested).length > 0) {
+    if (hasValues(nested)) {
       return nested;
     }
     return null;
