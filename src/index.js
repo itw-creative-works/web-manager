@@ -104,6 +104,8 @@ class Manager {
       // Configs carrying only projectId/authDomain still resolve for URL derivation.
       if (this._resolveFirebaseConfig()?.apiKey) {
         await this._initializeFirebase();
+      } else {
+        console.log('[Firebase] Skipped: config has no apiKey (Firebase-less site or empty framework merge blob)');
       }
 
       // Initialize Sentry if enabled

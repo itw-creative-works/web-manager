@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `Security` in case of vulnerabilities.
 
 ---
+## [4.3.6] - 2026-07-06
+
+### Added
+- **`[Firebase] Skipped:` console line when Firebase init is skipped** — when the resolved config has no non-empty `apiKey` (Firebase-less site, or the empty framework merge blob 4.3.5 started ignoring), `initialize()` now says so in the console instead of skipping silently, matching the existing `[Analytics] Skipped:` idiom. Makes both the intentional case and a botched config instantly diagnosable.
+
+---
 ## [4.3.5] - 2026-07-06
 
 ### Fixed
